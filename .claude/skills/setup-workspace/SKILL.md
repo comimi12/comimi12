@@ -190,19 +190,28 @@ fi
 
 설치까지 자동으로 하지 않음. 사용자가 필요성 판단 후 진행.
 
-### 5.5 터미널 줄바꿈 키 (Shift+Enter) 안내
+### 5.5 터미널 줄바꿈 키 (Shift+Enter) 자동 설정
 
-프롬프트에서 `Shift+Enter`로 줄바꿈하려면 Claude Code의 `/terminal-setup`을 **사용자가 직접 1회 실행**해야 한다. 이 설정은 VS Code/터미널 같은 **사용자 환경**에 저장되므로 레포(clone)에는 포함되지 않는다 — 교육용 clone마다 각자 한 번 실행 필요.
+**왜 필요한가**: 프롬프트에서 `Shift+Enter`로 줄바꿈하려면 VS Code에 키바인딩이 있어야 한다. 이 설정은 **사용자의 VS Code 환경**에 저장되므로 레포(clone)에는 안 따라온다 — 교육용 clone마다 새로 잡아줘야 한다. 완전 초보자는 `/terminal-setup`을 직접 칠 줄 모르므로, 이 스킬이 대신 설정한다.
 
-```bash
-if [ "$TERM_PROGRAM" = "vscode" ]; then
-  echo "ℹ️  VS Code 터미널 감지됨."
-fi
-echo "줄바꿈(Shift+Enter)을 쓰려면 Claude Code 프롬프트에 입력: /terminal-setup"
-echo "  (VS Code 터미널·iTerm2·Apple Terminal 자동 설정. 레포가 아니라 사용자 환경에 저장되어 clone엔 안 따라옴)"
+**제안**:
+
+```
+프롬프트에서 Shift+Enter로 줄바꿈하도록 자동 설정할까요? (Y/n)
+(VS Code 사용자 설정에 키 하나 추가. 기존 설정은 백업합니다.)
 ```
 
-자동 설치·실행은 하지 않는다 — `/terminal-setup`은 Claude Code 클라이언트 명령이라 사용자가 프롬프트에 직접 입력해야 한다. (재실행해도 안전)
+Yes(기본)면 스크립트 실행:
+
+```bash
+python3 .claude/skills/setup-workspace/scripts/setup_terminal_newline.py
+```
+
+스크립트가 알아서:
+- macOS/Linux의 VS Code 계열(Code / Insiders / VSCodium / Cursor) 사용자 keybindings.json을 찾아 `Shift+Enter → 줄바꿈` 바인딩을 추가 (이미 있으면 변경 안 함, 기존 파일은 `.bak` 백업).
+- 첫 줄에 `DONE` 또는 `MANUAL`을 출력. `MANUAL`(Windows·편집기 미발견·JSONC 파싱 실패)이면 스크립트가 출력한 `/terminal-setup` 대체 안내를 사용자에게 그대로 전한다.
+
+출력 결과를 사용자에게 전하고, "새 입력부터 적용되며 안 되면 VS Code 창을 한 번 재시작하라"고 안내. No면 "나중에 필요하면 Claude Code 프롬프트에 `/terminal-setup` 입력하세요" 안내 후 다음 단계.
 
 ### 6. 첫 Daily Note 생성 제안
 
