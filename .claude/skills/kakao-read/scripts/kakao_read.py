@@ -321,7 +321,11 @@ def cmd_search(kw, n=30):
 # ---- 카톡 체크(on-demand 메뉴형 수집) -------------------------------------
 # 1:1 판별자: directChatMemberUserId != 0  (검증 2026-06-02: 모든 방이 NOT NULL,
 #   단톡 type1·오픈챗 type4·채널 type5는 값이 0. != 0 이면 친구 type0 + 비즈니스 type2 등 1:1만 남음)
+# 소규모 그룹 포함(2026-06-09): B2B 인바운드가 담당자 2~3명+이림 그룹방으로 들어오는 경우
+#   (예: CJ 김숙진 상무+최영진 3인방)가 1:1 필터에서 새던 문제. type 1 그룹방 중 인원이
+#   GROUP_MAX 이하인 소규모만 추가로 포함 → 캠프 단톡(수십~수백명)·오픈챗(type4)·채널(type5)은 계속 제외.
 DIRECT_FILTER = "r.directChatMemberUserId != 0"
+DEFAULT_GROUP_MAX = 5              # 이림 포함 5명 이하 그룹방까지 체크에 포함 (config check_group_max_members 로 조정)
 DEFAULT_FIRST_WINDOW = 2 * 86400   # 첫 실행(마지막 체크 없음) 시 최근 2일만
 
 
@@ -335,9 +339,21 @@ def cmd_check(*args):
     else:
         cutoff = int(time.time()) - DEFAULT_FIRST_WINDOW
         window = "최근 2일 (첫 실행 — 마지막 체크 기록 없음)"
+    myid = get_user_id()
+    group_max = int(_load_config().get("check_group_max_members", DEFAULT_GROUP_MAX))
+    # 1:1(directChatMemberUserId!=0) 또는 소규모 그룹(type 1, 인원 group_max 이하)만.
+    scope = (f"({DIRECT_FILTER} OR (r.directChatMemberUserId = 0 AND r.type = 1 "
+             f"AND r.activeMembersCount IS NOT NULL AND r.activeMembersCount <= {group_max}))")
+    # 그룹방은 chatName이 비면 '(이름없음)' → 발신자(본인 제외) 집계로 라벨 보강.
+    group_label = (
+        "(SELECT group_concat(nm, ', ') FROM (SELECT DISTINCT "
+        "COALESCE(u2.displayName, u2.nickName, CAST(m2.authorId AS TEXT)) AS nm "
+        "FROM NTChatMessage m2 LEFT JOIN NTUser u2 ON m2.authorId=u2.userId AND u2.linkId=0 "
+        f"WHERE m2.chatId=r.chatId AND m2.authorId NOT IN (0,{myid}) AND m2.authorId IS NOT NULL "
+        "LIMIT 4))")
     rows = run_sql(f"""
     SELECT r.chatId,
-           COALESCE(NULLIF(r.chatName,''), u.displayName, u.nickName, '(이름없음)') AS name,
+           COALESCE(NULLIF(r.chatName,''), u.displayName, u.nickName, {group_label}, '(이름없음)') AS name,
            datetime(r.lastUpdatedAt,'unixepoch','localtime') AS last_time,
            (SELECT CASE
                      WHEN mm.type IN (2,27) THEN '[사진]'
@@ -354,7 +370,7 @@ def cmd_check(*args):
             ORDER BY mm.sentAt DESC LIMIT 1) AS preview
     FROM NTChatRoom r
     LEFT JOIN NTUser u ON r.directChatMemberUserId = u.userId AND u.linkId = 0
-    WHERE {DIRECT_FILTER} AND r.lastUpdatedAt > {cutoff}
+    WHERE {scope} AND r.lastUpdatedAt > {cutoff}
     ORDER BY r.lastUpdatedAt DESC;""")
     # 방 이름 부분일치 blocklist (config의 check_blocklist, 기본 빈 목록 → 필터 없음).
     # SMS blocklist(본문 키워드 부분일치)와 같은 철학을 방 이름에 적용. 마케팅·알림 계정 정리용.
@@ -367,9 +383,9 @@ def cmd_check(*args):
         lines = kept
     else:
         hidden = 0
-    print(f"# 카톡 1:1 체크 — {window}")
+    print(f"# 카톡 체크 (1:1 + 소규모 그룹 ≤{group_max}명) — {window}")
     if not lines:
-        print("새 활동 있는 1:1 대화 없음.")
+        print("새 활동 있는 대화 없음.")
     else:
         print("\n".join(lines))
         tail = f" (blocklist로 {hidden}개 숨김)" if hidden else ""
@@ -413,9 +429,9 @@ def cmd_mark():
 
 
 if __name__ == "__main__":
-    # macOS 전용 — Mac 카카오톡 로컬 DB만 지원. 비-macOS에선 깔끔히 종료.
+    # 이 스크립트는 Mac 카카오톡 로컬 DB 전용. 윈도우/리눅스에선 윈도우 리더(win/kakao_win.py)를 쓴다.
     if sys.platform != "darwin":
-        print("kakao-read는 macOS 전용입니다 (Mac 카카오톡 로컬 DB만 지원). 현재 OS:", sys.platform)
+        print("kakao_read.py는 macOS 전용입니다 (Mac 카카오톡 로컬 DB). 윈도우는 win/kakao_win.py를 사용하세요. 현재 OS:", sys.platform)
         sys.exit(2)
     a = sys.argv[1:]
     if not a:
