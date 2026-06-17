@@ -1,0 +1,37 @@
+﻿
+############## weekly-dashboard ##############
+URL: https://restaurantreports.spoton.com/restaurant-reporting/interactive-reports/weekly-dashboard/?startDate=06-08-2026&endDate=06-14-2026&location_key=1818994375889661568
+AUTH_HEADER_PREFIX: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXV
+API: 200 https://restaurantreports.spoton.com/api/reports/54f4dd7b22e45a0000c07bf0?parameters=%7B%22date_range%22:%7B%22id%22:3,%
+--- TABLE 0 (6 rows) ---
+Location | Kalbi Social Club - Irvine, Irvine
+Range | Last Week
+Start Date | Jun 8, 2026
+End Date | Jun 14, 2026
+Created At | Jun 16, 2026 @ 11:20AM UTC
+Web Link | 
+--- TABLE 1 (96 rows) ---
+ | Mon 06/08 | Tue 06/09 | Wed 06/10 | Thu 06/11 | Fri 06/12 | Sat 06/13 | Sun 06/14 | Total
+Sales | 
+Net Sales | $6,481.10 | $8,581.33 | $7,100.96 | $11,010.72 | $12,594.81 | $21,759.98 | $0.00 | $67,528.90
+Exclusive Taxes | $502.32 | $664.01 | $544.39 | $836.49 | $974.22 | $1,686.49 | $0.00 | $5,207.92
+Inclusive Taxes | $0.00 | $1.08 | $5.97 | $16.91 | $1.94 | $0.00 | $0.00 | $25.90
+Net Sales + Taxes | $6,983.42 | $9,246.42 | $7,651.32 | $11,864.12 | $13,570.97 | $23,446.47 | $0.00 | $72,762.72
+Sales by Time of Day | 
+Lunch | $1,186.60 | $2,290.00 | $1,671.00 | $2,658.98 | $1,470.50 | $5,484.53 | $0.00 | $14,761.61
+Dinner | $5,294.50 | $6,291.33 | $5,429.96 | $8,351.74 | $11,124.31 | $16,275.45 | $0.00 | $52,767.29
+Sales by Order Type | 
+1 Dine In | $6,481.10 | $8,581.33 | $7,093.46 | $11,010.72 | $12,577.31 | $21,759.98 | $0.00 | $67,503.90
+6 Employee Sale | $0.00 | $0.00 | $7.50 | $0.00 | $17.50 | $0.00 | $0.00 | $25.00
+Sales by Category | 
+(Beer) | $108.00 | $61.00 | $42.41 | $132.65 | $321.76 | $199.00 | $0.00 | $864.82
+(N/A Beverages) | $66.00 | $159.88 | $55.47 | $131.20 | $115.76 | $228.40 | $0.00 | $756.71
+(Liquor) | $352.00 | $356.00 | $257.53 | $597.00 | $668.01 | $1,481.34 | $0.00 | $3,711.88
+D-Noodles | $98.50 | $110.00 | $135.95 | $110.00 | $223.50 | $266.55 | $0.00 | $944.50
+(Wine) | $71.00 | $13.92 | $92.03 | $280.09 | $96.06 | $26.00 | $0.00 | $579.10
+(Food) | $5,785.60 | $7,880.53 | $6,517.57 | $9,759.78 | $11,169.72 | $19,558.69 | $0.00 | $60,671.89
+Gift Cards | $0.00 | $0.00 | $0.00 | $0.00 | $0.00 | $0.00 | $0.00 | $0.00
+
+############## snapshot ##############
+URL: https://restaurantreports.spoton.com/restaurant-reporting/dashboard?startDate=06-16-2026&endDate=06-16-2026&location_key=1818994375889661568
+AUTH_HEADER_PREFIX: (none)

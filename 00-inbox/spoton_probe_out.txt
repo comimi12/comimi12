@@ -1,0 +1,86 @@
+﻿
+############## sales-by-day ##############
+URL: https://restaurantreports.spoton.com/restaurant-reporting/analytics-reports/sales-by-day/?startDate=06-08-2026&endDate=06-14-2026&location_key=1818994375889661568
+NUM_TABLES: 2
+--- TABLE 0 (6 rows) ---
+Location | Kalbi Social Club - Irvine, Irvine
+Range | Last Week
+Start Date | Jun 8, 2026
+End Date | Jun 14, 2026
+Created At | Jun 16, 2026 @ 11:19AM UTC
+Web Link | 
+--- TABLE 1 (9 rows) ---
+Category | Item | Mon 06/08 | Tue 06/09 | Wed 06/10 | Thu 06/11 | Fri 06/12 | Sat 06/13 | Sun 06/14 | Total
+(Beer) | 12.00 | 7.00 | 11.00 | 15.00 | 38.00 | 23.00 | 0.00 | 106.00
+(Food) | 303.00 | 409.00 | 319.00 | 497.00 | 608.00 | 961.00 | 0.00 | 3,097.00
+(Liquor) | 22.00 | 19.00 | 17.00 | 48.00 | 43.00 | 89.00 | 0.00 | 238.00
+(N/A Beverages) | 17.00 | 35.00 | 15.00 | 25.00 | 30.00 | 51.00 | 0.00 | 173.00
+(Wine) | 2.00 | 1.00 | 3.00 | 9.00 | 5.00 | 2.00 | 0.00 | 22.00
+D-Noodles | 6.00 | 6.00 | 8.00 | 6.00 | 13.00 | 17.00 | 0.00 | 56.00
+Grand Totals | 362.00 | 477.00 | 373.00 | 600.00 | 737.00 | 1,143.00 | 0.00 | 3,692.00
+--- API CALLS (sales-by-day) ---
+200 https://restaurantreports.spoton.com/api/v2/okta/refreshToken
+200 https://restaurantreports.spoton.com/api/users/me
+200 https://restaurantreports.spoton.com/api/organizations/locations
+200 https://restaurantreports.spoton.com/api/queries/byTemplateName/sales-by-day
+200 https://restaurantreports.spoton.com/api/reports/57c6fbcb1fe7749048b41305?parameters=%7B%22date_range%22:%7B%22id%22:3,%22rangeType%22:%22week%22,%22name%22:%22Last+Week%22,%22group%22:%22Weeks%22,%22startDate%22:%222026-06-07T15:00:00.000Z%22,%22endDate%22:%222026-06-13T15:00:00.000Z%22%7D,%22location_key%22:%221818994375889661568%22%7D
+200 https://restaurantreports.spoton.com/api/queries/byTemplateName/item-details
+
+############## dsr ##############
+URL: https://restaurantreports.spoton.com/restaurant-reporting/interactive-reports/dsr/?startDate=06-09-2026&endDate=06-16-2026&location_key=1818994375889661568
+NUM_TABLES: 10
+--- TABLE 0 (8 rows) ---
+Category | Sales | Voids | Actual | Discounts | Refunds | Net Sales
+(Beer) | $ 1,022.58 | $ 10.00 | $ 1,012.58 | $ 41.76 | 0 | $ 970.82
+(Food) | $ 81,456.37 | $ 539.25 | $ 80,917.12 | $ 2,648.32 | 0 | $ 78,268.80
+(Liquor) | $ 4,747.47 | $ 46.00 | $ 4,701.47 | $ 205.53 | 0 | $ 4,495.94
+(N/A Beverages) | $ 1,141.41 | $ 28.00 | $ 1,113.41 | $ 45.99 | 0 | $ 1,067.42
+(Wine) | $ 935.28 | $ 12.00 | $ 923.28 | $ 7.00 | 0 | $ 916.28
+D-Noodles | $ 1,407.47 | $ 0.00 | $ 1,407.47 | $ 88.85 | 0 | $ 1,318.62
+Total | $ 90,710.58 | $ 635.25 | $ 90,075.33 | $ 3,037.45 | 0 | $ 87,037.88
+--- TABLE 1 (4 rows) ---
+Day Part | Sales | Voids | Actual | Discounts | Refunds | Net Sales
+Dinner | $ 66,839.37 | $ 519.25 | $ 66,320.12 | $ 1,306.23 | 0 | $ 65,013.89
+Lunch | $ 23,871.21 | $ 116.00 | $ 23,755.21 | $ 1,731.22 | 0 | $ 22,023.99
+Total | $ 90,710.58 | $ 635.25 | $ 90,075.33 | $ 3,037.45 | 0 | $ 87,037.88
+--- TABLE 2 (4 rows) ---
+Order Type | Sales | Voids | Actual | Discounts | Refunds | Net Sales
+1 Dine In | $ 90,337.58 | $ 635.25 | $ 89,702.33 | $ 2,689.45 | 0 | $ 87,012.88
+6 Employee Sale | $ 373.00 | $ 0.00 | $ 373.00 | $ 348.00 | 0 | $ 25.00
+Total | $ 90,710.58 | $ 635.25 | $ 90,075.33 | $ 3,037.45 | 0 | $ 87,037.88
+--- TABLE 3 (9 rows) ---
+Total Cash |  | $ 4,101.48
+Non-Cash Tips | - | $ 11,526.54
+Auto Gratuity | - | $ 5,020.74
+Cash Paid In | + | $ 0.00
+Cash Paid Out | - | $ 0.00
+CC Tip Deduction | + | $ 0.00
+Net Cash | - | $ 12,445.80
+0 Cash Deposit(s) |  | $ 0.00
+Over/Short |  | $ 12,445.80
+--- TABLE 5 (3 rows) ---
+Tax | Rate | Inclusive Tax | Exclusive Tax | Total Taxes
+Sales Tax | 7.75% | $ 49.72 | $ 6,696.11 | $ 6,745.83
+Totals |  | $ 49.72 | $ 6,696.11 | $ 6,745.83
+--- TABLE 9 (19 rows) ---
+Job | Hours | Labor Cost | % Net Sales
+Server | 194.23 | $ 3,280.52 | 3.77%
+AM Line Cook | 89.76 | $ 1,835.53 | 2.11%
+Dishwasher | 102.05 | $ 1,727.20 | 1.98%
+Busser | 93.50 | $ 1,580.11 | 1.82%
+Meat Station | 73.59 | $ 1,497.49 | 1.72%
+PM Lines Cook | 75.96 | $ 1,379.01 | 1.58%
+Kitchen Manager | 52.34 | $ 1,352.88 | 1.55%
+Tica | 74.47 | $ 1,137.48 | 1.31%
+Food Runner | 59.21 | $ 1,027.68 | 1.18%
+Butcher | 33.36 | $ 800.64 | 0.92%
+Prep | 45.62 | $ 723.42 | 0.83%
+Server Lead | 33.65 | $ 588.90 | 0.68%
+Host | 32.95 | $ 556.86 | 0.64%
+Training-BOH | 26.10 | $ 522.00 | 0.60%
+Bartender | 23.03 | $ 402.91 | 0.46%
+Training-FOH | 24.21 | $ 318.74 | 0.37%
+Manager | 214.88 | $ 0.00 | 0.00%
+Totals | 1,248.91 | $ 18,731.37 | 21.52%
+--- API CALLS (dsr) ---
+200 https://restaurantreports.spoton.com/api/v2/okta/refreshToken

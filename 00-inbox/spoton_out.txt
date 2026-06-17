@@ -1,0 +1,64 @@
+﻿AFTER_LOGIN_URL: https://restaurantreports.spoton.com/dashboard
+FINAL_URL: https://restaurantreports.spoton.com/search?startDate=06-09-2026&endDate=06-16-2026&comparisonPeriod=12-25-2025&location_key=1818994375889661568
+TITLE: SpotOn Restaurant Reports
+NUM_TABLES: 4
+===== TABLE 0 =====
+Location | Kalbi Social Club - Irvine, Irvine
+Range | Custom
+Start Date | Jun 9, 2026
+End Date | Jun 16, 2026
+Created At | Jun 16, 2026 @ 11:17AM UTC
+Web Link | 
+===== TABLE 1 =====
+Date | Employee | Order # | Open | Close | Reopen | # Items | Voids | Discounts | Net Sales
+===== TABLE 2 =====
+Date | Name | Type | CC # | Status | Auth | Order | Employee | Sale | Tip | Charged
+===== TABLE 3 =====
+Item | Group | Category | Type | Taxable
+
+===== BODY TEXT =====
+Restaurant Reporting
+
+Jaehwan Cha
+
+eg231478@samchully.co.kr
+
+JC
+Dashboard
+Reports
+Virtual Terminal
+Favorites
+Search
+Sales Snapshot
+Closing
+Sales
+Gift Cards
+Labor
+Loyalty - DineLoyal
+Payments
+Campaigns
+POS Analytics
+Enterprise
+Integrations
+Labor Groups
+Search
+Location
+Kalbi Social Club - Irvine
+Range
+Custom
+Today
+Yesterday
+This Week
+This Month
+This Quarter
+This Year
+Last Week
+Last Month
+Last Quarter
+Last Year
+Start
+End
+Search Terms
+  Search
+
+© SpotOn, 2026. All Rights Reserved

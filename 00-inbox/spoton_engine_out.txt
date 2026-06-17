@@ -1,0 +1,17 @@
+﻿BEARER_CAPTURED: True
+
+=== KCS daily 2026-06-09~2026-06-16 ===
+status 200 ndays 7
+20260609 net_sales= 8581.33 guests= 132 checks= 45
+20260610 net_sales= 7100.96 guests= 114 checks= 39
+20260611 net_sales= 11010.72 guests= 172 checks= 53
+20260612 net_sales= 12594.81 guests= 209 checks= 70
+20260613 net_sales= 21759.98 guests= 330 checks= 94
+20260614 net_sales= 16928.01 guests= 246 checks= 67
+20260615 net_sales= 2580.97 guests= 91 checks= 27
+
+=== 4 stores single day 2026-06-15 ===
+Kalbi Social Club - Irvine: status=200 -> {'business_date_key': 20260615, 'net_sales': 2580.97, 'check_count': 27, 'guest_count': 91, 'check_duration_total': 78091, 'external_ids': {}, 'clickhouse': True}
+Kalbi Social Club - Brea: status=200 -> None
+Robata Wasa - Irvine: status=200 -> {'business_date_key': 20260615, 'net_sales': 5559.34, 'check_count': 74, 'guest_count': 168, 'check_duration_total': 145783, 'external_ids': {}, 'clickhouse': True}
+Robata Wasa - Brea: status=200 -> None

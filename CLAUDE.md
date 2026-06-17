@@ -55,6 +55,17 @@
 - 모든 비텍스트 파일 저장
 - 명명: `[관련노트]_[설명].[ext]`
 
+## Google Workspace 연동 (gws CLI)
+
+`gws` (Google Workspace CLI, v0.22.5) CLI로 Google Workspace에 연동되어 있습니다.
+Gmail, Calendar, Drive, Sheets, Docs, Slides, Tasks 등을 직접 호출할 수 있습니다.
+
+- 사용법: `gws <service> <resource> <method> --params '<JSON>'`
+- 예시: `gws gmail users messages list --params '{"userId":"me","maxResults":5}'`
+- 예시: `gws calendar events list --params '{"calendarId":"primary"}'`
+- 인증: keyring 백엔드에 OAuth 토큰 저장됨 (별도 로그인 불필요)
+- daily-note 스킬은 gws 인증 시 Google Calendar 오늘 일정을 자동 포함
+
 ## Skills 사용
 
 이 워크스페이스의 `.claude/skills/`에 프로젝트 전용 스킬이 있습니다.
@@ -73,10 +84,12 @@
 
 > 이 섹션을 직접 작성하거나, Claude에게 "워크스페이스 세팅해줘"라고 말하면 `setup-workspace` 스킬이 자동 실행되어 채워줍니다. 같은 스킬이 Python venv·선택 도구(git/gws) 세팅도 안내합니다.
 
-**이름**:
-**역할**:
-**관심사**:
-**이 워크스페이스 용도**:
+**이름**: 차재환
+**역할**: 서비스 교육, 해외 영업지원
+**관심사**: AX 교육 — AI를 활용해 일잘러가 되는 법을 강의 (AI 실무 활용 역량 전파)
+**이 워크스페이스 용도**: AI 교육, 자료분석, 손익분석, 기획
+
+_작성일: 2026-06-15_
 
 ---
 

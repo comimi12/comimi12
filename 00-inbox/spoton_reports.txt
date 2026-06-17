@@ -1,0 +1,83 @@
+﻿URL: https://restaurantreports.spoton.com/dashboard?startDate=06-16-2026&endDate=06-16-2026&location_key=1818994375889661568
+===== NAV LINKS =====
+Search -> /search
+ -> /restaurant-reporting/
+Sales Snapshot -> /dashboard
+Sales Snapshot -> /restaurant-reporting/interactive-reports/dashboard/
+ -> /restaurant-reporting/
+Clocked-In Employees -> /restaurant-reporting/interactive-reports/clocked-in-labor/
+Close Report Summaries -> /restaurant-reporting/interactive-reports/close-summary-list/
+Multi Cash Deposits -> /restaurant-reporting/interactive-reports/multi-cash-deposits/
+Open Orders -> /restaurant-reporting/interactive-reports/open-orders/
+Reopened Orders -> /restaurant-reporting/interactive-reports/reopened-orders/
+Cash Discounting -> /restaurant-reporting/interactive-reports/cash-discounting/
+Daily Sales Recap -> /restaurant-reporting/interactive-reports/dsr/
+Discount Detail -> /restaurant-reporting/interactive-reports/discount-detail/
+Discount Summary -> /restaurant-reporting/interactive-reports/discount-summary/
+Employee Sales -> /restaurant-reporting/interactive-reports/employeesales/
+Hourly Sales -> /restaurant-reporting/interactive-reports/hourlysales/
+Modifiers Report -> /restaurant-reporting/interactive-reports/modifiers/
+Order List -> /restaurant-reporting/interactive-reports/orderlist/
+Paid In / Paid Out -> /restaurant-reporting/interactive-reports/paid-in-out/
+Pricing Events -> /restaurant-reporting/interactive-reports/pricing-events/
+Product Mix -> /restaurant-reporting/interactive-reports/pmix/
+Product Mix by Employee -> /restaurant-reporting/interactive-reports/pmix-emp/
+Product Mix with Modifiers -> /restaurant-reporting/interactive-reports/pmix-modifiers/
+Product Mix with Subtotals -> /restaurant-reporting/interactive-reports/pmix-subtotals/
+Sales By Order Type -> /restaurant-reporting/interactive-reports/sales-by-order-type/
+Sales Comparison -> /restaurant-reporting/interactive-reports/sales-flash-comparison/
+Scheduled Orders -> /restaurant-reporting/interactive-reports/scheduled-orders/
+Station Sales -> /restaurant-reporting/interactive-reports/station-sales/
+Surcharge Report -> /restaurant-reporting/interactive-reports/surcharges/
+Tax Exempt Orders -> /restaurant-reporting/interactive-reports/tax-exempt/
+Taxes Summary -> /restaurant-reporting/interactive-reports/taxes/
+Unsold Items -> /restaurant-reporting/interactive-reports/pmix-unsold/
+Void Report -> /restaurant-reporting/interactive-reports/void/
+Weekly Dashboard -> /restaurant-reporting/interactive-reports/weekly-dashboard/
+Enterprise Gift Card Detail -> /restaurant-reporting/gift-card-reports/gift-card-reconciliation/
+Gift Card Detail -> /restaurant-reporting/gift-card-reports/gift-card-detail/
+Gift Card Status -> /restaurant-reporting/gift-card-reports/gift-card-status/
+Gift Card Summary -> /restaurant-reporting/interactive-reports/liabilities/
+Employee List -> /restaurant-reporting/interactive-reports/employee-list/
+Employee Time -> /restaurant-reporting/interactive-reports/employeetime/
+Labor Audit Report -> /restaurant-reporting/analytics-reports/labor-audit/
+Payroll -> /restaurant-reporting/interactive-reports/payroll-detail/
+Payroll Detail Teams -> /restaurant-reporting/interactive-reports/payroll-detail-teams/
+Payroll Summary -> /restaurant-reporting/interactive-reports/payroll-summary/
+Payroll Teams Summary -> /restaurant-reporting/interactive-reports/payroll-teams/
+Timesheets -> /restaurant-reporting/interactive-reports/time-clock/
+Customer Detail Report -> /restaurant-reporting/interactive-reports/top-deliveries/
+Loyalty Detail -> /restaurant-reporting/loyalty-reports/loyalty-detail/
+Loyalty Fraud Detection -> /restaurant-reporting/loyalty-reports/loyalty-fraud-detection/
+Loyalty Summary -> /restaurant-reporting/loyalty-reports/loyalty-member-summary/
+Top Credit Card Customers -> /restaurant-reporting/interactive-reports/top-customers/
+Credit Card Transactions -> /restaurant-reporting/interactive-reports/cc-transaction-list/
+House Account Status -> /restaurant-reporting/interactive-reports/houseacct-status/
+Payment List -> /restaurant-reporting/interactive-reports/payment-list/
+Payment Summary -> /restaurant-reporting/interactive-reports/payment-summary/
+App Messages -> /restaurant-reporting/integration-reports/campaign-app-messages/
+Customer List -> /restaurant-reporting/integration-reports/campaign-customer-list/
+Customer Menu Items -> /restaurant-reporting/integration-reports/campaign-customer-menuitems/
+Customer Overview -> /restaurant-reporting/integration-reports/campaign-customer-overview/
+Activity Audit Report -> /restaurant-reporting/analytics-reports/activity-audit/
+Item Usage -> /restaurant-reporting/analytics-reports/item-usage/
+Profit Report -> /restaurant-reporting/analytics-reports/profit/
+Sales & Labor By Hour -> /restaurant-reporting/analytics-reports/sales-labor-by-hour/
+Sales By Day -> /restaurant-reporting/analytics-reports/sales-by-day/
+Sales Contests -> /restaurant-reporting/analytics-reports/sales-contests/
+Sales Goals -> /restaurant-reporting/analytics-reports/sales-goals/
+Weekly Sales -> /restaurant-reporting/analytics-reports/weekly-sales/
+Enterprise Discount Summary -> /restaurant-reporting/enterprise-reports/enterprise-discount-summary/
+Enterprise Flash Report -> /restaurant-reporting/enterprise-reports/flash-report-data/
+Enterprise Product Mix -> /restaurant-reporting/enterprise-reports/enterprise-pmix/
+Enterprise Void Report -> /restaurant-reporting/enterprise-reports/enterprise-void/
+Store Performance -> /restaurant-reporting/enterprise-reports/store-performance/
+Accardis Export -> /restaurant-reporting/integration-reports/accardis-export/
+Optimum Control Export -> /restaurant-reporting/integration-reports/optimum-export/
+Payroll Export -> /restaurant-reporting/integration-reports/payroll-export/
+QuickBooks Export -> /restaurant-reporting/integration-reports/qb-export/
+Sculpture Hospitality Export -> /restaurant-reporting/integration-reports/sculpture-hospitality-export/
+Multi Location Hours -> /restaurant-reporting/interactive-reports/labor-group-hours-report/
+
+===== API CALLS (dashboard) =====
+200 https://restaurantreports.spoton.com/api/v2/okta/refreshToken
