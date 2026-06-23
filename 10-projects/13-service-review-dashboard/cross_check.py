@@ -11,9 +11,11 @@
   - coverage = 양쪽공통 / 수동  (자동이 수동을 얼마나 커버하나)
   - 수동만(=자동 누락)이 많으면 ⚠, 자동만(=자동 신규/최신)도 표시.
 """
-import sys, io, os, glob, json, re
+import sys, io, os, glob, json, re, datetime
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 import build  # normalize_reviews_file 재사용
+
+CUR_MONTH = datetime.date.today().strftime("%Y-%m")
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REVIEW_DIR = os.path.join(HERE, "data", "reviews")
@@ -56,8 +58,9 @@ def main():
         row = {"month": m, "auto": len(a), "manual": len(mn), "both": len(both),
                "auto_only": len(a - mn), "manual_only": len(mn - a), "coverage_pct": cov}
         report["months"].append(row)
-        if mn and cov is not None and cov < 90:
-            report["flags"].append(f"{m}: 자동이 수동의 {cov}%만 커버 (수동만 {len(mn-a)}건 누락 의심)")
+        # ⚠ 판정은 '당월'만 (자동은 당월 기준일로만 수집 → 과거월 낮은 커버리지는 정상)
+        if m == CUR_MONTH and mn and cov is not None and cov < 90:
+            report["flags"].append(f"{m}(당월): 자동이 수동의 {cov}%만 커버 (수동만 {len(mn-a)}건) — 당월 자동 수집 점검 필요")
 
     if AS_JSON:
         print(json.dumps(report, ensure_ascii=False))
@@ -82,8 +85,12 @@ def main():
         for f in report["flags"]:
             print("   -", f)
     else:
-        print("✅ 자동 수집이 수동 데이터를 충분히 커버합니다 (또는 비교 대상 없음).")
-    print("\n해석: '수동만'=자동이 못 받은 리뷰(누락), '자동만'=자동이 더 받은 리뷰(최신/추가).")
+        print(f"✅ 당월({CUR_MONTH}) 자동 수집 정상 (또는 당월 수동 비교본 없음).")
+    print("\n해석:")
+    print(" - 자동은 '당월 기준일' 위주 수집 → 과거월의 낮은 커버리지는 정상(과거는 수동이 정답).")
+    print(" - '수동만'=자동 미수집(과거월/캐치테이블 포함), '자동만'=자동이 더 받은 최신분.")
+    print(" - build.py 가 자동+수동을 합쳐 (매장·날짜·내용) 중복제거하므로 대시보드는 합집합을 사용.")
+    print(" - 특정 과거월을 자동으로 받으려면: python collect.py YYYY-MM-01")
 
 
 if __name__ == "__main__":
