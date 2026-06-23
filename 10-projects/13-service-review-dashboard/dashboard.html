@@ -156,9 +156,23 @@
   table.cal .dnum{font-weight:700;font-size:13px;color:var(--ink)}
   table.cal td.sun .dnum{color:var(--bad)} table.cal td.sat .dnum{color:#1a9c63}
   table.cal .holtag{font-size:10px;color:var(--bad);margin-top:2px}
-  table.cal .visit{margin-top:5px;background:var(--brand);color:#fff;border-radius:7px;padding:5px 7px;line-height:1.4}
+  table.cal .visit{margin-top:5px;background:var(--brand);color:#fff;border-radius:7px;padding:6px 7px;line-height:1.35;cursor:pointer;transition:transform .08s,box-shadow .08s}
+  table.cal .visit:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(20,85,155,.35)}
   table.cal .visit .vs{font-weight:700;font-size:11.5px;display:block}
-  table.cal .visit .vt{font-size:10px;opacity:.96;display:block;margin-top:1px}
+  table.cal .visit .vt{font-size:10px;opacity:.96;display:block;margin-top:2px}
+  table.cal .visit .more{font-size:9.5px;opacity:.85;display:block;margin-top:3px;text-align:right}
+  /* 방문 상세 모달 */
+  .vmodal{position:fixed;inset:0;background:rgba(20,29,41,.55);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px}
+  .vmodal.on{display:flex}
+  .vmodal .box{background:#fff;border-radius:16px;max-width:680px;width:100%;max-height:86vh;overflow:auto;padding:22px 26px;box-shadow:0 24px 70px rgba(0,0,0,.35)}
+  .vmodal .x{float:right;cursor:pointer;font-size:22px;line-height:1;color:var(--muted);border:none;background:none}
+  .vmodal h3{margin:2px 0 2px;font-size:18px;color:var(--brand-deep)}
+  .vmodal .msub{color:var(--muted);font-size:13px;margin-bottom:14px}
+  .vmodal .mk{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+  .vmodal .mk span{background:var(--brand-soft);color:var(--brand);border-radius:7px;padding:5px 10px;font-size:12.5px;font-weight:600}
+  .vmodal .mlbl{font-weight:700;color:var(--ink);margin:14px 0 6px;font-size:13.5px}
+  .vmodal .train{background:#eef5ff;border-left:3px solid var(--brand);border-radius:8px;padding:10px 12px;font-size:13px}
+  .vmodal .rv{border-left:3px solid var(--bad);background:#fdf0f0;padding:8px 11px;border-radius:7px;margin:7px 0;font-size:12.5px;line-height:1.5}
   .memo{width:100%;min-height:60px;border:1px solid #d9dfe8;border-radius:9px;padding:9px 11px;font-family:inherit;font-size:13px;line-height:1.5;resize:vertical;background:#fffdf3;color:var(--ink)}
   .memo:focus{outline:none;border-color:var(--brand);background:#fff;box-shadow:0 0 0 2px rgba(20,85,155,.12)}
   .memo-saved{font-size:11px;color:var(--good);margin-top:3px;height:13px}
@@ -320,7 +334,8 @@
       <span class="ctrl-note" id="vmon-meta"></span>
     </div>
     <div class="kpis" id="vmon-kpi"></div>
-    <div class="panel"><h3>월간 방문 캘린더 <span class="note">매주 <b>목요일</b> 주 1회 · 주말·공휴일 제외 · 불만 상위 매장 우선 (목 공휴일 시 같은 주 대체일)</span></h3><div id="vmon-sched"></div></div>
+    <div class="panel"><h3>월간 방문 캘린더 <span class="note">매주 <b>목요일</b> 주 1회 · 주말·공휴일 제외 · <b>서비스 불만</b> 상위 매장 우선 · 카드 클릭 시 상세</span></h3><div id="vmon-sched"></div></div>
+    <div class="vmodal" id="vmon-modal"><div class="box" id="vmon-modal-box"></div></div>
   </section>
 
 </div>
@@ -917,18 +932,22 @@ function bizDaysOf(ym){
   }
   return out;
 }
-function storeTopTopic(store,ym){
+const SERVICE_CATS = ["직원 응대·친절", "대기·서빙 지연"];
+function topicCountOf(store, ym){
   const cs=R.complaints.filter(c=>c.store===store&&c.month===ym), cnt={};
   cs.forEach(c=>topicsOf(c.text).forEach(t=>cnt[t]=(cnt[t]||0)+1));
-  const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0];
-  return top?top[0]:null;
+  return cnt;
 }
+function svcComplaintsOf(store, ym){
+  return R.complaints.filter(c=>c.store===store&&c.month===ym&&topicsOf(c.text).some(t=>SERVICE_CATS.includes(t)));
+}
+let VMON={ym:'',visits:{}};
 function renderVmon(ym){
   const box=document.getElementById('vmon-sched'); if(!box) return;
-  document.getElementById('vmon-src').textContent=`${ym} · 리뷰 분석 기반 자동 생성`;
+  document.getElementById('vmon-src').textContent=`${ym} · 서비스 불만 리뷰 분석 기반 자동 생성`;
   const [y,m]=ym.split('-').map(Number), dim=new Date(y,m,0).getDate();
   const biz=bizDaysOf(ym), bizSet=new Set(biz.map(b=>b.iso));
-  // 매주 목요일(주 1회). 목요일이 공휴일이면 같은 주 영업일(금→수→화→월)로 대체.
+  // 매주 목요일(주 1회). 목요일 공휴일이면 같은 주 영업일로 대체.
   const slots=[];
   for(let d=1;d<=dim;d++){
     if(new Date(y,m-1,d).getDay()!==4) continue;
@@ -937,25 +956,28 @@ function renderVmon(ym){
     const alt=[1,-1,2,-2].map(o=>d+o).find(x=>x>=1&&x<=dim&&bizSet.has(`${ym}-${String(x).padStart(2,'0')}`));
     if(alt) slots.push({d:alt,iso:`${ym}-${String(alt).padStart(2,'0')}`,moved:true});
   }
-  // 대상: 그 달 불만 상위(표본 10건+), 슬롯 수만큼
+  // 서비스(응대·서빙) 불만 상위 매장 우선 (표본 10건+)
   const cand=[];
   for(const st in R.store_month){ const o=R.store_month[st][ym];
-    if(o&&o.total>=10&&o['불만']>0) cand.push({store:st,brand:R.store_brand[st],total:o.total,불만:o['불만'],불만율:Math.round(o['불만']/o.total*1000)/10}); }
-  cand.sort((a,b)=>b['불만']-a['불만']||b['불만율']-a['불만율']||(a.store<b.store?-1:1));
+    if(!o||o.total<10||!o['불만']) continue;
+    const svc=svcComplaintsOf(st,ym).length; if(svc<=0) continue;
+    cand.push({store:st,brand:R.store_brand[st],total:o.total,불만:o['불만'],불만율:Math.round(o['불만']/o.total*1000)/10,svc}); }
+  cand.sort((a,b)=>b.svc-a.svc||b['불만']-a['불만']||(a.store<b.store?-1:1));
   const targets=cand.slice(0,slots.length);
   const visit={};
-  targets.forEach((t,i)=>{ const s=slots[i], tp=storeTopTopic(t.store,ym);
-    visit[s.iso]={store:t.store,brand:t.brand,불만:t['불만'],불만율:t['불만율'],
-      topic:tp||'서비스 전반',train:TRAIN_BY_CAT[tp]||'서비스 전반 점검·기본 응대 교육',moved:s.moved}; });
+  targets.forEach((t,i)=>{ const s=slots[i], cnt=topicCountOf(t.store,ym);
+    const svcTop=SERVICE_CATS.slice().sort((a,b)=>(cnt[b]||0)-(cnt[a]||0))[0];
+    visit[s.iso]={store:t.store,brand:t.brand,불만:t['불만'],불만율:t['불만율'],svc:t.svc,
+      topic:svcTop,train:TRAIN_BY_CAT[svcTop]||'서비스 응대 점검·교육',moved:s.moved}; });
+  VMON={ym,visits:visit};
   const nvisit=Object.keys(visit).length;
-  document.getElementById('vmon-meta').textContent=`영업일 ${biz.length}일 · 방문 ${nvisit}회 (주 1회·목요일)`;
+  document.getElementById('vmon-meta').textContent=`영업일 ${biz.length}일 · 방문 ${nvisit}회 (주 1회·목) · 서비스 불만 매장`;
   document.getElementById('vmon-kpi').innerHTML=kpiHtml([
     {lab:'방문 횟수', val:fmt(nvisit), sub:`${ym} · 매주 목요일`, color:'var(--brand)'},
-    {lab:'대상 매장', val:fmt(targets.length), sub:'불만 상위', color:'var(--warn)'},
+    {lab:'대상 매장', val:fmt(targets.length), sub:'서비스 불만 상위', color:'var(--warn)'},
     {lab:'영업일', val:fmt(biz.length), sub:'주말·공휴일 제외', color:'var(--good)'},
     {lab:'방문 주기', val:'주 1회', sub:'목요일 방문', color:'var(--neutral)'},
   ]);
-  // 달력 그리드
   const first=new Date(y,m-1,1).getDay();
   let h='<table class="cal"><thead><tr>'+WDK.map((w,i)=>`<th class="${i===0?'sun':i===6?'sat':''}">${w}</th>`).join('')+'</tr></thead><tbody><tr>';
   let col=0;
@@ -967,19 +989,46 @@ function renderVmon(ym){
     h+=`<td class="${cls.join(' ')}"><div class="dnum">${d}</div>`;
     if(hol) h+='<div class="holtag">공휴일</div>';
     if(v){ const nm=v.store.split('·').slice(1).join('·')||v.store;
-      h+=`<div class="visit"><span class="vs">🏬 ${v.brand} ${nm}</span><span class="vt">불만 ${v['불만']}건 · ${v.topic}</span><span class="vt">📘 ${v.train}</span>${v.moved?'<span class="vt">※목 공휴일→대체일</span>':''}</div>`; }
+      h+=`<div class="visit" onclick="showVisitDetail('${iso}')"><span class="vs">🏬 ${nm}</span><span class="vt">서비스 불만 ${v.svc}건</span><span class="more">클릭 ▸ 상세</span></div>`; }
     h+='</td>'; col++;
     if(col===7&&d<dim){ h+='</tr><tr>'; col=0; }
   }
   while(col>0&&col<7){ h+='<td class="empty"></td>'; col++; }
   box.innerHTML=h+'</tr></tbody></table>';
-  if(!nvisit) box.innerHTML+='<p style="color:var(--muted);margin-top:8px">해당 월 불만 상위(표본 10건+) 매장이 없어 방문 일정이 없습니다.</p>';
+  if(!nvisit) box.innerHTML+='<p style="color:var(--muted);margin-top:8px">해당 월 서비스 불만(표본 10건+) 매장이 없어 방문 일정이 없습니다.</p>';
 }
+function showVisitDetail(iso){
+  const v=VMON.visits[iso]; if(!v) return;
+  const ym=VMON.ym, p=iso.split('-'), m=p[1], d=p[2];
+  const wd=WDK[new Date(+p[0],+m-1,+d).getDay()];
+  const nm=v.store.split('·').slice(1).join('·')||v.store;
+  const svc=svcComplaintsOf(v.store,ym);
+  const topics=Object.entries(topicCountOf(v.store,ym)).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([k,n])=>`${k} ${n}`);
+  let aiPlan='';
+  const note=((AI.monthly||{})[ym]||[]).find(n=>n.store===v.store||(nm&&n.store&&n.store.endsWith(nm)));
+  if(note&&note['개선방안']&&note['개선방안'].length){
+    aiPlan='<div class="mlbl">🛠 개선 방안 (AI)</div>'+note['개선방안'].map(x=>`<div class="rv" style="border-left-color:var(--good);background:#eef7f1">${String(x).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>')}</div>`).join('');
+  }
+  const samples=svc.slice(0,5).map(c=>`<div class="rv">${(c.text||'').replace(/</g,'&lt;').slice(0,170)}</div>`).join('')||'<div style="color:var(--muted);font-size:12px">서비스 불만 리뷰 샘플 없음</div>';
+  document.getElementById('vmon-modal-box').innerHTML=
+    '<button class="x" onclick="closeVmonModal()">✕</button>'
+    +`<h3>🏬 ${v.brand} ${nm}</h3>`
+    +`<div class="msub">📅 ${m}/${d} (${wd}) 방문${v.moved?' · 목 공휴일→대체일':''} · ${ym}</div>`
+    +`<div class="mk"><span>총 불만 ${v['불만']}건</span><span style="background:#fde7e7;color:var(--bad)">서비스 불만 ${v.svc}건</span><span>불만율 ${v['불만율']}%</span></div>`
+    +`<div class="mlbl">📊 주요 불만 토픽</div><div class="msub" style="margin:0">${topics.join(' · ')||'-'}</div>`
+    +`<div class="mlbl">📘 방문 교육 내용</div><div class="train">${v.train}</div>`
+    +aiPlan
+    +`<div class="mlbl">💬 서비스 불만 리뷰 (표시 ${Math.min(svc.length,5)} / 총 ${svc.length}건)</div>${samples}`;
+  document.getElementById('vmon-modal').classList.add('on');
+}
+function closeVmonModal(){ document.getElementById('vmon-modal').classList.remove('on'); }
 (function initVmon(){
   const sel=document.getElementById('vmon-month'); if(!sel||!R.months) return;
   R.months.forEach(m=>sel.add(new Option(m,m)));
   sel.value=R.months[R.months.length-1];
   document.getElementById('vmon-apply').addEventListener('click',()=>renderVmon(sel.value));
+  const mo=document.getElementById('vmon-modal');
+  if(mo) mo.addEventListener('click',e=>{ if(e.target.id==='vmon-modal') closeVmonModal(); });
   renderVmon(R.months[R.months.length-1]);
 })();
 
