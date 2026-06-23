@@ -122,7 +122,11 @@ def normalize_reviews_file(path):
     with open(path, encoding="utf-8-sig", newline="") as f:
         rd = csv.DictReader(f)
         hdr = rd.fieldnames or []
-        if "리뷰유형" in hdr:               # 양식 A
+        fixed_source = None
+        if "닉네임" in hdr and "작성일자" in hdr:   # 양식 C: 캐치테이블 통합(방문일자 없음, 작성일자 사용)
+            sc, tc, mc, dc, cc = "리뷰유형", "리뷰내용", "매장명", "작성일자", None
+            fixed_source = "catchtable"
+        elif "리뷰유형" in hdr:               # 양식 A (네이버+캐치테이블, 채널 구분)
             sc, tc, mc, dc, cc = "리뷰유형", "리뷰내용", "매장명", "방문일자", "채널"
         elif "리뷰감성(Gemini)" in hdr:      # 양식 B
             sc, tc, mc, dc, cc = "리뷰감성(Gemini)", "리뷰내용", "매장명", "방문일자", "출처"
@@ -133,10 +137,11 @@ def normalize_reviews_file(path):
             date = parse_date(r.get(dc, ""))
             if not date:
                 continue
+            src = fixed_source or SRC_MAP.get((r.get(cc) or "").strip(), (r.get(cc) or "").strip() or "기타")
             out.append({
                 "brand": brand, "store": f"{brand}·{store}", "store_short": store,
                 "month": date[:7], "date": date, "text": r.get(tc, "") or "",
-                "source": SRC_MAP.get((r.get(cc) or "").strip(), (r.get(cc) or "").strip() or "기타"),
+                "source": src,
                 "sentiment": SENT_MAP.get((r.get(sc) or "").strip(), "중립"),
             })
     return out
@@ -185,10 +190,15 @@ def build_reviews():
         if add:
             rows.extend(add)
             used.append(os.path.basename(merged[0]) + " (catchtable 보충)")
-    # 월별 파일이 겹칠 때 중복 제거 (매장·날짜·내용 동일 → 1건). 재크롤링 중복 방지.
+    # 중복 제거. 캐치테이블은 출처(양식A 채널/양식C/merged)마다 날짜 컬럼이 달라(방문↔작성) 내용 기준으로,
+    # 네이버는 (매장·날짜·내용) 기준으로 1건 처리. 재크롤링·다중 소스 중복 방지.
     seen, dedup = set(), []
     for r in rows:
-        k = (r["store"], r["date"], r["text"])
+        t = (r["text"] or "").strip()
+        if r["source"] == "catchtable":
+            k = ("ct", r["store"], t) if t else ("ct", r["store"], r["date"], r["sentiment"])
+        else:
+            k = (r["store"], r["date"], t)
         if k in seen:
             continue
         seen.add(k)
@@ -247,6 +257,7 @@ def build_reviews():
             topic_brand[tp][r["brand"]] += 1
 
     source_split = collections.Counter(r["source"] for r in cur_rows)
+    by_month_source = {m: dict(collections.Counter(r["source"] for r in rowset if r["month"] == m)) for m in months}
 
     # 매장×월 집계 (전 매장 — 검색·기간별 TOP3용). 매달 신규 오픈 매장도 자동 포함.
     store_month = {}
@@ -270,6 +281,7 @@ def build_reviews():
         "topic_freq": dict(topic_freq.most_common()),
         "topic_brand": {k: dict(v) for k, v in topic_brand.items()},
         "source_split": dict(source_split),
+        "by_month_source": by_month_source,
         "store_month": store_month, "store_brand": store_brand,
         "stores": sorted(store_brand.keys()), "complaints": complaints,
         "source_file": ", ".join(used),

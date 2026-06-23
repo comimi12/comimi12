@@ -353,6 +353,9 @@ function renderV1(fromM,toM){
   const goodTop=ranked.slice().sort((x,y)=>y['칭찬']-x['칭찬'] || y.total-x.total).slice(0,3);          // 칭찬 건수 많은 순
   const goodChips=goodTop.map(s=>`<span class="gchip">${s.store} <em>칭찬 ${s['칭찬']}건</em></span>`).join('') || '<span style="color:var(--muted)">표본 10건+ 매장 없음</span>';
   const badChips=badTop.map(s=>`<span class="wchip">${s.store} <em>불만 ${s['불만']}건</em></span>`).join('') || '<span style="color:var(--muted)">표본 10건+ 불만 매장 없음 👍</span>';
+  const src={}; a.ms.forEach(m=>{const s=(R.by_month_source||{})[m]||{};for(const k in s)src[k]=(src[k]||0)+s[k];});
+  const etc=(cm.total)-((src.naver||0)+(src.catchtable||0));
+  const srcChips=`<span class="gchip">네이버 <em>${fmt(src.naver||0)}건</em></span><span class="gchip">캐치테이블 <em>${fmt(src.catchtable||0)}건</em></span>`+(etc>0?`<span class="gchip">기타 <em>${fmt(etc)}건</em></span>`:'');
   document.getElementById('v1-hero').innerHTML = `
     <div class="hero-top"><span class="ttl">${single?fromM:fromM+' ~ '+toM} 리뷰 종합</span></div>
     <div class="hero-stats">
@@ -361,6 +364,7 @@ function renderV1(fromM,toM){
       <div class="hstat"><div class="hl">불만 리뷰</div><div class="hn" style="color:var(--bad)">${fmt(cm['불만'])}</div></div>
       <div class="hstat accent"><div class="hl">불만 리뷰율</div><div class="hn" style="color:var(--bad)">${curRate}%</div></div>
     </div>
+    <div class="hero-watch"><span class="lbl">📊 출처별 건수</span>${srcChips}</div>
     <div class="hero-watch"><span class="lbl" style="color:var(--good)">👍 칭찬 TOP3 매장</span>${goodChips}</div>
     <div class="hero-watch"><span class="lbl" style="color:var(--bad)">🔴 불만 TOP3 매장</span>${badChips}</div>`;
   document.getElementById('v1-range').textContent = '';
