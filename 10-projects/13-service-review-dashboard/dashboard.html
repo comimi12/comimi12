@@ -181,6 +181,7 @@
   <button class="tab" data-v="v5">④ 매장 검색·드릴다운</button>
   <button class="tab" data-v="vcs">⑤ CS 체크리스트 일일점검현황</button>
   <button class="tab" data-v="vqscs">⑥ QSCS 캠페인 이체크폼 등록현황</button>
+  <button class="tab" data-v="vmon">⑦ 현장 모니터링 일정표</button>
 </nav>
 <div class="wrap">
 
@@ -292,6 +293,19 @@
     </div>
     <div class="kpis" id="vqscs-kpi"></div>
     <div id="vqscs-body"></div>
+  </section>
+
+  <!-- VIEW 7: 현장 모니터링 일정표 -->
+  <section class="view" id="vmon">
+    <div class="vhead"><h2>현장 모니터링 일정표 <span class="note" id="vmon-src"></span></h2></div>
+    <div class="ctrl">
+      <span>월</span>
+      <select id="vmon-month"></select>
+      <button id="vmon-apply">조회</button>
+      <span class="ctrl-note" id="vmon-meta"></span>
+    </div>
+    <div class="kpis" id="vmon-kpi"></div>
+    <div class="panel"><h3>방문 일정 <span class="note">월~금 · 주말·공휴일 제외 · 주 1~2회(화·목 우선) · 불만 상위 매장 우선</span></h3><div id="vmon-sched"></div></div>
   </section>
 
 </div>
@@ -860,6 +874,85 @@ if(ECK && ECK.months && ECK.months.length){
   const last=ECK.months[ECK.months.length-1];
   renderVcs(last,last); renderVqscs(last,last);
 } else { renderVcs('',''); renderVqscs('',''); }
+
+/* ---------- VIEW 7: 현장 모니터링 일정표 ---------- */
+const HOLIDAYS = new Set([
+  '2026-01-01','2026-02-16','2026-02-17','2026-02-18','2026-03-01','2026-03-02',
+  '2026-05-05','2026-05-24','2026-05-25','2026-06-06','2026-08-15','2026-08-17',
+  '2026-09-24','2026-09-25','2026-09-26','2026-09-28','2026-10-03','2026-10-05',
+  '2026-10-09','2026-12-25',
+  '2027-01-01','2027-02-06','2027-02-07','2027-02-08','2027-02-09','2027-03-01',
+  '2027-05-05','2027-05-13','2027-06-06','2027-08-15','2027-08-16','2027-09-14',
+  '2027-09-15','2027-09-16','2027-10-03','2027-10-04','2027-10-09','2027-10-11','2027-12-25',
+]);
+const TRAIN_BY_CAT = {
+  "직원 응대·친절":"응대 스크립트·친절 화법 점검 및 현장 코칭",
+  "음식 맛·품질":"조리 표준(맛·염도·식감) 준수 점검 교육",
+  "대기·서빙 지연":"서빙 동선·대기 안내 응대 교육",
+  "가격·양/가성비":"제공량·메뉴 구성/중량 안내 교육",
+  "위생·청결":"위생·청결 수칙 점검 및 시정 교육",
+  "예약·주문·결제 운영":"예약·결제·좌석 운영 응대 교육",
+};
+const WDK = ['일','월','화','수','목','금','토'];
+function bizDaysOf(ym){
+  const [y,m]=ym.split('-').map(Number), dim=new Date(y,m,0).getDate(), out=[];
+  for(let d=1;d<=dim;d++){
+    const wd=new Date(y,m-1,d).getDay(), iso=`${ym}-${String(d).padStart(2,'0')}`;
+    if(wd!==0&&wd!==6&&!HOLIDAYS.has(iso)) out.push({d,wd,iso});
+  }
+  return out;
+}
+function storeTopTopic(store,ym){
+  const cs=R.complaints.filter(c=>c.store===store&&c.month===ym), cnt={};
+  cs.forEach(c=>topicsOf(c.text).forEach(t=>cnt[t]=(cnt[t]||0)+1));
+  const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0];
+  return top?top[0]:null;
+}
+function renderVmon(ym){
+  const box=document.getElementById('vmon-sched'); if(!box) return;
+  document.getElementById('vmon-src').textContent=`${ym} · 리뷰 분석 기반 자동 생성`;
+  // 대상: 그 달 불만 상위(표본 10건+)
+  const cand=[];
+  for(const st in R.store_month){ const o=R.store_month[st][ym];
+    if(o&&o.total>=10&&o['불만']>0) cand.push({store:st,brand:R.store_brand[st],total:o.total,불만:o['불만'],불만율:Math.round(o['불만']/o.total*1000)/10}); }
+  cand.sort((a,b)=>b['불만']-a['불만']||b['불만율']-a['불만율']||(a.store<b.store?-1:1));
+  const biz=bizDaysOf(ym);
+  const slots=biz.filter(b=>b.wd===2||b.wd===4);            // 화·목 우선
+  const targets=cand.slice(0, Math.min(slots.length, 8));    // 최대 8곳(주1~2회)
+  // 타깃을 화·목 슬롯에 균등 분배
+  const n=targets.length, used=new Set(), picks=[];
+  for(let i=0;i<n;i++){ let idx=Math.round(i*(slots.length-1)/Math.max(1,n-1));
+    while(used.has(idx)&&idx<slots.length-1)idx++; while(used.has(idx)&&idx>0)idx--;
+    used.add(idx); picks.push(slots[idx]); }
+  const sched=targets.map((t,i)=>({slot:picks[i],t})).filter(x=>x.slot)
+    .map(({slot,t})=>{ const tp=storeTopTopic(t.store,ym);
+      return {iso:slot.iso,d:slot.d,wd:slot.wd,store:t.store,brand:t.brand,불만:t['불만'],불만율:t['불만율'],
+              topic:tp||'서비스 전반',train:TRAIN_BY_CAT[tp]||'서비스 전반 점검·기본 응대 교육'}; })
+    .sort((a,b)=>a.d-b.d);
+  document.getElementById('vmon-meta').textContent=`영업일 ${biz.length}일 · 방문 ${sched.length}회 · 대상 ${targets.length}곳`;
+  document.getElementById('vmon-kpi').innerHTML=kpiHtml([
+    {lab:'방문 횟수', val:fmt(sched.length), sub:`${ym} 계획`, color:'var(--brand)'},
+    {lab:'대상 매장', val:fmt(targets.length), sub:'불만 상위', color:'var(--warn)'},
+    {lab:'영업일', val:fmt(biz.length), sub:'주말·공휴일 제외', color:'var(--good)'},
+    {lab:'주 평균', val:(biz.length?Math.round(sched.length/(biz.length/5)*10)/10:0)+'회', sub:'주 1~2회 목표', color:'var(--neutral)'},
+  ]);
+  if(!sched.length){ box.innerHTML='<p style="color:var(--muted)">해당 월 불만 상위(표본 10건+) 매장이 없어 일정이 없습니다.</p>'; return; }
+  let h='<table style="width:100%"><thead><tr><th style="text-align:left">날짜</th><th style="text-align:left">매장</th><th>불만</th><th style="text-align:left">주요 불만</th><th style="text-align:left">교육 내용</th></tr></thead><tbody>';
+  sched.forEach(s=>{ h+=`<tr>`
+    +`<td style="text-align:left;white-space:nowrap"><b>${ym.slice(5)}/${String(s.d).padStart(2,'0')}</b> (${WDK[s.wd]})</td>`
+    +`<td style="text-align:left"><span class="bd">${s.brand}</span>${s.store.split('·').slice(1).join('·')||s.store}</td>`
+    +`<td><b style="color:var(--bad)">${s['불만']}건</b><br><span style="color:var(--muted);font-size:11px">불만율 ${s['불만율']}%</span></td>`
+    +`<td style="text-align:left;font-size:12px">${s.topic}</td>`
+    +`<td style="text-align:left">${s.train}</td></tr>`; });
+  box.innerHTML=h+'</tbody></table>';
+}
+(function initVmon(){
+  const sel=document.getElementById('vmon-month'); if(!sel||!R.months) return;
+  R.months.forEach(m=>sel.add(new Option(m,m)));
+  sel.value=R.months[R.months.length-1];
+  document.getElementById('vmon-apply').addEventListener('click',()=>renderVmon(sel.value));
+  renderVmon(R.months[R.months.length-1]);
+})();
 
 /* ---------- tabs & lazy chart init ---------- */
 const built={};
