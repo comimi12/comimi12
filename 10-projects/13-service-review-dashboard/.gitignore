@@ -1,0 +1,35 @@
+# 원본 데이터 (SL&C VOC에 개인정보 포함 → 절대 커밋 금지)
+data/
+
+# 생성물
+data.js
+ai_input.json
+eck_data.js
+
+# 공유용 단일 파일 (VOC 원문 인라인 → 커밋 금지)
+dashboard-share.html
+
+# ECK(Solbitech) 연동: 자격증명·세션·스크린샷·원본
+eck/eck_config.json
+eck/eck_state.json
+eck/_shots/
+eck/_dl/
+
+# 리뷰 수집기(AI매장리뷰 매크로) 연동: 로컬 경로 설정
+collect_config.json
+
+# VOC(고객의 소리) 사이트 연동: 자격증명·탐색 스크린샷
+voc/voc_config.json
+voc/_shots/
+
+# 자동 갱신 로그 · 월별 내보내기
+_logs/
+exports/
+
+# 파이썬
+__pycache__/
+*.pyc
+
+# 월간 알림 표시 기록
+.reminder_last
+.holiday_alert
