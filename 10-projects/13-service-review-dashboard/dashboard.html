@@ -144,6 +144,21 @@
   .regrow:last-child{border-bottom:none}
   .regrow .sub{color:var(--muted);font-size:12px;white-space:nowrap}
   .regrow .bd{font-size:11px;color:var(--brand);background:var(--brand-soft);border-radius:5px;padding:1px 7px;margin-right:6px}
+  /* 현장 모니터링 달력 */
+  table.cal{width:100%;border-collapse:collapse;table-layout:fixed}
+  table.cal th{background:var(--brand-soft);color:var(--ink);font-weight:700;font-size:12px;padding:7px 0;border:1px solid var(--line)}
+  table.cal th.sun{color:var(--bad)} table.cal th.sat{color:#2f7;}
+  table.cal td{border:1px solid var(--line);height:104px;vertical-align:top;padding:5px 6px;font-size:11px;background:#fff}
+  table.cal td.empty{background:#f6f8fa}
+  table.cal td.we{background:#fafbfc}
+  table.cal td.hol{background:#fdf0f0}
+  table.cal td.vday{background:#eef5ff}
+  table.cal .dnum{font-weight:700;font-size:13px;color:var(--ink)}
+  table.cal td.sun .dnum{color:var(--bad)} table.cal td.sat .dnum{color:#1a9c63}
+  table.cal .holtag{font-size:10px;color:var(--bad);margin-top:2px}
+  table.cal .visit{margin-top:5px;background:var(--brand);color:#fff;border-radius:7px;padding:5px 7px;line-height:1.4}
+  table.cal .visit .vs{font-weight:700;font-size:11.5px;display:block}
+  table.cal .visit .vt{font-size:10px;opacity:.96;display:block;margin-top:1px}
   .memo{width:100%;min-height:60px;border:1px solid #d9dfe8;border-radius:9px;padding:9px 11px;font-family:inherit;font-size:13px;line-height:1.5;resize:vertical;background:#fffdf3;color:var(--ink)}
   .memo:focus{outline:none;border-color:var(--brand);background:#fff;box-shadow:0 0 0 2px rgba(20,85,155,.12)}
   .memo-saved{font-size:11px;color:var(--good);margin-top:3px;height:13px}
@@ -305,7 +320,7 @@
       <span class="ctrl-note" id="vmon-meta"></span>
     </div>
     <div class="kpis" id="vmon-kpi"></div>
-    <div class="panel"><h3>방문 일정 <span class="note">월~금 · 주말·공휴일 제외 · 주 1~2회(화·목 우선) · 불만 상위 매장 우선</span></h3><div id="vmon-sched"></div></div>
+    <div class="panel"><h3>월간 방문 캘린더 <span class="note">매주 <b>목요일</b> 주 1회 · 주말·공휴일 제외 · 불만 상위 매장 우선 (목 공휴일 시 같은 주 대체일)</span></h3><div id="vmon-sched"></div></div>
   </section>
 
 </div>
@@ -911,40 +926,54 @@ function storeTopTopic(store,ym){
 function renderVmon(ym){
   const box=document.getElementById('vmon-sched'); if(!box) return;
   document.getElementById('vmon-src').textContent=`${ym} · 리뷰 분석 기반 자동 생성`;
-  // 대상: 그 달 불만 상위(표본 10건+)
+  const [y,m]=ym.split('-').map(Number), dim=new Date(y,m,0).getDate();
+  const biz=bizDaysOf(ym), bizSet=new Set(biz.map(b=>b.iso));
+  // 매주 목요일(주 1회). 목요일이 공휴일이면 같은 주 영업일(금→수→화→월)로 대체.
+  const slots=[];
+  for(let d=1;d<=dim;d++){
+    if(new Date(y,m-1,d).getDay()!==4) continue;
+    const iso=`${ym}-${String(d).padStart(2,'0')}`;
+    if(bizSet.has(iso)){ slots.push({d,iso,moved:false}); continue; }
+    const alt=[1,-1,2,-2].map(o=>d+o).find(x=>x>=1&&x<=dim&&bizSet.has(`${ym}-${String(x).padStart(2,'0')}`));
+    if(alt) slots.push({d:alt,iso:`${ym}-${String(alt).padStart(2,'0')}`,moved:true});
+  }
+  // 대상: 그 달 불만 상위(표본 10건+), 슬롯 수만큼
   const cand=[];
   for(const st in R.store_month){ const o=R.store_month[st][ym];
     if(o&&o.total>=10&&o['불만']>0) cand.push({store:st,brand:R.store_brand[st],total:o.total,불만:o['불만'],불만율:Math.round(o['불만']/o.total*1000)/10}); }
   cand.sort((a,b)=>b['불만']-a['불만']||b['불만율']-a['불만율']||(a.store<b.store?-1:1));
-  const biz=bizDaysOf(ym);
-  const slots=biz.filter(b=>b.wd===2||b.wd===4);            // 화·목 우선
-  const targets=cand.slice(0, Math.min(slots.length, 8));    // 최대 8곳(주1~2회)
-  // 타깃을 화·목 슬롯에 균등 분배
-  const n=targets.length, used=new Set(), picks=[];
-  for(let i=0;i<n;i++){ let idx=Math.round(i*(slots.length-1)/Math.max(1,n-1));
-    while(used.has(idx)&&idx<slots.length-1)idx++; while(used.has(idx)&&idx>0)idx--;
-    used.add(idx); picks.push(slots[idx]); }
-  const sched=targets.map((t,i)=>({slot:picks[i],t})).filter(x=>x.slot)
-    .map(({slot,t})=>{ const tp=storeTopTopic(t.store,ym);
-      return {iso:slot.iso,d:slot.d,wd:slot.wd,store:t.store,brand:t.brand,불만:t['불만'],불만율:t['불만율'],
-              topic:tp||'서비스 전반',train:TRAIN_BY_CAT[tp]||'서비스 전반 점검·기본 응대 교육'}; })
-    .sort((a,b)=>a.d-b.d);
-  document.getElementById('vmon-meta').textContent=`영업일 ${biz.length}일 · 방문 ${sched.length}회 · 대상 ${targets.length}곳`;
+  const targets=cand.slice(0,slots.length);
+  const visit={};
+  targets.forEach((t,i)=>{ const s=slots[i], tp=storeTopTopic(t.store,ym);
+    visit[s.iso]={store:t.store,brand:t.brand,불만:t['불만'],불만율:t['불만율'],
+      topic:tp||'서비스 전반',train:TRAIN_BY_CAT[tp]||'서비스 전반 점검·기본 응대 교육',moved:s.moved}; });
+  const nvisit=Object.keys(visit).length;
+  document.getElementById('vmon-meta').textContent=`영업일 ${biz.length}일 · 방문 ${nvisit}회 (주 1회·목요일)`;
   document.getElementById('vmon-kpi').innerHTML=kpiHtml([
-    {lab:'방문 횟수', val:fmt(sched.length), sub:`${ym} 계획`, color:'var(--brand)'},
+    {lab:'방문 횟수', val:fmt(nvisit), sub:`${ym} · 매주 목요일`, color:'var(--brand)'},
     {lab:'대상 매장', val:fmt(targets.length), sub:'불만 상위', color:'var(--warn)'},
     {lab:'영업일', val:fmt(biz.length), sub:'주말·공휴일 제외', color:'var(--good)'},
-    {lab:'주 평균', val:(biz.length?Math.round(sched.length/(biz.length/5)*10)/10:0)+'회', sub:'주 1~2회 목표', color:'var(--neutral)'},
+    {lab:'방문 주기', val:'주 1회', sub:'목요일 방문', color:'var(--neutral)'},
   ]);
-  if(!sched.length){ box.innerHTML='<p style="color:var(--muted)">해당 월 불만 상위(표본 10건+) 매장이 없어 일정이 없습니다.</p>'; return; }
-  let h='<table style="width:100%"><thead><tr><th style="text-align:left">날짜</th><th style="text-align:left">매장</th><th>불만</th><th style="text-align:left">주요 불만</th><th style="text-align:left">교육 내용</th></tr></thead><tbody>';
-  sched.forEach(s=>{ h+=`<tr>`
-    +`<td style="text-align:left;white-space:nowrap"><b>${ym.slice(5)}/${String(s.d).padStart(2,'0')}</b> (${WDK[s.wd]})</td>`
-    +`<td style="text-align:left"><span class="bd">${s.brand}</span>${s.store.split('·').slice(1).join('·')||s.store}</td>`
-    +`<td><b style="color:var(--bad)">${s['불만']}건</b><br><span style="color:var(--muted);font-size:11px">불만율 ${s['불만율']}%</span></td>`
-    +`<td style="text-align:left;font-size:12px">${s.topic}</td>`
-    +`<td style="text-align:left">${s.train}</td></tr>`; });
-  box.innerHTML=h+'</tbody></table>';
+  // 달력 그리드
+  const first=new Date(y,m-1,1).getDay();
+  let h='<table class="cal"><thead><tr>'+WDK.map((w,i)=>`<th class="${i===0?'sun':i===6?'sat':''}">${w}</th>`).join('')+'</tr></thead><tbody><tr>';
+  let col=0;
+  for(let i=0;i<first;i++){ h+='<td class="empty"></td>'; col++; }
+  for(let d=1;d<=dim;d++){
+    const wd=new Date(y,m-1,d).getDay(), iso=`${ym}-${String(d).padStart(2,'0')}`;
+    const hol=HOLIDAYS.has(iso), v=visit[iso];
+    const cls=[]; if(wd===0||wd===6)cls.push('we'); if(wd===0)cls.push('sun'); if(wd===6)cls.push('sat'); if(hol)cls.push('hol'); if(v)cls.push('vday');
+    h+=`<td class="${cls.join(' ')}"><div class="dnum">${d}</div>`;
+    if(hol) h+='<div class="holtag">공휴일</div>';
+    if(v){ const nm=v.store.split('·').slice(1).join('·')||v.store;
+      h+=`<div class="visit"><span class="vs">🏬 ${v.brand} ${nm}</span><span class="vt">불만 ${v['불만']}건 · ${v.topic}</span><span class="vt">📘 ${v.train}</span>${v.moved?'<span class="vt">※목 공휴일→대체일</span>':''}</div>`; }
+    h+='</td>'; col++;
+    if(col===7&&d<dim){ h+='</tr><tr>'; col=0; }
+  }
+  while(col>0&&col<7){ h+='<td class="empty"></td>'; col++; }
+  box.innerHTML=h+'</tr></tbody></table>';
+  if(!nvisit) box.innerHTML+='<p style="color:var(--muted);margin-top:8px">해당 월 불만 상위(표본 10건+) 매장이 없어 방문 일정이 없습니다.</p>';
 }
 (function initVmon(){
   const sel=document.getElementById('vmon-month'); if(!sel||!R.months) return;
