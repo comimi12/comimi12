@@ -33,3 +33,6 @@ __pycache__/
 # 월간 알림 표시 기록
 .reminder_last
 .holiday_alert
+
+# 공유 사이트 배포 클론
+_deploy/

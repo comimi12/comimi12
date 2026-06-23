@@ -65,9 +65,10 @@ def main():
     step("리뷰 수집", collect_args, timeout=1200)
     # 4) build → data.js (리뷰 + VOC). VOC DRM이면 기존값 보존
     step("build (data.js)", ["build.py"])
-    # 5) 공유파일
+    # 5) 공유파일 + 공유 사이트(GitHub Pages) 재배포
     if SHARE:
         step("공유파일", ["build_share.py"])
+        step("사이트 배포", ["deploy_site.py"])
     log("===== 전체 갱신 종료 =====\n")
 
 

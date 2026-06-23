@@ -75,6 +75,14 @@ python export_monthly.py 2026-06     # 특정 월 분석 엑셀(exports/)
 - 작업 삭제: `schtasks /Delete /TN "ServiceReview_Daily_Update" /F`
 - 작업 확인: `schtasks /Query /TN "ServiceReview_Daily_Update"`
 
+### 🌐 공유 사이트 (GitHub Pages)
+- 공개 URL: **https://comimi12.github.io/slnc-review-dashboard/** (저장소 `comimi12/slnc-review-dashboard`, 공개)
+- `deploy_site.py`: `dashboard-share.html` → 사이트 `index.html` 푸시(변경 시에만). update_all 마지막 단계에서 매일 자동 재배포.
+- ⚠️ **완전 공개** 선택됨 — VOC 고객 내용·실행계획 포함. URL 아는 누구나 접근·검색 노출 가능.
+
+### 🔁 교차 검증 (cross_check.py)
+매크로 원본 CSV를 `data/reviews/`에 넣으면 자동 수집분(`naver_collected_*`)과 월별 대조: `python cross_check.py`. (자동은 당월 중심 수집이라 과거월은 수동이 정답 — build.py가 합쳐 중복제거)
+
 ### 월별 다운로드 (export_monthly.py)
 `exports/매장리뷰분석_YYYY-MM.xlsx` — **8시트**: 요약(+추이 그래프)·매장별(+불만율 차트)·브랜드별·불만리뷰 원본·개선방안/실행계획·VOC·CS체크리스트·QSCS. 매일 당월분 갱신, 과거월 파일은 보관됨. 임의 월: `python export_monthly.py 2026-05`.
 
