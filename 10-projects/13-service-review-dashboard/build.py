@@ -173,12 +173,18 @@ def build_reviews():
              if not os.path.basename(f).startswith("_")]
     if not files:
         raise SystemExit("data/reviews/ 에 CSV가 없습니다. 월별 리뷰 파일을 넣어주세요.")
+    # prio: 프로그램(매크로) 파일 = 2(감성 신뢰: Gemini/사전분류), 자동수집·merged = 1.
+    # 같은 리뷰가 양쪽에 있으면 prio 높은(프로그램) 감성을 채택 — 자동수집 키워드 감성이 덮어쓰지 않게.
     rows, used = [], []
     for p in files:
         rs = normalize_reviews_file(p)
         if rs:
+            bn = os.path.basename(p)
+            prio = 1 if (bn.startswith("naver_collected") or "merged" in bn.lower()) else 2
+            for r in rs:
+                r["_prio"] = prio
             rows.extend(rs)
-            used.append(os.path.basename(p))
+            used.append(bn)
     if not rows:
         raise SystemExit("인식 가능한 월별 리뷰 양식(리뷰유형/리뷰감성)이 없습니다.")
     # 캐치테이블 보충: 프로그램 파일에 캐치테이블이 없는 월을 merged 파일에서 채움
@@ -188,22 +194,23 @@ def build_reviews():
     if merged:
         add = load_merged_catchtable(merged[0], ct_months)
         if add:
+            for r in add:
+                r["_prio"] = 1
             rows.extend(add)
             used.append(os.path.basename(merged[0]) + " (catchtable 보충)")
-    # 중복 제거. 캐치테이블은 출처(양식A 채널/양식C/merged)마다 날짜 컬럼이 달라(방문↔작성) 내용 기준으로,
-    # 네이버는 (매장·날짜·내용) 기준으로 1건 처리. 재크롤링·다중 소스 중복 방지.
-    seen, dedup = set(), []
+    # 중복 제거(우선순위 반영). 캐치테이블은 출처마다 날짜 컬럼이 달라(방문↔작성) 내용 기준,
+    # 네이버는 (매장·날짜·내용) 기준. 동일 리뷰면 prio 높은(프로그램 감성) 행을 채택.
+    best = {}
     for r in rows:
         t = (r["text"] or "").strip()
         if r["source"] == "catchtable":
             k = ("ct", r["store"], t) if t else ("ct", r["store"], r["date"], r["sentiment"])
         else:
             k = (r["store"], r["date"], t)
-        if k in seen:
-            continue
-        seen.add(k)
-        dedup.append(r)
-    rows = dedup
+        ex = best.get(k)
+        if ex is None or r.get("_prio", 0) > ex.get("_prio", 0):
+            best[k] = r
+    rows = list(best.values())
     # 월별 건수가 충분한 달만 사용 (파일 경계의 부분 월 잡음 제거: 중앙값의 25% 미만 월 제외)
     mcount = collections.Counter(r["month"] for r in rows)
     med = statistics.median(mcount.values()) if mcount else 0
