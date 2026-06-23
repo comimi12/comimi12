@@ -198,6 +198,13 @@ def build_reviews():
                 r["_prio"] = 1
             rows.extend(add)
             used.append(os.path.basename(merged[0]) + " (catchtable 보충)")
+    # 프로그램(매크로)이 그 달 네이버의 주력 소스면(프로그램 건수 ≥ 자동 건수) 프로그램 100% 사용 →
+    # 그 달의 자동수집 네이버 제외. 프로그램이 spillover 수준(자동보다 적음)인 달은 자동수집 유지(당월 등).
+    prog_n = collections.Counter(r["month"] for r in rows if r.get("_prio", 0) >= 2 and r["source"] == "naver")
+    auto_n = collections.Counter(r["month"] for r in rows if r.get("_prio", 0) == 1 and r["source"] == "naver")
+    drop_naver_months = {m for m in prog_n if prog_n[m] >= auto_n.get(m, 0)}
+    rows = [r for r in rows
+            if not (r.get("_prio", 0) == 1 and r["source"] == "naver" and r["month"] in drop_naver_months)]
     # 중복 제거(우선순위 반영). 캐치테이블은 출처마다 날짜 컬럼이 달라(방문↔작성) 내용 기준,
     # 네이버는 (매장·날짜·내용) 기준. 동일 리뷰면 prio 높은(프로그램 감성) 행을 채택.
     best = {}
