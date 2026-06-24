@@ -1275,12 +1275,15 @@ function renderVinput(store, ym){
 
 /* ---------- 분기별 상벌 매장 (고객의 소리 기반) ---------- */
 function quartersOf(months){ const set={}; months.forEach(m=>{const p=m.split('-').map(Number),q=Math.ceil(p[1]/3),key=`${p[0]}-${q}`;(set[key]=set[key]||[]).push(m);}); return set; }
+// 포상은 '실제 칭찬 코멘트'(친절·서비스 등)가 있는 건만 — 단순 문의가 칭찬으로 잡히는 것 방지
+const PRAISE_WORDS=['친절','서비스','좋','맛있','맛나','감사','최고','추천','만족','칭찬','깨끗','정성','훌륭','감동','정갈','상냥','분위기','재방문'];
+function isGenuinePraise(r){ const t=((r.title||'')+' '+(r.content||'')); return PRAISE_WORDS.some(w=>t.indexOf(w)>=0); }
 function vocByStore(qMonths){
   const recs=(V&&V.records?V.records:[]).filter(r=>qMonths.includes(r.month)); const by={};
   recs.forEach(r=>{ const x=by[r.store]=by[r.store]||{store:r.store,brand:r.brand||'',칭찬:0,불만:0,기타:0,praiseEx:'',badEx:''};
-    if(r.category==='칭찬'){x['칭찬']++; if(!x.praiseEx)x.praiseEx=r.content;}
-    else if(r.category==='불만'){x['불만']++; if(!x.badEx)x.badEx=r.content;}
-    else x['기타']++; });
+    if(r.category==='칭찬' && isGenuinePraise(r)){ x['칭찬']++; if(!x.praiseEx)x.praiseEx=r.content; }   // 실제 칭찬만
+    else if(r.category==='불만'){ x['불만']++; if(!x.badEx)x.badEx=r.content; }
+    else x['기타']++; });   // 단순 문의·칭찬 키워드 없는 건은 기타로
   return {by:Object.values(by),total:recs.length};
 }
 function rewardMemo(y,q,qMonths,praise,penalty,total){
