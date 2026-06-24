@@ -75,6 +75,9 @@ python export_monthly.py 2026-06     # 특정 월 분석 엑셀(exports/)
 - 작업 삭제: `schtasks /Delete /TN "ServiceReview_Daily_Update" /F`
 - 작업 확인: `schtasks /Query /TN "ServiceReview_Daily_Update"`
 
+#### ⑤⑥ 전용 ECK 일일 작업 (안정성)
+View 5·6(CS 체크리스트·QSCS)은 매일 갱신이 중요해 **별도 경량 작업** `ServiceReview_ECK_Daily`(매일 **08:30**, `run-eck.cmd`)로 분리: `eck_scrape → eck_build → build_share → deploy_site`. 무거운 리뷰 수집(09:00 full)과 독립적이라, 한쪽이 실패해도 ECK는 갱신됨. 두 작업 모두 *놓친 실행 보충(StartWhenAvailable) + 실패 시 재시도 + 절전 중 중단 안 함*으로 설정. (full 작업이 ECK 단계에서 강제종료되던 문제 대응)
+
 ### 🌐 공유 사이트 (GitHub Pages)
 - 공개 URL: **https://comimi12.github.io/slnc-review-dashboard/** (저장소 `comimi12/slnc-review-dashboard`, 공개)
 - `deploy_site.py`: `dashboard-share.html` → 사이트 `index.html` 푸시(변경 시에만). update_all 마지막 단계에서 매일 자동 재배포.
