@@ -1332,9 +1332,9 @@ function renderRewards(qkey){
   document.getElementById('vreward-meta').textContent=`${y}년 ${q}분기 (${qMonths[0]}~${qMonths[qMonths.length-1]}) · VOC ${total}건`;
   const mk=`reward-memo|${qkey}`; let saved=''; try{saved=localStorage.getItem(mk)||'';}catch(e){}
   const memo=saved||rewardMemo(y,q,qMonths,praise,penalty,total);
-  const trim=s=>(s||'').replace(/</g,'&lt;').replace(/\s+/g,' ').slice(0,85);
-  const bd=b=>`<span style="font-size:11px;color:var(--brand);background:var(--brand-soft);border-radius:5px;padding:1px 7px;margin-right:6px">${b}</span>`;
-  const row=(s,i,col,lbl,n,ex)=>`<div class="rep-row"><b style="min-width:190px">${i+1}. ${bd(s.brand)}${s.store}</b><span><span style="color:${col};font-weight:700">${lbl} ${n}건</span>${ex?` · "${trim(ex)}…"`:''}</span></div>`;
+  // 한 줄 요약(첫 문장/48자) — 건수 늘어도 길어지지 않게 건수+요약만
+  const sumz=s=>{ s=(s||'').replace(/</g,'&lt;').replace(/\s+/g,' ').trim(); const f=(s.split(/[.!?]/)[0]||s); return f.length>48?f.slice(0,48)+'…':f; };
+  const row=(s,i,col,lbl,n,ex)=>`<div class="rep-row"><b style="min-width:160px">${i+1}. ${s.store}</b><span><span style="color:${col};font-weight:700">${lbl} ${n}건</span>${ex?` · ${sumz(ex)}`:''}</span></div>`;
   let h='';
   h+=`<div class="rep-sec"><h3>🏅 포상 추천 매장 — 고객 칭찬 매장 전체 (${praise.length}개)</h3>`
     +(praise.length?praise.map((s,i)=>row(s,i,'var(--good)','칭찬',s['칭찬'],s.praiseEx)).join(''):'<div class="rep-row" style="color:var(--muted)">해당 분기 VOC 칭찬 매장 없음</div>')
