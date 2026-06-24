@@ -173,6 +173,23 @@
   .vmodal .mlbl{font-weight:700;color:var(--ink);margin:14px 0 6px;font-size:13.5px}
   .vmodal .train{background:#eef5ff;border-left:3px solid var(--brand);border-radius:8px;padding:10px 12px;font-size:13px}
   .vmodal .rv{border-left:3px solid var(--bad);background:#fdf0f0;padding:8px 11px;border-radius:7px;margin:7px 0;font-size:12.5px;line-height:1.5}
+  /* CS 체크리스트 입력 폼 (모바일 대응) */
+  .cschk .sec{margin:16px 0 4px;font-weight:700;color:var(--brand-deep);font-size:14px;border-left:4px solid var(--brand);padding-left:9px}
+  .cschk .it{display:flex;gap:12px;align-items:center;padding:10px 2px;border-bottom:1px dashed var(--line)}
+  .cschk .it .q{flex:1;font-size:13px;line-height:1.45}
+  .cschk .it .qn{color:var(--brand);font-weight:700;margin-right:6px}
+  .cschk .seg{display:flex;gap:5px;flex-shrink:0}
+  .cschk .seg button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 11px;font-size:12.5px;cursor:pointer;min-width:46px;font-weight:600;color:var(--muted)}
+  .cschk .seg button.ok.on{background:var(--good);color:#fff;border-color:var(--good)}
+  .cschk .seg button.no.on{background:var(--bad);color:#fff;border-color:var(--bad)}
+  .cschk .seg button.na.on{background:var(--neutral);color:#fff;border-color:var(--neutral)}
+  .cschk .score{position:sticky;top:0;background:var(--brand-deep);color:#fff;border-radius:10px;padding:10px 14px;display:flex;gap:16px;flex-wrap:wrap;align-items:center;z-index:5;margin-bottom:8px}
+  .cschk .score b{font-size:20px}
+  @media(max-width:680px){
+    .cschk .it{flex-direction:column;align-items:stretch;gap:7px}
+    .cschk .seg{width:100%}
+    .cschk .seg button{flex:1;padding:12px 0;font-size:14px}
+  }
   .memo{width:100%;min-height:60px;border:1px solid #d9dfe8;border-radius:9px;padding:9px 11px;font-family:inherit;font-size:13px;line-height:1.5;resize:vertical;background:#fffdf3;color:var(--ink)}
   .memo:focus{outline:none;border-color:var(--brand);background:#fff;box-shadow:0 0 0 2px rgba(20,85,155,.12)}
   .memo-saved{font-size:11px;color:var(--good);margin-top:3px;height:13px}
@@ -339,18 +356,19 @@
     <div class="vmodal" id="vmon-modal"><div class="box" id="vmon-modal-box"></div></div>
   </section>
 
-  <!-- VIEW 8: 현장 모니터링 결과입력 (ECK CS 체크리스트 작성용 AI 초안) -->
+  <!-- VIEW 8: 현장 모니터링 결과입력 — CS 체크리스트 모바일 입력 -->
   <section class="view" id="vinput">
-    <div class="vhead"><h2>현장 모니터링 결과입력 <span class="note">ECK 점검표 작성 ▸ 점포 4번 [서비스] 26년 CS 체크리스트용 AI 결과보고서 초안</span></h2></div>
-    <div class="ctrl">
-      <span>매장</span>
-      <input id="vinput-store" list="vinput-list" placeholder="매장명 입력 (예: 방배, 도곡, 잠실…)" autocomplete="off" style="min-width:240px">
-      <datalist id="vinput-list"></datalist>
-      <select id="vinput-month"></select>
-      <button id="vinput-go">조회</button>
+    <div class="vhead"><h2>현장 모니터링 결과입력 <span class="note">ECK 점포 4번 [서비스] CS 체크리스트(대면 응대) · 📱 모바일 입력 가능</span></h2></div>
+    <div class="ctrl" style="flex-wrap:wrap">
+      <span>매장</span><input id="vinput-store" list="vinput-list" placeholder="지점명 입력" autocomplete="off" style="min-width:170px"><datalist id="vinput-list"></datalist>
+      <span>분석월</span><select id="vinput-month"></select>
+      <span>평가자</span><input id="vinput-rater" placeholder="이름" style="width:84px">
+      <span>회차</span><input id="vinput-round" placeholder="1" style="width:46px">
+      <span>평가일</span><input id="vinput-date" type="date" style="width:150px">
+      <button id="vinput-go">불러오기</button>
       <span class="ctrl-note" id="vinput-meta"></span>
     </div>
-    <div id="vinput-body"><p style="color:var(--muted)">매장을 선택하면 그 매장의 서비스 불만 분석과 AI 결과보고서 초안이 생성됩니다.</p></div>
+    <div id="vinput-body"><p style="color:var(--muted)">매장 입력 후 "불러오기" → CS 체크리스트를 항목별로 체크하세요. (자동 저장 · 모바일 가능)</p></div>
   </section>
 
 </div>
@@ -948,6 +966,40 @@ function bizDaysOf(ym){
   return out;
 }
 const SERVICE_CATS = ["직원 응대·친절", "대기·서빙 지연"];
+const CS_CHECKLIST = { title:"서비스 현장 점검 Check List_대면 응대", sections:[
+  {name:"고객맞이 (Greeting)", items:[
+    "캐셔(업장입구)에 근무자가 상주하는가? (부재 시 3초 안에 바로 고객 응대)",
+    "입장 시 \"안녕하세요. (브랜드명)입니다\" 고객 맞이 인사를 명확히 하는가?",
+    "인원 확인을 하는가? (인원수, 유아의자 문의 등)"]},
+  {name:"대기·자리안내·주문·서빙 (Waiting/Service)", items:[
+    "(웨이팅 발생 시) 웨이팅 방법 안내를 하는가?",
+    "(웨이팅 발생 시) 웨이팅 예상 시간 안내를 하는가?",
+    "(자리 안내 시) 고객이 잘 따라오는지 확인하며 동행하여 걷는가?",
+    "착석 응대어를 했는가? (호출벨·식기류·오더 방법 안내)",
+    "식사 및 음료 지식을 정확히 알고 설명이 가능한가?",
+    "(주문 시) 주문 메뉴를 복창하여 재확인하는가?",
+    "(서빙 시) '실례합니다' 등 주의 환기 멘트를 하는가?",
+    "(음식 제공 시) 메뉴명을 말해주는가?",
+    "메뉴 설명(레시피·먹는 방법)을 하는가?",
+    "계산서(Bill Pad)를 제공하는가?",
+    "고객 호출에 빠르게 응답하는가? (5초 안 테이블 방문)"]},
+  {name:"뒷정리 (Arrangement)", items:[
+    "고객이 자리를 완전히 떠난 후 식기 수거를 하는가?",
+    "원 위치에 맞게 테이블 셋팅을 하는가?"]},
+  {name:"결제 및 배웅 (Farewell)", items:[
+    "결제 시 식사 메뉴명과 결제금액을 확인해 주는가?",
+    "계산 후 영수증을 반드시 제공(또는 제공 여부 문의)하는가?",
+    "퇴점 시 재방문 유도 인사를 하는가? (\"감사합니다. 또 뵙겠습니다.\")"]},
+  {name:"용모 (Appearance)", items:[
+    "단정한 신발을 신었는가? (검정 위주, 헤진 신발 금지)",
+    "(남)수염 면도 / (여)과한 화장·민낯 아님 — 단정한가?",
+    "손톱이 깨끗하고 짧게 정리되어 있는가? (컬러·길이)",
+    "악세서리 미착용인가? (반지·팔찌·귀걸이·피어싱)"]},
+  {name:"복장 (Grooming)", items:[
+    "유니폼(상·하의)이 구김·얼룩·터짐 없이 깨끗한가?",
+    "명찰을 왼쪽 가슴에 반듯하게 착용했는가?"]},
+]};
+const CS_ITEMS=(()=>{const a=[];CS_CHECKLIST.sections.forEach(s=>s.items.forEach(it=>a.push({sec:s.name,q:it})));return a;})();
 function topicCountOf(store, ym){
   const cs=R.complaints.filter(c=>c.store===store&&c.month===ym), cnt={};
   cs.forEach(c=>topicsOf(c.text).forEach(t=>cnt[t]=(cnt[t]||0)+1));
@@ -1064,54 +1116,89 @@ function buildOpinionDraft(store, ym){
   t+=`\n■ 종합 의견\n- 상기 미흡 사항에 대해 현장 점검 및 직원 교육을 실시함. 익월 동일 항목 불만 추이 모니터링 예정.`;
   return t;
 }
+let CSV={store:'',ym:'',round:'1',ans:{},mk:''};
+function csKey(store,ym,round){return `cs-checklist|${ym}|${store}|${round||'1'}`;}
+function csSave(){ try{localStorage.setItem(CSV.mk, JSON.stringify({ans:CSV.ans, feedback:(document.getElementById('cs-fb')||{}).value||''}));}catch(e){} }
+function updateCsScore(){
+  const a=CSV.ans||{}; let ok=0,no=0,na=0;
+  CS_ITEMS.forEach((_,i)=>{const v=a[i]; if(v==='ok')ok++;else if(v==='no')no++;else if(v==='na')na++;});
+  const valid=ok+no, score=valid?Math.round(ok/valid*100):0, done=ok+no+na;
+  const el=document.getElementById('cs-score'); if(!el)return;
+  el.innerHTML=`<span>점수 <b>${score}점</b></span><span>✅ 양호 ${ok}</span><span>⚠ 미흡 ${no}</span><span>해당없음 ${na}</span><span style="margin-left:auto">진행 ${done}/${CS_ITEMS.length}</span>`;
+}
+function csResultText(){
+  const s=CSV.store, nm=s.split('·').slice(1).join('·')||s, brand=R.store_brand[s];
+  const rater=(document.getElementById('vinput-rater')||{}).value||'', date=(document.getElementById('vinput-date')||{}).value||'';
+  const a=CSV.ans||{}; let ok=0,no=0,na=0;
+  CS_ITEMS.forEach((_,i)=>{const v=a[i];if(v==='ok')ok++;else if(v==='no')no++;else if(v==='na')na++;});
+  const valid=ok+no, score=valid?Math.round(ok/valid*100):0;
+  const LB={ok:'양호',no:'미흡',na:'해당없음','':'미체크'};
+  let t=`[CS 체크리스트 · 대면 응대] ${brand} ${nm}\n평가자: ${rater} / 평가일: ${date} / ${CSV.round}회차\n총점: ${score}점 (양호 ${ok} · 미흡 ${no} · 해당없음 ${na})\n\n`;
+  let cur='';
+  CS_ITEMS.forEach((it,i)=>{ if(it.sec!==cur){cur=it.sec; t+=`■ ${cur}\n`;} t+=`${i+1}. [${LB[a[i]||'']}] ${it.q}\n`; });
+  const bad=CS_ITEMS.map((it,i)=>({it,i})).filter(o=>a[o.i]==='no');
+  if(bad.length) t+=`\n● 미흡 항목(${bad.length})\n`+bad.map(o=>`- ${o.i+1}. ${o.it.q}`).join('\n')+'\n';
+  t+=`\n■ 종합 의견\n${(document.getElementById('cs-fb')||{}).value||''}`;
+  return t;
+}
 function renderVinput(store, ym){
   const body=document.getElementById('vinput-body'); if(!body) return;
-  if(!store||!(store in (R.store_brand||{}))){ body.innerHTML='<p style="color:var(--muted)">매장명을 정확히 선택하세요.</p>'; return; }
-  const o=(R.store_month[store]||{})[ym], svc=svcComplaintsOf(store,ym);
+  if(!store||!(store in (R.store_brand||{}))){ body.innerHTML='<p style="color:var(--muted)">매장명을 정확히 입력 후 불러오기.</p>'; return; }
+  const round=((document.getElementById('vinput-round')||{}).value||'1').trim();
   const nm=store.split('·').slice(1).join('·')||store, brand=R.store_brand[store];
-  document.getElementById('vinput-meta').textContent=`${nm} · ${ym} · 서비스 불만 ${svc.length}건`;
-  const mk=`mon-opinion|${ym}|${store}`;
-  let saved=''; try{saved=localStorage.getItem(mk)||'';}catch(e){}
-  const draft=saved||buildOpinionDraft(store,ym);
-  const samples=svc.slice(0,6).map(c=>`<div class="rv">${(c.text||'').replace(/</g,'&lt;').slice(0,160)}</div>`).join('')||'<div style="color:var(--muted);font-size:12px">서비스 불만 리뷰 없음</div>';
-  body.innerHTML=`
-    <div class="kpis">
-      <div class="kpi"><div class="bar" style="background:var(--brand)"></div><div class="lab">대상 매장</div><div class="val" style="font-size:17px">${brand} ${nm}</div><div class="sub">${ym}</div></div>
-      <div class="kpi"><div class="bar" style="background:var(--bad)"></div><div class="lab">서비스 불만</div><div class="val">${svc.length}건</div><div class="sub">응대·서빙</div></div>
-      <div class="kpi"><div class="bar" style="background:var(--warn)"></div><div class="lab">총 불만</div><div class="val">${o?o['불만']:0}건</div><div class="sub">전체</div></div>
-      <div class="kpi"><div class="bar" style="background:var(--good)"></div><div class="lab">불만율</div><div class="val">${o&&o.total?Math.round(o['불만']/o.total*1000)/10:0}%</div><div class="sub">표본 ${o?o.total:0}</div></div>
-    </div>
-    <div class="grid2">
-      <div class="panel"><h3>✍️ AI 결과보고서 의견 <span class="note">수정 가능 · 자동 저장</span></h3>
-        <textarea id="vinput-ta" style="width:100%;min-height:340px;border:1px solid var(--line);border-radius:8px;padding:12px;font-size:13px;line-height:1.6;font-family:inherit;color:var(--ink);box-sizing:border-box">${draft.replace(/</g,'&lt;')}</textarea>
-        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center">
-          <button id="vinput-copy">📋 의견 복사</button>
-          <button id="vinput-regen" class="ghost">↻ AI 초안 다시 생성</button>
-          <a class="ghost" href="https://eck.solbitech.com/SLNC/index.do" target="_blank" style="text-decoration:none;display:inline-flex;align-items:center;padding:7px 12px;border:1px solid var(--line);border-radius:8px;font-size:13px;color:var(--ink)">🔗 ECK 작성 폼 열기</a>
-          <span id="vinput-copied" style="color:var(--good);font-size:12px"></span>
-        </div>
-        <div class="note" style="margin-top:8px">ECK ▸ 점검표 작성 ▸ 점포 ▸ <b>4번 [서비스] 26년 CS 체크리스트</b> ▸ 매장 선택 후 의견란에 붙여넣기(📋 복사).</div>
-      </div>
-      <div class="panel"><h3>💬 서비스 불만 리뷰 (근거)</h3>${samples}</div>
-    </div>`;
-  const ta=document.getElementById('vinput-ta');
-  ta.addEventListener('input',()=>{try{localStorage.setItem(mk,ta.value);}catch(e){}});
-  document.getElementById('vinput-copy').addEventListener('click',()=>{
-    ta.select(); let ok=false; try{ok=document.execCommand('copy');}catch(e){}
-    if(navigator.clipboard) navigator.clipboard.writeText(ta.value).catch(()=>{});
-    document.getElementById('vinput-copied').textContent=ok?'복사됨 ✓':'Ctrl+C 로 복사';
-    setTimeout(()=>{const c=document.getElementById('vinput-copied'); if(c)c.textContent='';},1800);
+  const mk=csKey(store,ym,round);
+  let st={ans:{},feedback:''}; try{const s=localStorage.getItem(mk); if(s)st=JSON.parse(s);}catch(e){}
+  if(!st.ans)st.ans={}; if(!st.feedback)st.feedback=buildOpinionDraft(store,ym);
+  CSV={store,ym,round,ans:st.ans,mk};
+  document.getElementById('vinput-meta').textContent=`${brand} ${nm} · ${round}회차 (자동 저장)`;
+  const svc=svcComplaintsOf(store,ym);
+  let gi=-1, h='<div class="cschk"><div class="score" id="cs-score"></div>';
+  CS_CHECKLIST.sections.forEach(sec=>{ h+=`<div class="sec">${sec.name}</div>`;
+    sec.items.forEach(q=>{ gi++; const i=gi, a=st.ans[i]||'';
+      h+=`<div class="it"><div class="q"><span class="qn">${i+1}</span>${q}</div>`
+        +`<div class="seg" data-i="${i}">`
+        +`<button class="ok${a==='ok'?' on':''}" data-v="ok">양호</button>`
+        +`<button class="no${a==='no'?' on':''}" data-v="no">미흡</button>`
+        +`<button class="na${a==='na'?' on':''}" data-v="na">해당없음</button></div></div>`; });
   });
-  document.getElementById('vinput-regen').addEventListener('click',()=>{ const d=buildOpinionDraft(store,ym); ta.value=d; try{localStorage.setItem(mk,d);}catch(e){} });
+  h+=`<div class="sec">기타 FEEDBACK <span class="note">AI 의견 자동 작성 · 수정 가능</span></div>`
+    +`<textarea id="cs-fb" style="width:100%;min-height:170px;border:1px solid var(--line);border-radius:8px;padding:11px;font-size:13px;line-height:1.6;font-family:inherit;box-sizing:border-box;color:var(--ink)">${(st.feedback||'').replace(/</g,'&lt;')}</textarea>`
+    +`<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center">`
+    +`<button id="cs-copy">📋 결과 복사 (ECK 붙여넣기용)</button>`
+    +`<button id="cs-regen" class="ghost">↻ AI 의견 다시 생성</button>`
+    +`<a class="ghost" href="https://eck.solbitech.com/SLNC/index.do" target="_blank" style="text-decoration:none;display:inline-flex;align-items:center;padding:7px 12px;border:1px solid var(--line);border-radius:8px;font-size:13px;color:var(--ink)">🔗 ECK 작성 폼 열기</a>`
+    +`<button id="cs-reset" class="ghost">🗑 초기화</button>`
+    +`<span id="cs-copied" style="color:var(--good);font-size:12px"></span></div>`
+    +`<div class="note" style="margin-top:8px">ECK ▸ 점검표 작성 ▸ 점포 ▸ <b>4번 [서비스] 26년 CS 체크리스트</b> ▸ 매장 선택 → 항목 체크 + 의견 붙여넣기 → 서명·제출.</div>`;
+  if(svc.length) h+=`<div class="sec">참고: 최근 서비스 불만 리뷰 ${svc.length}건</div>`+svc.slice(0,4).map(c=>`<div class="rv">${(c.text||'').replace(/</g,'&lt;').slice(0,140)}</div>`).join('');
+  h+='</div>';
+  body.innerHTML=h;
+  body.querySelectorAll('.seg').forEach(seg=>{ const i=seg.getAttribute('data-i');
+    seg.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{ const v=b.getAttribute('data-v');
+      CSV.ans[i]=(CSV.ans[i]===v?'':v);
+      seg.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+      if(CSV.ans[i])b.classList.add('on');
+      updateCsScore(); csSave(); })); });
+  document.getElementById('cs-fb').addEventListener('input',csSave);
+  document.getElementById('cs-copy').addEventListener('click',()=>{ const t=csResultText();
+    const ta=document.createElement('textarea'); ta.value=t; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select();
+    let ok=false; try{ok=document.execCommand('copy');}catch(e){} document.body.removeChild(ta);
+    if(navigator.clipboard) navigator.clipboard.writeText(t).catch(()=>{});
+    const c=document.getElementById('cs-copied'); c.textContent=ok?'복사됨 ✓':'복사 실패'; setTimeout(()=>{c.textContent='';},1800); });
+  document.getElementById('cs-regen').addEventListener('click',()=>{ document.getElementById('cs-fb').value=buildOpinionDraft(store,ym); csSave(); });
+  document.getElementById('cs-reset').addEventListener('click',()=>{ if(!confirm('이 매장·회차 체크 내용을 초기화할까요?'))return; CSV.ans={}; try{localStorage.removeItem(mk);}catch(e){} renderVinput(store,ym); });
+  updateCsScore();
 }
 (function initVinput(){
   const inp=document.getElementById('vinput-store'), dl=document.getElementById('vinput-list'), msel=document.getElementById('vinput-month');
   if(!inp||!R.stores) return;
   dl.innerHTML=R.stores.map(s=>`<option value="${s}">`).join('');
   R.months.forEach(m=>msel.add(new Option(m,m))); msel.value=R.current_month;
+  const dt=document.getElementById('vinput-date'); if(dt){ const n=new Date(); dt.value=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; }
   const go=()=>{ let s=inp.value.trim(); if(!(s in R.store_brand)){ const hit=R.stores.find(x=>x.includes(s)); if(hit)s=hit; } renderVinput(s,msel.value); };
   document.getElementById('vinput-go').addEventListener('click',go);
   inp.addEventListener('change',go);
+  const rd=document.getElementById('vinput-round'); if(rd) rd.addEventListener('change',go);
 })();
 
 /* ---------- tabs & lazy chart init ---------- */
