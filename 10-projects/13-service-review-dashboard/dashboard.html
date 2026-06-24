@@ -540,6 +540,25 @@ const FIX_BY_CAT={
   "위생·청결":"집기·위생 점검 강화",
   "예약·주문·결제 운영":"예약·결제·안내 운영 점검",
 };
+// 토픽 → 부서별 실행계획(완료방법) 자동 생성용
+const DEPT_BY_CAT={
+  "직원 응대·친절":"**서비스교육팀** — 응대·친절 스크립트 교육 후 미스터리쇼퍼로 검증",
+  "음식 맛·품질":"**R&D팀** — 조리 표준(맛·염도·식감) 재점검·배포, **QC팀** 현장 준수 점검",
+  "대기·서빙 지연":"**영업팀** — 서빙 동선·대기 안내 운영 점검, 피크 인력 조정",
+  "가격·양/가성비":"**R&D팀** — 제공량·구성 적정성 재검토, **영업팀** 메뉴판 구성·중량 표기",
+  "위생·청결":"**QC팀** — 위생·집기 점검 강화 및 본사 보고 SLA",
+  "예약·주문·결제 운영":"**영업팀** — 예약·결제·좌석 운영 기준 점검·교육",
+};
+// 수기 노트 없는 월/기간용: 불만 샘플 토픽 → AI 개선방안·실행계획 자동 생성
+function autoPlan(samp){
+  const cat={}; samp.forEach(c=>topicsOf(c.text).forEach(h=>cat[h]=(cat[h]||0)+1));
+  const tops=Object.entries(cat).sort((a,b)=>b[1]-a[1]).map(([k])=>k);
+  return {
+    개선방안:[...new Set(tops.map(k=>FIX_BY_CAT[k]).filter(Boolean))].slice(0,3),
+    완료방법:[...new Set(tops.map(k=>DEPT_BY_CAT[k]).filter(Boolean))].slice(0,4),
+    auto:true,
+  };
+}
 // 리뷰 원문에서 '불만이 담긴 구절'만 짧게 간추리기
 const NEGW=['별로','별루','아쉽','실망','최악','부족','불편','비추','그닥','짜요','짜고','짜서','너무 짜','달아','너무 달','맛없','맛 없','맛이 없','비싸','느끼','비린','비려','질기','미지근','불어','밍밍','맹탕','늦','오래','지연','한참','불친절','무뚝뚝','퉁명','불쾌','더럽','머리카락','이물','끈적','환불','다시는','다신','두번','재방문','없어요','없네','못 먹','못먹','싸가지','짜증','별점','양이 적','양도 적','부실'];
 function gist(t){
@@ -612,18 +631,19 @@ function renderTop3(fromM,toM){
     const sumItems=samp.map(c=>`<li>${hilite(gistDetail(c.text).replace(/</g,'&lt;'))}</li>`).join('');
     const cntLbl=samp.length?` <span style="color:var(--muted);font-weight:400">(${samp.length}건)</span>`:'';
     let body=`<div class="field"><div class="k"><span class="tag">요약</span>불만 요약${cntLbl}</div><div class="v"><ul class="sum">${sumItems||'<li>불만 리뷰가 없습니다.</li>'}</ul></div></div>`;
-    // 개선 방안: 3가지만
-    if(n && n['개선방안'] && n['개선방안'].length){
-      body+=f('방안','개선 방안',n['개선방안'].slice(0,3));
-    }else{
-      const cat={}; samp.forEach(c=>topicsOf(c.text).forEach(h=>cat[h]=(cat[h]||0)+1));
-      const fixes=[...new Set(Object.entries(cat).sort((a,b)=>b[1]-a[1]).map(([k])=>FIX_BY_CAT[k]).filter(Boolean))].slice(0,3);
-      if(fixes.length) body+=`<div class="field"><div class="k"><span class="tag">방안</span>개선 방안</div><div class="v"><ul class="sum">${fixes.map(x=>`<li>${x}</li>`).join('')}</ul></div></div>`;
+    // AI 개선방안·실행계획: 수기 노트(1~5월) 있으면 사용, 없으면(6월·기간 등) 토픽 기반 자동 생성 — 항상 AI 의견 표시
+    const hasNote = n && ((n['개선방안']&&n['개선방안'].length) || (n['완료방법']&&n['완료방법'].length));
+    const plan = hasNote ? {개선방안:n['개선방안']||[], 완료방법:n['완료방법']||[], auto:false} : autoPlan(samp);
+    const aiTag = `<span class="pill brand">🤖 AI 의견${plan.auto?' (자동)':''}</span>`;
+    // 개선 방안 (AI 의견 배지 포함)
+    if(plan['개선방안'] && plan['개선방안'].length){
+      body+=`<div class="field"><div class="k"><span class="tag">방안</span>개선 방안</div><div class="v"><div class="ai-lbl">${aiTag}</div><ul class="sum">${plan['개선방안'].slice(0,3).map(x=>`<li>${md(x)}</li>`).join('')}</ul></div></div>`;
     }
-    // 완료 방법: AI 제안 + 내가 직접 작성하는 의견(자동 저장)
+    // 실행 계획 (부서별) — AI 의견 배지 + 서비스교육팀 직접 의견
     const mk=`voc-memo|${hit?hit.month:fromM}|${s.store}`;
-    const aiDone = (n&&n['완료방법']&&n['완료방법'].length)
-      ? `<div class="ai-lbl"><span class="pill brand">🤖 AI 의견</span></div><ul class="sum">${n['완료방법'].map(x=>`<li>${md(x)}</li>`).join('')}</ul>` : '';
+    const aiDone = (plan['완료방법'] && plan['완료방법'].length)
+      ? `<div class="ai-lbl">${aiTag}</div><ul class="sum">${plan['완료방법'].map(x=>`<li>${md(x)}</li>`).join('')}</ul>`
+      : `<div class="ai-lbl">${aiTag}</div><div style="color:var(--muted);font-size:12px">자동 생성할 토픽이 부족합니다.</div>`;
     body += `<div class="field"><div class="k"><span class="tag">실행</span>실행 계획</div><div class="v">${aiDone}`
       + `<div class="memo-lbl">✍️ 서비스교육팀 의견 (직접 작성 · 자동 저장)</div>`
       + `<textarea class="memo" data-key="${mk}" placeholder="개선 진행·완료 상황, 추가 조치 의견을 입력하세요"></textarea>`
