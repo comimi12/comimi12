@@ -35,8 +35,16 @@ def main():
             raise SystemExit(f"[ERR] clone 실패: {r.stderr[-300:]}")
     else:
         git("pull", "--ff-only")
-    shutil.copyfile(SHARE, os.path.join(CLONE, "index.html"))
-    git("add", "index.html")
+    # index.html 복사 + 빌드토큰 주입(캐시 우회 자동 새로고침용) + ver.txt 기록
+    token = f"{datetime.datetime.now():%Y%m%d-%H%M%S}"
+    with open(SHARE, "r", encoding="utf-8") as f:
+        html = f.read()
+    html = html.replace("__BUILD_TOKEN__", token)
+    with open(os.path.join(CLONE, "index.html"), "w", encoding="utf-8") as f:
+        f.write(html)
+    with open(os.path.join(CLONE, "ver.txt"), "w", encoding="utf-8") as f:
+        f.write(token)
+    git("add", "index.html", "ver.txt")
     st = git("status", "--porcelain")
     if not st.stdout.strip():
         print("[skip] 변경 없음 — 재배포 불필요"); return
