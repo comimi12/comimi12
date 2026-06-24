@@ -259,7 +259,6 @@
     <button class="tab" data-v="vmon">⑦ 모니터링 일정표</button>
     <button class="tab" data-v="vinput">⑧ 모니터링 결과입력</button>
     <div class="grp">경영 보고</div>
-    <button class="tab" data-v="vreport">📋 결과 보고서</button>
     <button class="tab" data-v="vreward">🏅 분기별 상벌 매장</button>
   </nav>
   <div class="sb-meta" id="meta"></div>
@@ -267,22 +266,9 @@
 <main class="main">
 <div class="wrap">
 
-  <!-- 결과 보고서 (경영 종합) -->
-  <section class="view" id="vreport">
-    <div class="vhead"><h2>결과 보고서 <span class="note" id="vreport-src"></span></h2></div>
-    <div class="ctrl">
-      <span>분기</span>
-      <select id="vreport-q"></select>
-      <button id="vreport-apply">조회</button>
-      <button id="vreport-print" class="ghost">🖨 인쇄 / PDF</button>
-      <span class="ctrl-note" id="vreport-meta"></span>
-    </div>
-    <div id="vreport-body"></div>
-  </section>
-
   <!-- 분기별 상벌 매장 (고객의 소리 기반) -->
   <section class="view" id="vreward">
-    <div class="vhead"><h2>분기별 상벌 매장 <span class="note">고객의 소리(VOC) 기준 · 칭찬 3 포상 / 불만 2 개선 · 운영팀·HR팀 건의용</span></h2></div>
+    <div class="vhead"><h2>분기별 상벌 매장 <span class="note">SL&C 고객의 소리 기준</span></h2></div>
     <div class="ctrl">
       <span>분기</span><select id="vreward-q"></select>
       <button id="vreward-go">조회</button>
@@ -1287,51 +1273,6 @@ function renderVinput(store, ym){
   const rd=document.getElementById('vinput-round'); if(rd) rd.addEventListener('change',go);
 })();
 
-/* ---------- 결과 보고서 (경영 종합) ---------- */
-function kpiB(l,n,c){return `<div class="b"><div class="l">${l}</div><div class="n"${c?` style="color:${c}"`:''}>${n}</div></div>`;}
-// 결과 보고서: 고객의 소리(VOC)가 최우선 관리지표 → VOC 기준 분기별 매장 선정.
-// (네이버·캐치테이블 리뷰는 이벤트성 칭찬 편향이 커 참고용으로만 표기)
-function renderReport(qkey){
-  const box=document.getElementById('vreport-body'); if(!box) return;
-  const Q=quartersOf((V&&V.months)||R.months), qMonths=Q[qkey]||[];
-  if(!qMonths.length){ box.innerHTML='<p style="color:var(--muted)">분기 데이터가 없습니다.</p>'; return; }
-  const p=qkey.split('-'), y=p[0], q=p[1];
-  document.getElementById('vreport-src').textContent=`${y}년 ${q}분기 · 고객의 소리(VOC) 기준 · 생성 ${D.generated_at}`;
-  document.getElementById('vreport-meta').textContent=`${qMonths[0]}~${qMonths[qMonths.length-1]}`;
-  const vr=vocByStore(qMonths), vrecs=(V&&V.records?V.records:[]).filter(r=>qMonths.includes(r.month));
-  const v칭찬=vrecs.filter(r=>r.category==='칭찬').length, v불만=vrecs.filter(r=>r.category==='불만').length, vcrit=vrecs.filter(r=>r.critical).length;
-  const praise=vr.by.filter(s=>s['칭찬']>0).sort((a,b)=>b['칭찬']-a['칭찬']).slice(0,3);
-  const penalty=vr.by.filter(s=>s['불만']>0).sort((a,b)=>b['불만']-a['불만']).slice(0,3);
-  const typ={}; vrecs.filter(r=>r.category==='불만').forEach(r=>{const t=(r.inquiry_type||'기타').trim()||'기타';typ[t]=(typ[t]||0)+1;});
-  const typTop=Object.entries(typ).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([k,n])=>`${k} ${n}`).join(' · ')||'-';
-  const a=aggRange(qMonths[0],qMonths[qMonths.length-1]).tot;   // 리뷰(참고)
-  const em=[...qMonths].reverse().find(m=>ECK&&ECK.cs&&ECK.cs[m])||qMonths[qMonths.length-1];
-  const cs=ECK&&ECK.cs?ECK.cs[em]:null, qs=ECK&&ECK.qscs?ECK.qscs[em]:null;
-  let csRate='-'; if(cs&&cs.stores.length){const el=(typeof monthFullDays==='function'?monthFullDays(em):0)||cs.days.length;let s=0;cs.stores.forEach(st=>{let d=0;for(let i=1;i<=el;i++)if(st.days[i])d++;s+=el?d/el:0;});csRate=Math.round(s/cs.stores.length*100)+'%';}
-  const qsRate=qs&&qs.roster_count?Math.round(qs.reg_count/qs.roster_count*100)+'%':'-';
-  const bd=b=>`<span style="font-size:11px;color:var(--brand);background:var(--brand-soft);border-radius:5px;padding:1px 7px;margin-right:6px">${b}</span>`;
-  const trim=s=>(s||'').replace(/</g,'&lt;').replace(/\s+/g,' ').slice(0,80);
-  let h='';
-  h+=`<div class="rep-sec"><h3>📊 종합 요약 — 고객의 소리(VOC) 최우선 지표</h3><div class="rep-kpi">`
-    +kpiB('VOC 접수',fmt(vrecs.length))+kpiB('VOC 칭찬',fmt(v칭찬),'var(--good)')+kpiB('VOC 불만',fmt(v불만),'var(--bad)')+kpiB('🚨 크리티컬',fmt(vcrit),'var(--bad)')+kpiB('CS 점검률',csRate,'var(--brand)')+kpiB('QSCS 등록률',qsRate,'var(--brand)')
-    +`</div><div class="rep-row" style="color:var(--muted);font-size:12px;border:0;padding-top:8px">※ 네이버·캐치테이블 리뷰 ${fmt(a.total)}건은 이벤트성 칭찬 편향이 커 매장 선정 제외 — 본 보고서는 고객의 소리(VOC) 기준입니다.</div></div>`;
-  h+=`<div class="rep-sec"><h3>🏅 고객 칭찬 우수 매장 (VOC TOP3)</h3>`+(praise.length?praise.map((s,i)=>`<div class="rep-row"><b style="min-width:185px">${i+1}. ${bd(s.brand)}${s.store}</b><span><span style="color:var(--good);font-weight:700">칭찬 ${s['칭찬']}건</span>${s.praiseEx?` · "${trim(s.praiseEx)}…"`:''}</span></div>`).join(''):'<div class="rep-row" style="color:var(--muted)">해당 분기 VOC 칭찬 매장 없음</div>')+`</div>`;
-  h+=`<div class="rep-sec"><h3>🔴 고객 불만 매장 (VOC TOP3)</h3>`+(penalty.length?penalty.map((s,i)=>`<div class="rep-row"><b style="min-width:185px">${i+1}. ${bd(s.brand)}${s.store}</b><span><span style="color:var(--bad);font-weight:700">불만 ${s['불만']}건</span>${s.badEx?` · "${trim(s.badEx)}…"`:''}</span></div>`).join(''):'<div class="rep-row" style="color:var(--muted)">해당 분기 VOC 불만 매장 없음</div>')+`</div>`;
-  h+=`<div class="rep-sec"><h3>📣 VOC 주요 불만 유형</h3><div class="rep-row"><span>${typTop}</span></div></div>`;
-  h+=`<div class="rep-sec"><h3>🏪 매장 자가점검${cs?` (${em})`:''}</h3><div class="rep-row"><b style="min-width:120px">CS 체크리스트</b><span>평균 점검률 ${csRate}</span></div><div class="rep-row"><b style="min-width:120px">QSCS 교육일지</b><span>등록률 ${qsRate}${qs?` (${qs.reg_count}/${qs.roster_count})`:''}</span></div></div>`;
-  box.innerHTML=h;
-}
-(function initReport(){
-  const sel=document.getElementById('vreport-q'); if(!sel) return;
-  const Q=quartersOf((V&&V.months)||R.months), keys=Object.keys(Q).sort();
-  if(!keys.length) return;
-  keys.forEach(k=>{const pp=k.split('-');sel.add(new Option(`${pp[0]}년 ${pp[1]}분기`,k));});
-  sel.value=keys[keys.length-1];
-  document.getElementById('vreport-apply').addEventListener('click',()=>renderReport(sel.value));
-  document.getElementById('vreport-print').addEventListener('click',()=>window.print());
-  renderReport(keys[keys.length-1]);
-})();
-
 /* ---------- 분기별 상벌 매장 (고객의 소리 기반) ---------- */
 function quartersOf(months){ const set={}; months.forEach(m=>{const p=m.split('-').map(Number),q=Math.ceil(p[1]/3),key=`${p[0]}-${q}`;(set[key]=set[key]||[]).push(m);}); return set; }
 function vocByStore(qMonths){
@@ -1347,10 +1288,10 @@ function rewardMemo(y,q,qMonths,praise,penalty,total){
   let t=`[${y}년 ${q}분기 고객의 소리 기반 매장 상벌 건의]  (수신: 운영팀 · HR팀)\n\n`;
   t+=`■ 포상 추천 매장 (고객 칭찬 우수) — ${praise.length}개\n`;
   praise.forEach((s,i)=>{t+=`${i+1}. ${s.store} — 고객 칭찬 ${s['칭찬']}건${s.praiseEx?` · "${tr(s.praiseEx)}…"`:''}\n`;});
-  t+=`▶ 제안: 분기 우수매장 표창 · 직원 인센티브(상품권·포상휴가) · 우수사례 전사 공유\n\n`;
-  t+=`■ 개선 요구 매장 (고객 불만 다발) — ${penalty.length}개\n`;
+  t+=`▶ 포상안: 분기 우수매장 표창 · 직원 인센티브(상품권·포상휴가) · 우수사례 전사 공유\n\n`;
+  t+=`■ 징계 필요 매장 (고객 불만 다발) — ${penalty.length}개\n`;
   penalty.forEach((s,i)=>{t+=`${i+1}. ${s.store} — 고객 불만 ${s['불만']}건${s.badEx?` · "${tr(s.badEx)}…"`:''}\n`;});
-  t+=`▶ 제안: 점장 면담·원인 분석 · 직원 재교육 · 개선계획 제출 후 1개월 재점검(미개선 시 인사평가 반영 검토)\n\n`;
+  t+=`▶ 징계기준: 점장 면담·원인 분석 · 직원 재교육 · 개선계획 제출 후 1개월 재점검(미개선 시 인사평가 반영·징계 검토)\n\n`;
   t+=`※ 근거: ${y}년 ${q}분기(${qMonths[0]}~${qMonths[qMonths.length-1]}) SL&C 고객의 소리(VOC) ${total}건 분석.`;
   return t;
 }
@@ -1360,7 +1301,7 @@ function renderRewards(qkey){
   if(!qMonths.length){ box.innerHTML='<p style="color:var(--muted)">분기 데이터가 없습니다.</p>'; return; }
   const p=qkey.split('-'), y=p[0], q=p[1];
   const r=vocByStore(qMonths), total=r.total;
-  const praise=r.by.filter(s=>s['칭찬']>0).sort((a,b)=>b['칭찬']-a['칭찬']||b['기타']-a['기타']).slice(0,3);
+  const praise=r.by.filter(s=>s['칭찬']>0).sort((a,b)=>b['칭찬']-a['칭찬']||b['기타']-a['기타']).slice(0,2);
   const penalty=r.by.filter(s=>s['불만']>0).sort((a,b)=>b['불만']-a['불만']).slice(0,2);
   document.getElementById('vreward-meta').textContent=`${y}년 ${q}분기 (${qMonths[0]}~${qMonths[qMonths.length-1]}) · VOC ${total}건`;
   const mk=`reward-memo|${qkey}`; let saved=''; try{saved=localStorage.getItem(mk)||'';}catch(e){}
@@ -1369,12 +1310,12 @@ function renderRewards(qkey){
   const bd=b=>`<span style="font-size:11px;color:var(--brand);background:var(--brand-soft);border-radius:5px;padding:1px 7px;margin-right:6px">${b}</span>`;
   const row=(s,i,col,lbl,n,ex)=>`<div class="rep-row"><b style="min-width:190px">${i+1}. ${bd(s.brand)}${s.store}</b><span><span style="color:${col};font-weight:700">${lbl} ${n}건</span>${ex?` · "${trim(ex)}…"`:''}</span></div>`;
   let h='';
-  h+=`<div class="rep-sec"><h3>🏅 포상 추천 매장 — 고객 칭찬 우수 TOP3</h3>`
+  h+=`<div class="rep-sec"><h3>🏅 포상 추천 매장 — 고객 칭찬 우수 2개</h3>`
     +(praise.length?praise.map((s,i)=>row(s,i,'var(--good)','칭찬',s['칭찬'],s.praiseEx)).join(''):'<div class="rep-row" style="color:var(--muted)">해당 분기 VOC 칭찬 매장 없음</div>')
     +`<div class="rep-row" style="color:var(--muted);font-size:12px">▶ 포상안: 분기 우수매장 표창 · 직원 인센티브(상품권·포상휴가) · 우수사례 전사 공유</div></div>`;
-  h+=`<div class="rep-sec"><h3>⚠️ 개선 요구 매장 — 고객 불만 다발 TOP2</h3>`
+  h+=`<div class="rep-sec"><h3>⛔ 징계 필요 매장 — 고객 불만 다발 2개</h3>`
     +(penalty.length?penalty.map((s,i)=>row(s,i,'var(--bad)','불만',s['불만'],s.badEx)).join(''):'<div class="rep-row" style="color:var(--muted)">해당 분기 VOC 불만 매장 없음</div>')
-    +`<div class="rep-row" style="color:var(--muted);font-size:12px">▶ 상벌기준: 점장 면담·원인 분석 · 직원 재교육 · 개선계획 제출 후 1개월 재점검(미개선 시 인사평가 반영 검토)</div></div>`;
+    +`<div class="rep-row" style="color:var(--muted);font-size:12px">▶ 징계기준: 점장 면담·원인 분석 · 직원 재교육 · 개선계획 제출 후 1개월 재점검(미개선 시 인사평가 반영·징계 검토)</div></div>`;
   h+=`<div class="rep-sec"><h3>📝 운영팀·HR팀 건의문 <span class="note">수정 가능 · 자동 저장</span></h3>`
     +`<textarea id="vreward-ta" style="width:100%;min-height:280px;border:1px solid var(--line);border-radius:8px;padding:12px;font-size:13px;line-height:1.6;font-family:inherit;box-sizing:border-box;color:var(--ink)">${memo.replace(/</g,'&lt;')}</textarea>`
     +`<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center"><button id="vreward-copy">📋 건의문 복사</button><button id="vreward-regen" class="ghost">↻ 다시 생성</button><span id="vreward-copied" style="color:var(--good);font-size:12px"></span></div></div>`;
