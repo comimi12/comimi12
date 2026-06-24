@@ -247,8 +247,6 @@
 <aside class="sidebar" id="sidebar">
   <div class="sb-brand"><img src="logo.png" alt="삼천리 SL&C" onerror="this.style.display='none'"><div class="t"><b>삼천리 SL&C</b><span>VOC 리뷰 대시보드</span></div></div>
   <nav class="snav">
-    <div class="grp">경영 보고</div>
-    <button class="tab" data-v="vreport">📋 결과 보고서</button>
     <div class="grp">리뷰 분석</div>
     <button class="tab active" data-v="v1">① 브랜드별 리뷰 종합</button>
     <button class="tab" data-v="v2">② TOP3 불만매장 개선 방안</button>
@@ -260,6 +258,9 @@
     <div class="grp">현장 모니터링</div>
     <button class="tab" data-v="vmon">⑦ 모니터링 일정표</button>
     <button class="tab" data-v="vinput">⑧ 모니터링 결과입력</button>
+    <div class="grp">경영 보고</div>
+    <button class="tab" data-v="vreport">📋 결과 보고서</button>
+    <button class="tab" data-v="vreward">🏅 분기별 상벌 매장</button>
   </nav>
   <div class="sb-meta" id="meta"></div>
 </aside>
@@ -277,6 +278,18 @@
       <span class="ctrl-note" id="vreport-meta"></span>
     </div>
     <div id="vreport-body"></div>
+  </section>
+
+  <!-- 분기별 상벌 매장 (고객의 소리 기반) -->
+  <section class="view" id="vreward">
+    <div class="vhead"><h2>분기별 상벌 매장 <span class="note">고객의 소리(VOC) 기준 · 칭찬 3 포상 / 불만 2 개선 · 운영팀·HR팀 건의용</span></h2></div>
+    <div class="ctrl">
+      <span>분기</span><select id="vreward-q"></select>
+      <button id="vreward-go">조회</button>
+      <button id="vreward-print" class="ghost">🖨 인쇄 / PDF</button>
+      <span class="ctrl-note" id="vreward-meta"></span>
+    </div>
+    <div id="vreward-body"></div>
   </section>
 
   <!-- VIEW 1 -->
@@ -1314,6 +1327,69 @@ function renderReport(fromM,toM){
   document.getElementById('vreport-apply').addEventListener('click',()=>{let a=fr.value,b=to.value;if(a>b)[a,b]=[b,a];renderReport(a,b);});
   document.getElementById('vreport-print').addEventListener('click',()=>window.print());
   renderReport(R.current_month,R.current_month);
+})();
+
+/* ---------- 분기별 상벌 매장 (고객의 소리 기반) ---------- */
+function quartersOf(months){ const set={}; months.forEach(m=>{const p=m.split('-').map(Number),q=Math.ceil(p[1]/3),key=`${p[0]}-${q}`;(set[key]=set[key]||[]).push(m);}); return set; }
+function vocByStore(qMonths){
+  const recs=(V&&V.records?V.records:[]).filter(r=>qMonths.includes(r.month)); const by={};
+  recs.forEach(r=>{ const x=by[r.store]=by[r.store]||{store:r.store,brand:r.brand||'',칭찬:0,불만:0,기타:0,praiseEx:'',badEx:''};
+    if(r.category==='칭찬'){x['칭찬']++; if(!x.praiseEx)x.praiseEx=r.content;}
+    else if(r.category==='불만'){x['불만']++; if(!x.badEx)x.badEx=r.content;}
+    else x['기타']++; });
+  return {by:Object.values(by),total:recs.length};
+}
+function rewardMemo(y,q,qMonths,praise,penalty,total){
+  const tr=s=>(s||'').replace(/\s+/g,' ').slice(0,55);
+  let t=`[${y}년 ${q}분기 고객의 소리 기반 매장 상벌 건의]  (수신: 운영팀 · HR팀)\n\n`;
+  t+=`■ 포상 추천 매장 (고객 칭찬 우수) — ${praise.length}개\n`;
+  praise.forEach((s,i)=>{t+=`${i+1}. ${s.store} — 고객 칭찬 ${s['칭찬']}건${s.praiseEx?` · "${tr(s.praiseEx)}…"`:''}\n`;});
+  t+=`▶ 제안: 분기 우수매장 표창 · 직원 인센티브(상품권·포상휴가) · 우수사례 전사 공유\n\n`;
+  t+=`■ 개선 요구 매장 (고객 불만 다발) — ${penalty.length}개\n`;
+  penalty.forEach((s,i)=>{t+=`${i+1}. ${s.store} — 고객 불만 ${s['불만']}건${s.badEx?` · "${tr(s.badEx)}…"`:''}\n`;});
+  t+=`▶ 제안: 점장 면담·원인 분석 · 직원 재교육 · 개선계획 제출 후 1개월 재점검(미개선 시 인사평가 반영 검토)\n\n`;
+  t+=`※ 근거: ${y}년 ${q}분기(${qMonths[0]}~${qMonths[qMonths.length-1]}) SL&C 고객의 소리(VOC) ${total}건 분석.`;
+  return t;
+}
+function renderRewards(qkey){
+  const box=document.getElementById('vreward-body'); if(!box) return;
+  const Q=quartersOf((V&&V.months)||R.months), qMonths=Q[qkey]||[];
+  if(!qMonths.length){ box.innerHTML='<p style="color:var(--muted)">분기 데이터가 없습니다.</p>'; return; }
+  const p=qkey.split('-'), y=p[0], q=p[1];
+  const r=vocByStore(qMonths), total=r.total;
+  const praise=r.by.filter(s=>s['칭찬']>0).sort((a,b)=>b['칭찬']-a['칭찬']||b['기타']-a['기타']).slice(0,3);
+  const penalty=r.by.filter(s=>s['불만']>0).sort((a,b)=>b['불만']-a['불만']).slice(0,2);
+  document.getElementById('vreward-meta').textContent=`${y}년 ${q}분기 (${qMonths[0]}~${qMonths[qMonths.length-1]}) · VOC ${total}건`;
+  const mk=`reward-memo|${qkey}`; let saved=''; try{saved=localStorage.getItem(mk)||'';}catch(e){}
+  const memo=saved||rewardMemo(y,q,qMonths,praise,penalty,total);
+  const trim=s=>(s||'').replace(/</g,'&lt;').replace(/\s+/g,' ').slice(0,85);
+  const bd=b=>`<span style="font-size:11px;color:var(--brand);background:var(--brand-soft);border-radius:5px;padding:1px 7px;margin-right:6px">${b}</span>`;
+  const row=(s,i,col,lbl,n,ex)=>`<div class="rep-row"><b style="min-width:190px">${i+1}. ${bd(s.brand)}${s.store}</b><span><span style="color:${col};font-weight:700">${lbl} ${n}건</span>${ex?` · "${trim(ex)}…"`:''}</span></div>`;
+  let h='';
+  h+=`<div class="rep-sec"><h3>🏅 포상 추천 매장 — 고객 칭찬 우수 TOP3</h3>`
+    +(praise.length?praise.map((s,i)=>row(s,i,'var(--good)','칭찬',s['칭찬'],s.praiseEx)).join(''):'<div class="rep-row" style="color:var(--muted)">해당 분기 VOC 칭찬 매장 없음</div>')
+    +`<div class="rep-row" style="color:var(--muted);font-size:12px">▶ 포상안: 분기 우수매장 표창 · 직원 인센티브(상품권·포상휴가) · 우수사례 전사 공유</div></div>`;
+  h+=`<div class="rep-sec"><h3>⚠️ 개선 요구 매장 — 고객 불만 다발 TOP2</h3>`
+    +(penalty.length?penalty.map((s,i)=>row(s,i,'var(--bad)','불만',s['불만'],s.badEx)).join(''):'<div class="rep-row" style="color:var(--muted)">해당 분기 VOC 불만 매장 없음</div>')
+    +`<div class="rep-row" style="color:var(--muted);font-size:12px">▶ 상벌기준: 점장 면담·원인 분석 · 직원 재교육 · 개선계획 제출 후 1개월 재점검(미개선 시 인사평가 반영 검토)</div></div>`;
+  h+=`<div class="rep-sec"><h3>📝 운영팀·HR팀 건의문 <span class="note">수정 가능 · 자동 저장</span></h3>`
+    +`<textarea id="vreward-ta" style="width:100%;min-height:280px;border:1px solid var(--line);border-radius:8px;padding:12px;font-size:13px;line-height:1.6;font-family:inherit;box-sizing:border-box;color:var(--ink)">${memo.replace(/</g,'&lt;')}</textarea>`
+    +`<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center"><button id="vreward-copy">📋 건의문 복사</button><button id="vreward-regen" class="ghost">↻ 다시 생성</button><span id="vreward-copied" style="color:var(--good);font-size:12px"></span></div></div>`;
+  box.innerHTML=h;
+  const ta=document.getElementById('vreward-ta');
+  ta.addEventListener('input',()=>{try{localStorage.setItem(mk,ta.value);}catch(e){}});
+  document.getElementById('vreward-copy').addEventListener('click',()=>{ta.select();let ok=false;try{ok=document.execCommand('copy');}catch(e){}if(navigator.clipboard)navigator.clipboard.writeText(ta.value).catch(()=>{});const c=document.getElementById('vreward-copied');c.textContent=ok?'복사됨 ✓':'Ctrl+C 로 복사';setTimeout(()=>{if(c)c.textContent='';},1800);});
+  document.getElementById('vreward-regen').addEventListener('click',()=>{const v=rewardMemo(y,q,qMonths,praise,penalty,total);ta.value=v;try{localStorage.setItem(mk,v);}catch(e){}});
+}
+(function initRewards(){
+  const sel=document.getElementById('vreward-q'); if(!sel) return;
+  const Q=quartersOf((V&&V.months)||R.months), keys=Object.keys(Q).sort();
+  if(!keys.length) return;
+  keys.forEach(k=>{const p=k.split('-');sel.add(new Option(`${p[0]}년 ${p[1]}분기`,k));});
+  sel.value=keys[keys.length-1];
+  document.getElementById('vreward-go').addEventListener('click',()=>renderRewards(sel.value));
+  document.getElementById('vreward-print').addEventListener('click',()=>window.print());
+  renderRewards(keys[keys.length-1]);
 })();
 
 /* ---------- tabs & lazy chart init ---------- */
