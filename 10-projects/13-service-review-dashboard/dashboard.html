@@ -211,6 +211,7 @@
   <button class="tab" data-v="vcs">⑤ CS 체크리스트 일일점검현황</button>
   <button class="tab" data-v="vqscs">⑥ QSCS 캠페인 이체크폼 등록현황</button>
   <button class="tab" data-v="vmon">⑦ 현장 모니터링 일정표</button>
+  <button class="tab" data-v="vinput">⑧ 현장 모니터링 결과입력</button>
 </nav>
 <div class="wrap">
 
@@ -336,6 +337,20 @@
     <div class="kpis" id="vmon-kpi"></div>
     <div class="panel"><h3>월간 방문 캘린더 <span class="note">매주 <b>목요일</b> 주 1회 · 주말·공휴일 제외 · <b>서비스 불만</b> 상위 매장 우선 · 카드 클릭 시 상세</span></h3><div id="vmon-sched"></div></div>
     <div class="vmodal" id="vmon-modal"><div class="box" id="vmon-modal-box"></div></div>
+  </section>
+
+  <!-- VIEW 8: 현장 모니터링 결과입력 (ECK CS 체크리스트 작성용 AI 초안) -->
+  <section class="view" id="vinput">
+    <div class="vhead"><h2>현장 모니터링 결과입력 <span class="note">ECK 점검표 작성 ▸ 점포 4번 [서비스] 26년 CS 체크리스트용 AI 결과보고서 초안</span></h2></div>
+    <div class="ctrl">
+      <span>매장</span>
+      <input id="vinput-store" list="vinput-list" placeholder="매장명 입력 (예: 방배, 도곡, 잠실…)" autocomplete="off" style="min-width:240px">
+      <datalist id="vinput-list"></datalist>
+      <select id="vinput-month"></select>
+      <button id="vinput-go">조회</button>
+      <span class="ctrl-note" id="vinput-meta"></span>
+    </div>
+    <div id="vinput-body"><p style="color:var(--muted)">매장을 선택하면 그 매장의 서비스 불만 분석과 AI 결과보고서 초안이 생성됩니다.</p></div>
   </section>
 
 </div>
@@ -1004,6 +1019,7 @@ function showVisitDetail(iso){
   const nm=v.store.split('·').slice(1).join('·')||v.store;
   const svc=svcComplaintsOf(v.store,ym);
   const topics=Object.entries(topicCountOf(v.store,ym)).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([k,n])=>`${k} ${n}`);
+  const needs=[...new Set(Object.entries(topicCountOf(v.store,ym)).sort((a,b)=>b[1]-a[1]).map(([k])=>TRAIN_BY_CAT[k]).filter(Boolean))];
   let aiPlan='';
   const note=((AI.monthly||{})[ym]||[]).find(n=>n.store===v.store||(nm&&n.store&&n.store.endsWith(nm)));
   if(note&&note['개선방안']&&note['개선방안'].length){
@@ -1016,7 +1032,8 @@ function showVisitDetail(iso){
     +`<div class="msub">📅 ${m}/${d} (${wd}) 방문${v.moved?' · 목 공휴일→대체일':''} · ${ym}</div>`
     +`<div class="mk"><span>총 불만 ${v['불만']}건</span><span style="background:#fde7e7;color:var(--bad)">서비스 불만 ${v.svc}건</span><span>불만율 ${v['불만율']}%</span></div>`
     +`<div class="mlbl">📊 주요 불만 토픽</div><div class="msub" style="margin:0">${topics.join(' · ')||'-'}</div>`
-    +`<div class="mlbl">📘 방문 교육 내용</div><div class="train">${v.train}</div>`
+    +`<div class="mlbl">📘 방문 교육 내용(중점)</div><div class="train">${v.train}</div>`
+    +`<div class="mlbl">✅ 필요 교육 사항</div>`+(needs.length?`<ul style="margin:5px 0 0;padding-left:18px;font-size:13px;line-height:1.65">${needs.map(x=>`<li>${x}</li>`).join('')}</ul>`:'<div class="msub" style="margin:0">-</div>')
     +aiPlan
     +`<div class="mlbl">💬 서비스 불만 리뷰 (표시 ${Math.min(svc.length,5)} / 총 ${svc.length}건)</div>${samples}`;
   document.getElementById('vmon-modal').classList.add('on');
@@ -1030,6 +1047,71 @@ function closeVmonModal(){ document.getElementById('vmon-modal').classList.remov
   const mo=document.getElementById('vmon-modal');
   if(mo) mo.addEventListener('click',e=>{ if(e.target.id==='vmon-modal') closeVmonModal(); });
   renderVmon(R.months[R.months.length-1]);
+})();
+
+/* ---------- VIEW 8: 현장 모니터링 결과입력 (ECK CS 체크리스트용 AI 초안) ---------- */
+function buildOpinionDraft(store, ym){
+  const svc=svcComplaintsOf(store,ym), cnt=topicCountOf(store,ym);
+  const topTopics=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,3);
+  const needs=[...new Set(Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]).map(t=>TRAIN_BY_CAT[t]).filter(Boolean))];
+  const note=((AI.monthly||{})[ym]||[]).find(n=>n.store===store);
+  const nm=store.split('·').slice(1).join('·')||store;
+  let t=`[${nm}] 서비스 현장 모니터링 결과 (${ym})\n\n`;
+  t+=`■ 점검 개요\n- 최근 고객 리뷰 분석상 서비스 관련 불만 ${svc.length}건 확인(응대·서빙 등).\n\n`;
+  t+=`■ 주요 미흡 사항\n`+(topTopics.length?topTopics.map(([k,n])=>{const ex=svc.find(c=>topicsOf(c.text).includes(k));return `- ${k} (${n}건)`+(ex?`: "${(ex.text||'').slice(0,55)}…"`:'');}).join('\n'):'- 해당 없음')+`\n\n`;
+  t+=`■ 개선·교육 조치\n`+(needs.length?needs.map(x=>`- ${x}`).join('\n'):'- 기본 응대 점검')+`\n`;
+  if(note&&note['개선방안']&&note['개선방안'].length) t+=`\n■ 세부 개선 방안(AI)\n`+note['개선방안'].map(x=>'- '+String(x).replace(/\*\*/g,'')).join('\n')+'\n';
+  t+=`\n■ 종합 의견\n- 상기 미흡 사항에 대해 현장 점검 및 직원 교육을 실시함. 익월 동일 항목 불만 추이 모니터링 예정.`;
+  return t;
+}
+function renderVinput(store, ym){
+  const body=document.getElementById('vinput-body'); if(!body) return;
+  if(!store||!(store in (R.store_brand||{}))){ body.innerHTML='<p style="color:var(--muted)">매장명을 정확히 선택하세요.</p>'; return; }
+  const o=(R.store_month[store]||{})[ym], svc=svcComplaintsOf(store,ym);
+  const nm=store.split('·').slice(1).join('·')||store, brand=R.store_brand[store];
+  document.getElementById('vinput-meta').textContent=`${nm} · ${ym} · 서비스 불만 ${svc.length}건`;
+  const mk=`mon-opinion|${ym}|${store}`;
+  let saved=''; try{saved=localStorage.getItem(mk)||'';}catch(e){}
+  const draft=saved||buildOpinionDraft(store,ym);
+  const samples=svc.slice(0,6).map(c=>`<div class="rv">${(c.text||'').replace(/</g,'&lt;').slice(0,160)}</div>`).join('')||'<div style="color:var(--muted);font-size:12px">서비스 불만 리뷰 없음</div>';
+  body.innerHTML=`
+    <div class="kpis">
+      <div class="kpi"><div class="bar" style="background:var(--brand)"></div><div class="lab">대상 매장</div><div class="val" style="font-size:17px">${brand} ${nm}</div><div class="sub">${ym}</div></div>
+      <div class="kpi"><div class="bar" style="background:var(--bad)"></div><div class="lab">서비스 불만</div><div class="val">${svc.length}건</div><div class="sub">응대·서빙</div></div>
+      <div class="kpi"><div class="bar" style="background:var(--warn)"></div><div class="lab">총 불만</div><div class="val">${o?o['불만']:0}건</div><div class="sub">전체</div></div>
+      <div class="kpi"><div class="bar" style="background:var(--good)"></div><div class="lab">불만율</div><div class="val">${o&&o.total?Math.round(o['불만']/o.total*1000)/10:0}%</div><div class="sub">표본 ${o?o.total:0}</div></div>
+    </div>
+    <div class="grid2">
+      <div class="panel"><h3>✍️ AI 결과보고서 의견 <span class="note">수정 가능 · 자동 저장</span></h3>
+        <textarea id="vinput-ta" style="width:100%;min-height:340px;border:1px solid var(--line);border-radius:8px;padding:12px;font-size:13px;line-height:1.6;font-family:inherit;color:var(--ink);box-sizing:border-box">${draft.replace(/</g,'&lt;')}</textarea>
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center">
+          <button id="vinput-copy">📋 의견 복사</button>
+          <button id="vinput-regen" class="ghost">↻ AI 초안 다시 생성</button>
+          <a class="ghost" href="https://eck.solbitech.com/SLNC/index.do" target="_blank" style="text-decoration:none;display:inline-flex;align-items:center;padding:7px 12px;border:1px solid var(--line);border-radius:8px;font-size:13px;color:var(--ink)">🔗 ECK 작성 폼 열기</a>
+          <span id="vinput-copied" style="color:var(--good);font-size:12px"></span>
+        </div>
+        <div class="note" style="margin-top:8px">ECK ▸ 점검표 작성 ▸ 점포 ▸ <b>4번 [서비스] 26년 CS 체크리스트</b> ▸ 매장 선택 후 의견란에 붙여넣기(📋 복사).</div>
+      </div>
+      <div class="panel"><h3>💬 서비스 불만 리뷰 (근거)</h3>${samples}</div>
+    </div>`;
+  const ta=document.getElementById('vinput-ta');
+  ta.addEventListener('input',()=>{try{localStorage.setItem(mk,ta.value);}catch(e){}});
+  document.getElementById('vinput-copy').addEventListener('click',()=>{
+    ta.select(); let ok=false; try{ok=document.execCommand('copy');}catch(e){}
+    if(navigator.clipboard) navigator.clipboard.writeText(ta.value).catch(()=>{});
+    document.getElementById('vinput-copied').textContent=ok?'복사됨 ✓':'Ctrl+C 로 복사';
+    setTimeout(()=>{const c=document.getElementById('vinput-copied'); if(c)c.textContent='';},1800);
+  });
+  document.getElementById('vinput-regen').addEventListener('click',()=>{ const d=buildOpinionDraft(store,ym); ta.value=d; try{localStorage.setItem(mk,d);}catch(e){} });
+}
+(function initVinput(){
+  const inp=document.getElementById('vinput-store'), dl=document.getElementById('vinput-list'), msel=document.getElementById('vinput-month');
+  if(!inp||!R.stores) return;
+  dl.innerHTML=R.stores.map(s=>`<option value="${s}">`).join('');
+  R.months.forEach(m=>msel.add(new Option(m,m))); msel.value=R.current_month;
+  const go=()=>{ let s=inp.value.trim(); if(!(s in R.store_brand)){ const hit=R.stores.find(x=>x.includes(s)); if(hit)s=hit; } renderVinput(s,msel.value); };
+  document.getElementById('vinput-go').addEventListener('click',go);
+  inp.addEventListener('change',go);
 })();
 
 /* ---------- tabs & lazy chart init ---------- */
