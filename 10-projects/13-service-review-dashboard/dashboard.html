@@ -283,6 +283,8 @@
     <div class="ctrl" id="v1-ctrl">
       <span>기간</span>
       <select id="v1-from"></select> ~ <select id="v1-to"></select>
+      <span>브랜드</span>
+      <select id="v1-brand"></select>
       <button id="v1-apply">조회</button>
       <span class="ctrl-note" id="v1-range"></span>
     </div>
@@ -468,9 +470,10 @@ function renderStoreTable(){
 function renderV1(fromM,toM){
   const single=fromM===toM, idx=R.months.indexOf(fromM);
   const prevM = single&&idx>0 ? R.months[idx-1] : null;
-  const a=aggRange(fromM,toM), cm=a.tot, pm=prevM?R.by_month_total[prevM]:null;
+  const brand=(document.getElementById('v1-brand')||{}).value||'';
+  const a=aggRange(fromM,toM), cm=brand?a.br[brand]:a.tot, pm=prevM?R.by_month_total[prevM]:null;
   const pmRate=pm?pm['불만율']:null, pmTot=pm?pm.total:null;
-  const stores=aggStoreRange(fromM,toM);
+  let stores=aggStoreRange(fromM,toM); if(brand) stores=stores.filter(s=>s.brand===brand);
   const curRate=rate(cm['불만'],cm.total);
   const ranked=stores.filter(s=>s.total>=10);            // 표본 10건+ 만 신뢰
   const badTop=ranked.slice().sort((x,y)=>y['불만']-x['불만'] || y['불만율']-x['불만율']).slice(0,3);   // 불만 건수 많은 순
@@ -483,19 +486,20 @@ function renderV1(fromM,toM){
   const pk={},ck={}; a.ms.forEach(m=>{const o=(R.by_month_keywords||{})[m]||{};(o.praise||[]).forEach(([k,n])=>pk[k]=(pk[k]||0)+n);(o.complaint||[]).forEach(([k,n])=>ck[k]=(ck[k]||0)+n);});
   const pkChips=Object.entries(pk).sort((x,y)=>y[1]-x[1]).slice(0,3).map(([k,n])=>`<span class="gchip">${k} <em>${fmt(n)}</em></span>`).join('')||'<span style="color:var(--muted)">-</span>';
   const ckChips=Object.entries(ck).sort((x,y)=>y[1]-x[1]).slice(0,3).map(([k,n])=>`<span class="wchip">${k} <em>${fmt(n)}</em></span>`).join('')||'<span style="color:var(--muted)">-</span>';
+  const tTop3=`<div class="hero-watch"><span class="lbl" style="color:var(--good)">👍 칭찬 TOP3 매장</span>${goodChips}</div>
+    <div class="hero-watch"><span class="lbl" style="color:var(--bad)">🔴 불만 TOP3 매장</span>${badChips}</div>`;
+  const tSrc = brand ? '' : `<div class="hero-watch"><span class="lbl">📊 출처별 건수</span>${srcChips}</div>`;
+  const tKw = brand ? '' : `<div class="hero-watch"><span class="lbl" style="color:var(--good)">💬 칭찬 키워드 TOP3</span>${pkChips}</div>
+    <div class="hero-watch"><span class="lbl" style="color:var(--bad)">💢 불만 키워드 TOP3</span>${ckChips}</div>`;
   document.getElementById('v1-hero').innerHTML = `
-    <div class="hero-top"><span class="ttl">${single?fromM:fromM+' ~ '+toM} 리뷰 종합</span></div>
+    <div class="hero-top"><span class="ttl">${single?fromM:fromM+' ~ '+toM} ${brand?brand+' ':''}리뷰 종합</span>${brand?'<span class="sub">· 브랜드 필터</span>':''}</div>
     <div class="hero-stats">
       <div class="hstat"><div class="hl">총 리뷰 건수</div><div class="hn">${fmt(cm.total)}</div></div>
       <div class="hstat"><div class="hl">칭찬 리뷰</div><div class="hn" style="color:var(--good)">${fmt(cm['칭찬'])}</div></div>
       <div class="hstat"><div class="hl">불만 리뷰</div><div class="hn" style="color:var(--bad)">${fmt(cm['불만'])}</div></div>
       <div class="hstat accent"><div class="hl">불만 리뷰율</div><div class="hn" style="color:var(--bad)">${curRate}%</div></div>
     </div>
-    <div class="hero-watch"><span class="lbl">📊 출처별 건수</span>${srcChips}</div>
-    <div class="hero-watch"><span class="lbl" style="color:var(--good)">👍 칭찬 TOP3 매장</span>${goodChips}</div>
-    <div class="hero-watch"><span class="lbl" style="color:var(--bad)">🔴 불만 TOP3 매장</span>${badChips}</div>
-    <div class="hero-watch"><span class="lbl" style="color:var(--good)">💬 칭찬 키워드 TOP3</span>${pkChips}</div>
-    <div class="hero-watch"><span class="lbl" style="color:var(--bad)">💢 불만 키워드 TOP3</span>${ckChips}</div>`;
+    ${tSrc}${tTop3}${tKw}`;
   document.getElementById('v1-range').textContent = '';
   document.getElementById('v1-mlabel').textContent = single?fromM:`${fromM}~${toM}`;
   // 브랜드별 불만율 (+ 불만 건수)
@@ -541,10 +545,11 @@ function v1charts(){
   const fr=document.getElementById('v1-from'), to=document.getElementById('v1-to');
   R.months.forEach(m=>{fr.add(new Option(m,m));to.add(new Option(m,m));});
   fr.value=R.current_month; to.value=R.current_month;
-  document.getElementById('v1-apply').addEventListener('click',()=>{
-    let x=fr.value,y=to.value; if(x>y)[x,y]=[y,x];
-    renderV1(x,y); setTimeout(()=>Object.values(charts).forEach(c=>c&&c.resize()),30);
-  });
+  const brSel=document.getElementById('v1-brand');
+  if(brSel){ brSel.add(new Option('전체 브랜드','')); R.brands.forEach(b=>brSel.add(new Option(b,b))); }
+  const v1apply=()=>{ let x=fr.value,y=to.value; if(x>y)[x,y]=[y,x]; renderV1(x,y); setTimeout(()=>Object.values(charts).forEach(c=>c&&c.resize()),30); };
+  document.getElementById('v1-apply').addEventListener('click',v1apply);
+  if(brSel) brSel.addEventListener('change',v1apply);
   renderV1(R.current_month,R.current_month);
 }
 
