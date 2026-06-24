@@ -1301,12 +1301,15 @@ function isGenuinePraise(r){
   if(NOT_PRAISE.some(w=>t.indexOf(w)>=0)) return false;   // 문의·항의 단어 있으면 칭찬 아님
   return PRAISE_WORDS.some(w=>t.indexOf(w)>=0);
 }
+// 징계는 '매장' 서비스/품질 불만만 — 시스템·멤버십·앱·답변 등 비매장 문의성 글은 제외 (크리티컬은 항상 포함)
+const SYS_INQUIRY=['답변이 보이','답변을 확인','답변 확인','이메일 못받','이메일을 못','이메일 받','비밀번호','멤버쉽','멤버십','적립문의','사용문의','be my guest','아멕스','쿠푼 오류','쿠폰 오류','홈페이지'];
+function isSysInquiry(r){ if(r.critical) return false; const t=((r.title||'')+' '+(r.content||'')); return SYS_INQUIRY.some(w=>t.indexOf(w)>=0); }
 function vocByStore(qMonths){
   const recs=(V&&V.records?V.records:[]).filter(r=>qMonths.includes(r.month)); const by={};
   recs.forEach(r=>{ const x=by[r.store]=by[r.store]||{store:r.store,brand:r.brand||'',칭찬:0,불만:0,기타:0,praiseEx:'',badEx:''};
     if(r.category==='칭찬' && isGenuinePraise(r)){ x['칭찬']++; if(!x.praiseEx)x.praiseEx=r.content; }   // 실제 칭찬만
-    else if(r.category==='불만'){ x['불만']++; if(!x.badEx)x.badEx=r.content; }
-    else x['기타']++; });   // 단순 문의·칭찬 키워드 없는 건은 기타로
+    else if(r.category==='불만' && !isSysInquiry(r)){ x['불만']++; if(!x.badEx)x.badEx=r.content; }   // 매장 불만만
+    else x['기타']++; });   // 단순 문의·칭찬 키워드 없는 건, 시스템·멤버십 문의 등은 기타로
   return {by:Object.values(by),total:recs.length};
 }
 function rewardMemo(y,q,qMonths,praise,penalty,total){
