@@ -225,6 +225,20 @@
   .ai li{margin:5px 0;font-size:13px}
   .foot{color:var(--muted);font-size:11.5px;margin-top:8px}
   @media(max-width:860px){.grid2,.grid3{grid-template-columns:1fr}}
+  /* 결과 보고서 */
+  .rep-sec{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 20px;margin-bottom:14px;box-shadow:var(--shadow)}
+  .rep-sec h3{margin:0 0 11px;font-size:15px;color:var(--brand-deep);border-left:4px solid var(--brand);padding-left:9px}
+  .rep-kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
+  .rep-kpi .b{background:var(--bg);border-radius:11px;padding:12px 14px}
+  .rep-kpi .b .l{font-size:11.5px;color:var(--muted);margin-bottom:5px}
+  .rep-kpi .b .n{font-size:23px;font-weight:800;letter-spacing:-.5px}
+  .rep-row{display:flex;gap:12px;padding:8px 0;border-bottom:1px dashed var(--line);font-size:13px;align-items:baseline}
+  .rep-row:last-child{border:0}
+  @media print{
+    .sidebar,.sb-toggle,.sb-backdrop,.ctrl{display:none!important}
+    .main{margin-left:0} .wrap{padding:0;max-width:none} body{background:#fff}
+    .rep-sec{box-shadow:none;break-inside:avoid;border-color:#ccc}
+  }
 </style>
 </head>
 <body>
@@ -233,6 +247,8 @@
 <aside class="sidebar" id="sidebar">
   <div class="sb-brand"><img src="logo.png" alt="삼천리 SL&C" onerror="this.style.display='none'"><div class="t"><b>삼천리 SL&C</b><span>VOC 리뷰 대시보드</span></div></div>
   <nav class="snav">
+    <div class="grp">경영 보고</div>
+    <button class="tab" data-v="vreport">📋 결과 보고서</button>
     <div class="grp">리뷰 분석</div>
     <button class="tab active" data-v="v1">① 브랜드별 리뷰 종합</button>
     <button class="tab" data-v="v2">② TOP3 불만매장 개선 방안</button>
@@ -249,6 +265,19 @@
 </aside>
 <main class="main">
 <div class="wrap">
+
+  <!-- 결과 보고서 (경영 종합) -->
+  <section class="view" id="vreport">
+    <div class="vhead"><h2>결과 보고서 <span class="note" id="vreport-src"></span></h2></div>
+    <div class="ctrl">
+      <span>기간</span>
+      <select id="vreport-from"></select> ~ <select id="vreport-to"></select>
+      <button id="vreport-apply">조회</button>
+      <button id="vreport-print" class="ghost">🖨 인쇄 / PDF</button>
+      <span class="ctrl-note" id="vreport-meta"></span>
+    </div>
+    <div id="vreport-body"></div>
+  </section>
 
   <!-- VIEW 1 -->
   <section class="view active" id="v1">
@@ -1243,6 +1272,48 @@ function renderVinput(store, ym){
   document.getElementById('vinput-go').addEventListener('click',go);
   inp.addEventListener('change',go);
   const rd=document.getElementById('vinput-round'); if(rd) rd.addEventListener('change',go);
+})();
+
+/* ---------- 결과 보고서 (경영 종합) ---------- */
+function kpiB(l,n,c){return `<div class="b"><div class="l">${l}</div><div class="n"${c?` style="color:${c}"`:''}>${n}</div></div>`;}
+function renderReport(fromM,toM){
+  const box=document.getElementById('vreport-body'); if(!box) return;
+  const single=fromM===toM, ms=R.months.filter(m=>m>=fromM&&m<=toM);
+  document.getElementById('vreport-src').textContent=`${single?fromM:fromM+'~'+toM} · 생성 ${D.generated_at}`;
+  document.getElementById('vreport-meta').textContent=single?`${fromM} 단월`:`${fromM}~${toM} 합산`;
+  const a=aggRange(fromM,toM).tot, rate=a.total?Math.round(a['불만']/a.total*1000)/10:0;
+  const pk={},ck={}; ms.forEach(m=>{const o=(R.by_month_keywords||{})[m]||{};(o.praise||[]).forEach(([k,n])=>pk[k]=(pk[k]||0)+n);(o.complaint||[]).forEach(([k,n])=>ck[k]=(ck[k]||0)+n);});
+  const pkT=Object.entries(pk).sort((x,y)=>y[1]-x[1]).slice(0,3).map(([k,n])=>`${k} ${fmt(n)}`).join(' · ')||'-';
+  const ckT=Object.entries(ck).sort((x,y)=>y[1]-x[1]).slice(0,3).map(([k,n])=>`${k} ${fmt(n)}`).join(' · ')||'-';
+  const sm={}; ms.forEach(m=>{for(const st in R.store_month){const o=R.store_month[st][m]; if(o){const x=sm[st]=sm[st]||{store:st,total:0,'불만':0};x.total+=o.total;x['불만']+=o['불만'];}}});
+  const top=Object.values(sm).filter(s=>s.total>=10&&s['불만']).map(s=>({...s,rate:Math.round(s['불만']/s.total*1000)/10})).sort((x,y)=>y['불만']-x['불만']||y.rate-x.rate).slice(0,3);
+  const vrec=(V&&V.records?V.records:[]).filter(r=>ms.includes(r.month));
+  const vbad=vrec.filter(r=>r.category==='불만').length, vcrit=vrec.filter(r=>r.critical).length;
+  const em=[...ms].reverse().find(m=>ECK&&ECK.cs&&ECK.cs[m])||ms[ms.length-1];
+  const cs=ECK&&ECK.cs?ECK.cs[em]:null, qs=ECK&&ECK.qscs?ECK.qscs[em]:null;
+  let csRate='-',csMiss='-';
+  if(cs&&cs.stores.length){ const el=(typeof monthFullDays==='function'?monthFullDays(em):0)||cs.days.length; let s=0,miss=0;
+    cs.stores.forEach(st=>{let d=0;for(let i=1;i<=el;i++)if(st.days[i])d++;s+=el?d/el:0;if(el&&!st.days[el])miss++;});
+    csRate=Math.round(s/cs.stores.length*100)+'%'; csMiss=miss; }
+  const qsRate=qs&&qs.roster_count?Math.round(qs.reg_count/qs.roster_count*100)+'%':'-';
+  let h='';
+  h+=`<div class="rep-sec"><h3>📊 종합 요약</h3><div class="rep-kpi">`
+    +kpiB('총 리뷰',fmt(a.total))+kpiB('칭찬',fmt(a['칭찬']),'var(--good)')+kpiB('불만',fmt(a['불만']),'var(--bad)')+kpiB('불만율',rate+'%','var(--bad)')
+    +kpiB('VOC 접수',fmt(vrec.length))+kpiB('CS 점검률',csRate,'var(--brand)')+kpiB('QSCS 등록률',qsRate,'var(--brand)')+`</div></div>`;
+  h+=`<div class="rep-sec"><h3>💬 키워드 TOP3</h3><div class="rep-row"><b style="color:var(--good);min-width:80px">칭찬</b><span>${pkT}</span></div><div class="rep-row"><b style="color:var(--bad);min-width:80px">불만</b><span>${ckT}</span></div></div>`;
+  h+=`<div class="rep-sec"><h3>🔴 TOP3 불만 매장 · 개선 방향</h3>`+(top.length?top.map((s,i)=>{const samp=R.complaints.filter(c=>c.store===s.store&&ms.includes(c.month));const plan=autoPlan(samp);const fix=(plan['개선방안']||[]).slice(0,2).join(' / ')||'-';return `<div class="rep-row"><b style="min-width:170px">${i+1}. ${s.store}</b><span>불만 ${s['불만']}건 (${s.rate}%) · ${fix}</span></div>`;}).join(''):'<div class="rep-row">표본 10건+ 불만 매장 없음 👍</div>')+`</div>`;
+  h+=`<div class="rep-sec"><h3>📣 고객의 소리 (VOC)</h3><div class="rep-row"><b style="min-width:80px">접수</b><span>총 ${vrec.length}건 · 불만 ${vbad}건 · 🚨 크리티컬 ${vcrit}건</span></div></div>`;
+  h+=`<div class="rep-sec"><h3>🏪 매장 자가점검${cs?` (${em})`:''}</h3><div class="rep-row"><b style="min-width:120px">CS 체크리스트</b><span>평균 점검률 ${csRate}${csMiss!=='-'?` · 최근일 미점검 ${csMiss}곳`:''}</span></div><div class="rep-row"><b style="min-width:120px">QSCS 교육일지</b><span>등록률 ${qsRate}${qs?` (${qs.reg_count}/${qs.roster_count})`:''}</span></div></div>`;
+  box.innerHTML=h;
+}
+(function initReport(){
+  const fr=document.getElementById('vreport-from'),to=document.getElementById('vreport-to');
+  if(!fr||!R.months) return;
+  R.months.forEach(m=>{fr.add(new Option(m,m));to.add(new Option(m,m));});
+  fr.value=R.current_month; to.value=R.current_month;
+  document.getElementById('vreport-apply').addEventListener('click',()=>{let a=fr.value,b=to.value;if(a>b)[a,b]=[b,a];renderReport(a,b);});
+  document.getElementById('vreport-print').addEventListener('click',()=>window.print());
+  renderReport(R.current_month,R.current_month);
 })();
 
 /* ---------- tabs & lazy chart init ---------- */
