@@ -452,6 +452,9 @@ function renderV1(fromM,toM){
   const src={}; a.ms.forEach(m=>{const s=(R.by_month_source||{})[m]||{};for(const k in s)src[k]=(src[k]||0)+s[k];});
   const etc=(cm.total)-((src.naver||0)+(src.catchtable||0));
   const srcChips=`<span class="gchip">네이버 <em>${fmt(src.naver||0)}건</em></span><span class="gchip">캐치테이블 <em>${fmt(src.catchtable||0)}건</em></span>`+(etc>0?`<span class="gchip">기타 <em>${fmt(etc)}건</em></span>`:'');
+  const pk={},ck={}; a.ms.forEach(m=>{const o=(R.by_month_keywords||{})[m]||{};(o.praise||[]).forEach(([k,n])=>pk[k]=(pk[k]||0)+n);(o.complaint||[]).forEach(([k,n])=>ck[k]=(ck[k]||0)+n);});
+  const pkChips=Object.entries(pk).sort((x,y)=>y[1]-x[1]).slice(0,3).map(([k,n])=>`<span class="gchip">${k} <em>${fmt(n)}</em></span>`).join('')||'<span style="color:var(--muted)">-</span>';
+  const ckChips=Object.entries(ck).sort((x,y)=>y[1]-x[1]).slice(0,3).map(([k,n])=>`<span class="wchip">${k} <em>${fmt(n)}</em></span>`).join('')||'<span style="color:var(--muted)">-</span>';
   document.getElementById('v1-hero').innerHTML = `
     <div class="hero-top"><span class="ttl">${single?fromM:fromM+' ~ '+toM} 리뷰 종합</span></div>
     <div class="hero-stats">
@@ -462,7 +465,9 @@ function renderV1(fromM,toM){
     </div>
     <div class="hero-watch"><span class="lbl">📊 출처별 건수</span>${srcChips}</div>
     <div class="hero-watch"><span class="lbl" style="color:var(--good)">👍 칭찬 TOP3 매장</span>${goodChips}</div>
-    <div class="hero-watch"><span class="lbl" style="color:var(--bad)">🔴 불만 TOP3 매장</span>${badChips}</div>`;
+    <div class="hero-watch"><span class="lbl" style="color:var(--bad)">🔴 불만 TOP3 매장</span>${badChips}</div>
+    <div class="hero-watch"><span class="lbl" style="color:var(--good)">💬 칭찬 키워드 TOP3</span>${pkChips}</div>
+    <div class="hero-watch"><span class="lbl" style="color:var(--bad)">💢 불만 키워드 TOP3</span>${ckChips}</div>`;
   document.getElementById('v1-range').textContent = '';
   document.getElementById('v1-mlabel').textContent = single?fromM:`${fromM}~${toM}`;
   // 브랜드별 불만율 (+ 불만 건수)

@@ -23,6 +23,42 @@ SENT_MAP = {"긍정": "칭찬", "부정": "불만", "중립": "중립", "GOOD": 
 SRC_MAP = {"네이버": "naver", "naver": "naver", "캐치테이블": "catchtable",
            "catchtable": "catchtable", "고객의 소리": "voc"}
 
+# 월별 키워드 TOP (칭찬/불만) — (표시명, 매칭어 목록). 리뷰 본문에 매칭어 포함 시 카운트.
+PRAISE_KW = [
+    ("맛있다", ["맛있", "맛잇", "맛나", "존맛", "맛집"]), ("친절", ["친절"]),
+    ("깔끔/청결", ["깔끔", "깨끗", "청결", "정갈"]), ("분위기", ["분위기"]),
+    ("신선", ["신선", "싱싱"]), ("가성비", ["가성비", "합리적", "가격 대비 좋"]),
+    ("재방문", ["재방문", "또 가", "또 방문", "또 오", "자주"]),
+    ("양 많음", ["푸짐", "넉넉", "양 많", "양이 많"]),
+    ("응대 좋음", ["서비스 좋", "응대 좋", "응대가 좋", "친절하게"]),
+    ("최고/만족", ["최고", "훌륭", "만족", "대만족", "강추", "추천"]),
+    ("부드러움", ["부드럽", "촉촉", "쫄깃"]),
+]
+COMPLAINT_KW = [
+    ("짜다", ["짜다", "짜고", "짜서", "너무 짜", "짜요", "짭짤"]),
+    ("불친절", ["불친절", "무뚝뚝", "퉁명", "불쾌", "싸가지", "무표정"]),
+    ("비싸다", ["비싸", "비쌈", "돈 아깝", "가격이 비"]),
+    ("위생", ["위생", "머리카락", "이물", "더럽", "벌레", "지저분"]),
+    ("느끼/비림", ["느끼", "비린", "비려"]),
+    ("식감", ["딱딱", "질기", "불어", "눅", "퍽퍽"]),
+    ("미지근/식음", ["미지근", "식어서", "차갑", "식었"]),
+    ("대기/지연", ["오래", "지연", "느림", "느려", "웨이팅", "한참", "기다"]),
+    ("양 적음", ["양 적", "양이 적", "양도 적", "부실"]),
+    ("맛없음", ["맛없", "맛 없", "맛이 없", "밍밍", "맹탕"]),
+    ("단맛", ["너무 달", "달아", "달고", "달다"]),
+]
+
+
+def keyword_counts(rows, groups):
+    """그룹별로 본문에 매칭어가 든 리뷰 수 카운트 → 비어있지 않은 것만 내림차순."""
+    out = []
+    for name, terms in groups:
+        c = sum(1 for r in rows if any(t in (r.get("text") or "") for t in terms))
+        if c:
+            out.append([name, c])
+    out.sort(key=lambda x: -x[1])
+    return out
+
 
 def parse_date(v):
     """방문일자 정규화. 1월 파일은 엑셀 시리얼(46053), 2·3월은 'YYYY-MM-DD' 문자열."""
@@ -272,6 +308,13 @@ def build_reviews():
 
     source_split = collections.Counter(r["source"] for r in cur_rows)
     by_month_source = {m: dict(collections.Counter(r["source"] for r in rowset if r["month"] == m)) for m in months}
+    # 월별 칭찬/불만 키워드 TOP (전체 비어있지 않은 것 저장 → 프런트가 기간 합산 후 TOP3)
+    by_month_keywords = {}
+    for m in months:
+        pr = [r for r in rowset if r["month"] == m and r["sentiment"] == "칭찬"]
+        cm = [r for r in rowset if r["month"] == m and r["sentiment"] == "불만"]
+        by_month_keywords[m] = {"praise": keyword_counts(pr, PRAISE_KW),
+                                "complaint": keyword_counts(cm, COMPLAINT_KW)}
 
     # 매장×월 집계 (전 매장 — 검색·기간별 TOP3용). 매달 신규 오픈 매장도 자동 포함.
     store_month = {}
@@ -296,6 +339,7 @@ def build_reviews():
         "topic_brand": {k: dict(v) for k, v in topic_brand.items()},
         "source_split": dict(source_split),
         "by_month_source": by_month_source,
+        "by_month_keywords": by_month_keywords,
         "store_month": store_month, "store_brand": store_brand,
         "stores": sorted(store_brand.keys()), "complaints": complaints,
         "source_file": ", ".join(used),
