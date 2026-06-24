@@ -333,6 +333,8 @@
     <div class="ctrl" id="v3-ctrl">
       <span>기간</span>
       <select id="v3-from"></select> ~ <select id="v3-to"></select>
+      <span>브랜드</span>
+      <select id="v3-brand"></select>
       <button id="v3-apply">조회</button>
       <span class="ctrl-note" id="v3-range"></span>
     </div>
@@ -785,8 +787,8 @@ function v2charts(){
 /* ---------- VIEW 3 ---------- */
 function maskFirstLine(t){return t;}
 let V3FILTER=null;
-function v3Agg(fromM,toM){
-  const recs=(V.records||[]).filter(r=>r.month>=fromM&&r.month<=toM);
+function v3Agg(fromM,toM,brand){
+  const recs=(V.records||[]).filter(r=>r.month>=fromM&&r.month<=toM&&(!brand||r.brand===brand));
   const catC={}, inqC={};
   recs.forEach(r=>{
     catC[r.category]=(catC[r.category]||0)+1;
@@ -799,8 +801,9 @@ function v3Agg(fromM,toM){
 function renderV3(fromM,toM){
   if(!V) return;
   const single=fromM===toM;
-  document.getElementById('v3-range').textContent = single?`${fromM} 단월 기준`:`${fromM} ~ ${toM} 합산 기준`;
-  const a=v3Agg(fromM,toM); V3FILTER={fromM,toM,a};
+  const brand=(document.getElementById('v3-brand')||{}).value||'';
+  document.getElementById('v3-range').textContent = (single?`${fromM} 단월 기준`:`${fromM} ~ ${toM} 합산 기준`)+(brand?` · ${brand}`:'');
+  const a=v3Agg(fromM,toM,brand); V3FILTER={fromM,toM,a,brand};
   const cards=[
     {lab:'총 접수', val:fmt(a.total), sub:single?'단월 접수':'기간 합산', color:'var(--brand)'},
     {lab:'불만 건수', val:fmt(a['불만']), sub:`총 ${fmt(a.total)}건 중`, color:'var(--warn)'},
@@ -836,10 +839,15 @@ function vocComplaintCard(it){
   const ms=V.months||[];
   ms.forEach(m=>{fr.add(new Option(m,m));to.add(new Option(m,m));});
   fr.value=ms[0]||''; to.value=ms[ms.length-1]||'';
-  document.getElementById('v3-apply').addEventListener('click',()=>{
-    let a=fr.value,b=to.value; if(a>b)[a,b]=[b,a];
-    renderV3(a,b); if(built.v3) v3charts(); setTimeout(()=>Object.values(charts).forEach(c=>c&&c.resize()),30);
-  });
+  const brSel=document.getElementById('v3-brand');
+  if(brSel){ brSel.add(new Option('전체 브랜드',''));
+    const bset=[...new Set((V.records||[]).map(r=>r.brand).filter(Boolean))];
+    const order=(window.REVIEW_DATA&&REVIEW_DATA.reviews&&REVIEW_DATA.reviews.brands)||[];
+    bset.sort((a,b)=>{const ia=order.indexOf(a),ib=order.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
+    bset.forEach(b=>brSel.add(new Option(b,b))); }
+  const v3apply=()=>{ let a=fr.value,b=to.value; if(a>b)[a,b]=[b,a]; renderV3(a,b); if(built.v3) v3charts(); setTimeout(()=>Object.values(charts).forEach(c=>c&&c.resize()),30); };
+  document.getElementById('v3-apply').addEventListener('click',v3apply);
+  if(brSel) brSel.addEventListener('change',v3apply);
   renderV3(ms[0]||'', ms[ms.length-1]||'');  // 기본: 전체 기간 (차트는 탭 진입 시 build에서 그림)
 })();
 function vocCard(it,crit){
@@ -856,7 +864,11 @@ function v3charts(){
       itemStyle:{color:['#14559b','#e0772b','#2f9e6f','#8a5cd1','#c0405a'][i%5]}})),label:{formatter:'{b}\n{c}'}}]},true);
   // 월별 접수 추이: 전체월(추이 맥락) + 선택 구간 markArea 강조
   charts.vocmonth = charts.vocmonth||echarts.init(document.getElementById('c-vocmonth'));
-  const bm=V.by_month||{}, ms=Object.keys(bm).sort(), cats=['불만','칭찬','문의','기타'];
+  const cats=['불만','칭찬','문의','기타'];
+  const brand=V3FILTER?V3FILTER.brand:'';
+  let bm; const ms=(V.months||Object.keys(V.by_month||{})).slice().sort();
+  if(brand){ bm={}; ms.forEach(m=>bm[m]={}); (V.records||[]).filter(r=>r.brand===brand).forEach(r=>{const o=bm[r.month]=bm[r.month]||{};o[r.category]=(o[r.category]||0)+1;}); }
+  else { bm=V.by_month||{}; }
   const fM=V3FILTER?V3FILTER.fromM:ms[0], tM=V3FILTER?V3FILTER.toM:ms[ms.length-1];
   charts.vocmonth.setOption({grid:{left:34,right:14,top:24,bottom:24},tooltip:{trigger:'axis',axisPointer:{type:'shadow'}},
     legend:{top:0,type:'scroll'},xAxis:{type:'category',data:ms},yAxis:{type:'value'},
