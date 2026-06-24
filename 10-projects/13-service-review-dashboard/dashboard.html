@@ -20,18 +20,31 @@
   body{margin:0;background:var(--bg);color:var(--ink);
     font-family:'Segoe UI','Malgun Gothic',system-ui,sans-serif;font-size:14px;line-height:1.5;
     -webkit-font-smoothing:antialiased}
-  header{background:linear-gradient(100deg,var(--brand-deep),var(--brand));color:#fff;
-    padding:14px 26px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;
-    position:sticky;top:0;z-index:20;box-shadow:0 2px 14px rgba(14,60,112,.22)}
-  header img{height:40px;width:auto;filter:brightness(0) invert(1);opacity:.97}
-  header h1{font-size:18px;margin:0;font-weight:700;letter-spacing:-.3px}
-  header .meta{margin-left:auto;font-size:12px;opacity:.85;text-align:right;line-height:1.45}
-  .tabs{display:flex;gap:4px;background:var(--brand-deep);padding:0 20px;position:sticky;top:68px;z-index:19;box-shadow:0 2px 8px rgba(14,60,112,.12)}
-  .tab{border:0;background:transparent;color:#c7d8ec;padding:13px 18px;cursor:pointer;
-    font-weight:600;font-size:13.5px;border-bottom:3px solid transparent;transition:.14s;white-space:nowrap}
-  .tab:hover{color:#fff}
-  .tab.active{color:#fff;border-bottom-color:#fff;background:rgba(255,255,255,.08)}
-  .wrap{max-width:1180px;margin:0 auto;padding:22px 24px 72px}
+  /* ── 좌측 사이드바 레이아웃 (경영진용) ── */
+  .sidebar{position:fixed;left:0;top:0;width:238px;height:100vh;z-index:40;display:flex;flex-direction:column;
+    background:linear-gradient(180deg,var(--brand-deep),#0b3460);color:#fff;box-shadow:2px 0 18px rgba(14,60,112,.18);transition:transform .22s}
+  .sb-brand{display:flex;align-items:center;gap:11px;padding:18px 18px 15px;border-bottom:1px solid rgba(255,255,255,.13)}
+  .sb-brand img{height:32px;filter:brightness(0) invert(1)}
+  .sb-brand .t b{display:block;font-size:15px;font-weight:800;letter-spacing:-.3px}
+  .sb-brand .t span{font-size:11px;opacity:.82}
+  .snav{flex:1;overflow-y:auto;padding:8px 10px 6px}
+  .snav .grp{font-size:10.5px;font-weight:700;letter-spacing:.5px;color:#7fa6d6;margin:14px 10px 5px}
+  .snav .tab{display:block;width:100%;text-align:left;border:0;background:transparent;color:#cfe0f4;
+    padding:10px 12px;margin:2px 0;border-radius:9px;cursor:pointer;font-weight:600;font-size:13px;
+    border-left:3px solid transparent;transition:.12s;white-space:normal;line-height:1.3}
+  .snav .tab:hover{background:rgba(255,255,255,.08);color:#fff}
+  .snav .tab.active{background:rgba(255,255,255,.15);color:#fff;border-left-color:#fff}
+  .sb-meta{padding:12px 16px;font-size:11px;opacity:.8;border-top:1px solid rgba(255,255,255,.13);line-height:1.55}
+  .main{margin-left:238px;min-height:100vh}
+  .wrap{max-width:1240px;margin:0 auto;padding:24px 28px 72px}
+  .sb-toggle{display:none;position:fixed;top:11px;left:11px;z-index:50;background:var(--brand-deep);color:#fff;border:0;
+    border-radius:9px;width:42px;height:42px;font-size:19px;cursor:pointer;box-shadow:var(--shadow)}
+  .sb-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.42);z-index:35}
+  @media(max-width:900px){
+    .sidebar{transform:translateX(-100%)} .sidebar.open{transform:translateX(0)}
+    .main{margin-left:0} .wrap{padding:62px 14px 60px}
+    .sb-toggle{display:block} .sb-backdrop.on{display:block}
+  }
   .view{display:none;animation:fade .22s ease}
   .view.active{display:block}
   @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
@@ -215,21 +228,26 @@
 </style>
 </head>
 <body>
-<header>
-  <img src="logo.png" alt="삼천리 SL&C" onerror="this.style.display='none'">
-  <h1>VOC 리뷰 결과 보고서</h1>
-  <div class="meta" id="meta"></div>
-</header>
-<nav class="tabs">
-  <button class="tab active" data-v="v1">① 브랜드별 리뷰 종합</button>
-  <button class="tab" data-v="v2">② 불만 매장 개선 방안</button>
-  <button class="tab" data-v="v3">③ SL&C 고객의 소리</button>
-  <button class="tab" data-v="v5">④ 매장 검색·드릴다운</button>
-  <button class="tab" data-v="vcs">⑤ CS 체크리스트 일일점검현황</button>
-  <button class="tab" data-v="vqscs">⑥ QSCS 캠페인 이체크폼 등록현황</button>
-  <button class="tab" data-v="vmon">⑦ 현장 모니터링 일정표</button>
-  <button class="tab" data-v="vinput">⑧ 현장 모니터링 결과입력</button>
-</nav>
+<button class="sb-toggle" id="sb-toggle" aria-label="메뉴">☰</button>
+<div class="sb-backdrop" id="sb-backdrop"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sb-brand"><img src="logo.png" alt="삼천리 SL&C" onerror="this.style.display='none'"><div class="t"><b>삼천리 SL&C</b><span>VOC 리뷰 대시보드</span></div></div>
+  <nav class="snav">
+    <div class="grp">리뷰 분석</div>
+    <button class="tab active" data-v="v1">① 브랜드별 리뷰 종합</button>
+    <button class="tab" data-v="v2">② 불만 매장 개선 방안</button>
+    <button class="tab" data-v="v3">③ SL&C 고객의 소리</button>
+    <button class="tab" data-v="v5">④ 매장 검색·드릴다운</button>
+    <div class="grp">현장 점검 (ECK)</div>
+    <button class="tab" data-v="vcs">⑤ CS 체크리스트 점검현황</button>
+    <button class="tab" data-v="vqscs">⑥ QSCS 교육일지 등록현황</button>
+    <div class="grp">현장 모니터링</div>
+    <button class="tab" data-v="vmon">⑦ 모니터링 일정표</button>
+    <button class="tab" data-v="vinput">⑧ 모니터링 결과입력</button>
+  </nav>
+  <div class="sb-meta" id="meta"></div>
+</aside>
+<main class="main">
 <div class="wrap">
 
   <!-- VIEW 1 -->
@@ -372,6 +390,7 @@
   </section>
 
 </div>
+</main>
 <script>
 const D = window.REVIEW_DATA, AI = window.AI_NOTES || {top3:[],topics:[],insights:{}};
 const R = D.reviews, V = D.voc;
@@ -1213,8 +1232,16 @@ document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
   t.classList.add('active');
   const v=t.dataset.v; document.getElementById(v).classList.add('active');
   build(v); setTimeout(()=>Object.values(charts).forEach(c=>c&&c.resize()),30);
+  closeSidebar();   // 모바일: 탭 선택 시 사이드바 닫기
 }));
 build('v1');
+/* 모바일 사이드바 토글 */
+function closeSidebar(){ const s=document.getElementById('sidebar'),b=document.getElementById('sb-backdrop'); if(s)s.classList.remove('open'); if(b)b.classList.remove('on'); }
+(function(){
+  const tg=document.getElementById('sb-toggle'), s=document.getElementById('sidebar'), bd=document.getElementById('sb-backdrop');
+  if(tg) tg.addEventListener('click',()=>{ s.classList.toggle('open'); bd.classList.toggle('on'); });
+  if(bd) bd.addEventListener('click',closeSidebar);
+})();
 // URL 해시(#v2 등)로 특정 탭 바로 열기 (북마크/공유용)
 (function(){const h=location.hash.slice(1);const b=h&&document.querySelector(`.tab[data-v="${h}"]`);if(b)b.click();})();
 window.addEventListener('resize',()=>Object.values(charts).forEach(c=>c&&c.resize()));
