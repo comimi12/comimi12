@@ -115,6 +115,11 @@
   .bm-src{font-size:10.5px;color:var(--muted);margin-top:10px;}
   .bm-src a{color:var(--blue);text-decoration:none;}
   .bm-src a:hover{text-decoration:underline;}
+  .chk-h{font-size:11.5px;font-weight:700;color:var(--navy);margin:10px 0 4px;}
+  .chk-item{display:flex;gap:8px;font-size:11.5px;padding:3px 0;align-items:flex-start;}
+  .chk-item .cb{flex-shrink:0;color:var(--blue);font-weight:800;}
+  .chk-cols{display:grid;grid-template-columns:1fr 1fr;gap:0 20px;}
+  @media(max-width:680px){.chk-cols{grid-template-columns:1fr;}}
 
   /* ── 인포그래픽 요소 ── */
   .row-item{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid #F1F5F9;}
@@ -215,153 +220,151 @@
     <section id="v1" class="view active">
       <div class="flow-wrapper">
         <div class="flow-bar">
+
+          <!-- ① 채용 -->
           <div class="flow-stage s1">
             <div class="stage-head"><div class="stage-num">1</div><div><div class="stage-label">채용</div><div class="stage-sub" id="v1-total-sub">2025년 연간 일용직 사용 현황</div></div></div>
             <div class="stage-body" style="padding:10px 12px;">
-              <div style="font-size:11px;font-weight:700;color:var(--navy);margin-bottom:6px;">▶ 일용직 사용 현황</div>
-              <table style="width:100%;border-collapse:collapse;font-size:10.5px;">
-                <thead>
-                  <tr style="background:#0F2147;color:#fff;">
-                    <th style="padding:5px 6px;text-align:left;font-weight:600;white-space:nowrap;">경력 분류</th>
-                    <th style="padding:5px 6px;text-align:center;font-weight:600;">비율(%)</th>
-                    <th style="padding:5px 6px;text-align:center;font-weight:600;">채용 담당</th>
-                    <th style="padding:5px 6px;text-align:right;font-weight:600;white-space:nowrap;">채용 목표(명)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr style="border-bottom:1px solid #E8EDF5;">
-                    <td style="padding:5px 6px;font-weight:600;color:var(--navy);">고급</td>
-                    <td style="padding:5px 6px;text-align:center;color:var(--muted);">67.7%</td>
-                    <td style="padding:5px 6px;text-align:center;color:#1A4FAB;font-weight:600;">채용팀</td>
-                    <td style="padding:5px 6px;text-align:right;font-weight:700;">254명</td>
-                  </tr>
-                  <tr style="border-bottom:1px solid #E8EDF5;background:#F8FAFC;">
-                    <td style="padding:5px 6px;font-weight:600;color:var(--navy);">중급</td>
-                    <td style="padding:5px 6px;text-align:center;color:var(--muted);">19.5%</td>
-                    <td style="padding:5px 6px;text-align:center;font-size:10px;line-height:1.5;"><span style="color:#1A4FAB;font-weight:600;">채용팀(25%)</span><br><span style="color:#059669;font-weight:600;">아카데미(75%)</span></td>
-                    <td style="padding:5px 6px;text-align:right;font-size:10px;line-height:1.5;font-weight:700;">채용 20명<br>아카데미 59명</td>
-                  </tr>
-                  <tr style="border-bottom:1px solid #E8EDF5;">
-                    <td style="padding:5px 6px;font-weight:600;color:var(--navy);">기초</td>
-                    <td style="padding:5px 6px;text-align:center;color:var(--muted);">12.8%</td>
-                    <td style="padding:5px 6px;text-align:center;color:#059669;font-weight:600;">아카데미</td>
-                    <td style="padding:5px 6px;text-align:right;font-weight:700;">48명</td>
-                  </tr>
-                  <tr style="background:#EEF3FB;">
-                    <td style="padding:5px 6px;font-weight:800;color:var(--navy);">합계</td>
-                    <td style="padding:5px 6px;text-align:center;font-weight:700;">100%</td>
-                    <td style="padding:5px 6px;"></td>
-                    <td style="padding:5px 6px;text-align:right;font-weight:800;color:var(--navy);">381명</td>
-                  </tr>
-                </tbody>
-              </table>
+              <!-- KPI 3개 -->
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:10px;">
+                <div style="background:#EEF3FB;border-radius:8px;padding:7px 4px;text-align:center;">
+                  <div style="font-size:18px;font-weight:800;color:#1A4FAB;line-height:1.1;">381</div>
+                  <div style="font-size:9px;color:var(--muted);margin-top:1px;">연간 채용 목표</div>
+                </div>
+                <div style="background:#FFF7ED;border-radius:8px;padding:7px 4px;text-align:center;">
+                  <div style="font-size:18px;font-weight:800;color:#D97706;line-height:1.1;">4,386</div>
+                  <div style="font-size:9px;color:var(--muted);margin-top:1px;">일용직 건수(2025)</div>
+                </div>
+                <div style="background:#ECFDF5;border-radius:8px;padding:7px 4px;text-align:center;">
+                  <div style="font-size:18px;font-weight:800;color:#059669;line-height:1.1;">657</div>
+                  <div style="font-size:9px;color:var(--muted);margin-top:1px;">아카데미 대체 가능</div>
+                </div>
+              </div>
+              <!-- 도넛차트 + 범례 -->
+              <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;">
+                <svg width="78" height="78" viewBox="0 0 36 36" style="flex-shrink:0;">
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#E2E8F0" stroke-width="4.2"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#1A4FAB" stroke-width="4.2" stroke-dasharray="67.7 32.3" stroke-dashoffset="25"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#7C3AED" stroke-width="4.2" stroke-dasharray="19.5 80.5" stroke-dashoffset="-42.7"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#059669" stroke-width="4.2" stroke-dasharray="12.8 87.2" stroke-dashoffset="-62.2"/>
+                  <text x="18" y="17.5" text-anchor="middle" dominant-baseline="middle" fill="#0F2147" font-size="5" font-weight="800">381명</text>
+                  <text x="18" y="22" text-anchor="middle" dominant-baseline="middle" fill="#64748B" font-size="3.5">연간 목표</text>
+                </svg>
+                <div style="flex:1;min-width:0;">
+                  <div style="margin-bottom:5px;">
+                    <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px;"><span style="font-weight:700;color:#1A4FAB;">고급 254명</span><span style="color:var(--muted);">67.7%</span></div>
+                    <div style="height:6px;background:#E2E8F0;border-radius:99px;"><div style="height:100%;width:67.7%;background:#1A4FAB;border-radius:99px;"></div></div>
+                  </div>
+                  <div style="margin-bottom:5px;">
+                    <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px;"><span style="font-weight:700;color:#7C3AED;">중급 79명</span><span style="color:var(--muted);">19.5%</span></div>
+                    <div style="height:6px;background:#E2E8F0;border-radius:99px;"><div style="height:100%;width:19.5%;background:#7C3AED;border-radius:99px;"></div></div>
+                  </div>
+                  <div>
+                    <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px;"><span style="font-weight:700;color:#059669;">기초 48명</span><span style="color:var(--muted);">12.8%</span></div>
+                    <div style="height:6px;background:#E2E8F0;border-radius:99px;"><div style="height:100%;width:12.8%;background:#059669;border-radius:99px;"></div></div>
+                  </div>
+                </div>
+              </div>
+              <!-- 담당 배지 3개 -->
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:8px;">
+                <div style="background:#EEF3FB;border-radius:6px;padding:5px 3px;text-align:center;border-top:2px solid #1A4FAB;">
+                  <div style="font-size:9px;font-weight:700;color:#1A4FAB;">고급</div>
+                  <div style="font-size:8.5px;color:var(--muted);">채용팀 직접</div>
+                </div>
+                <div style="background:#F5F3FF;border-radius:6px;padding:5px 3px;text-align:center;border-top:2px solid #7C3AED;">
+                  <div style="font-size:9px;font-weight:700;color:#7C3AED;">중급</div>
+                  <div style="font-size:8.5px;color:var(--muted);">채용팀+아카데미</div>
+                </div>
+                <div style="background:#ECFDF5;border-radius:6px;padding:5px 3px;text-align:center;border-top:2px solid #059669;">
+                  <div style="font-size:9px;font-weight:700;color:#059669;">기초</div>
+                  <div style="font-size:8.5px;color:var(--muted);">아카데미 중심</div>
+                </div>
+              </div>
+              <!-- 절감 인사이트 -->
+              <div style="background:#FFF7ED;border-radius:7px;padding:7px 9px;border-left:3px solid #D97706;">
+                <div style="font-size:9.5px;color:#92400E;line-height:1.6;">657건 × 150,000원 → 연간 <b style="color:#B45309;">약 9,855만원</b> 절감 가능</div>
+              </div>
             </div>
           </div>
+
           <div class="flow-arrow">→</div>
+
+          <!-- ② 기초 운영방안 -->
           <div class="flow-stage s2">
             <div class="stage-head"><div class="stage-num">2</div><div><div class="stage-label">기초 운영방안</div><div class="stage-sub">아카데미 채용 목표 · 107명</div></div></div>
             <div class="stage-body" style="padding:10px 12px;">
-              <div style="font-size:11px;font-weight:700;color:var(--navy);margin-bottom:6px;">▶ 기초 운영방안</div>
-              <table style="width:100%;border-collapse:collapse;font-size:10.5px;">
-                <thead>
-                  <tr style="background:#0F2147;color:#fff;">
-                    <th style="padding:5px 6px;text-align:left;font-weight:600;">인력 공급</th>
-                    <th style="padding:5px 6px;text-align:center;font-weight:600;">인원</th>
-                    <th style="padding:5px 6px;text-align:center;font-weight:600;">운영 방안</th>
-                    <th style="padding:5px 6px;text-align:center;font-weight:600;">목표</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr style="border-bottom:1px solid #E8EDF5;">
-                    <td style="padding:5px 6px;font-weight:600;color:var(--navy);">P 텍</td>
-                    <td style="padding:5px 6px;text-align:center;">20명</td>
-                    <td style="padding:5px 6px;text-align:center;color:#E84B1A;font-weight:600;">배달형 매장</td>
-                    <td style="padding:5px 6px;text-align:center;font-weight:600;">매장 배치</td>
-                  </tr>
-                  <tr style="border-bottom:1px solid #E8EDF5;background:#F8FAFC;">
-                    <td style="padding:5px 6px;font-weight:600;color:var(--navy);">대학연계</td>
-                    <td style="padding:5px 6px;text-align:center;">32명</td>
-                    <td style="padding:5px 6px;text-align:center;color:#E84B1A;font-weight:600;">배달형 매장</td>
-                    <td style="padding:5px 6px;text-align:center;font-weight:600;">매장 배치</td>
-                  </tr>
-                  <tr style="border-bottom:1px solid #E8EDF5;">
-                    <td style="padding:5px 6px;font-weight:600;color:var(--navy);">중장년</td>
-                    <td style="padding:5px 6px;text-align:center;">35명</td>
-                    <td style="padding:5px 6px;text-align:center;color:#E84B1A;font-weight:600;">배달형 매장</td>
-                    <td style="padding:5px 6px;text-align:center;font-weight:600;">매장 배치</td>
-                  </tr>
-                  <tr style="background:#F8FAFC;">
-                    <td style="padding:5px 6px;font-weight:600;color:var(--navy);">특성화고</td>
-                    <td style="padding:5px 6px;text-align:center;">20명</td>
-                    <td style="padding:5px 6px;text-align:center;color:#E84B1A;font-weight:600;">배달형 매장</td>
-                    <td style="padding:5px 6px;text-align:center;font-weight:600;">매장 배치</td>
-                  </tr>
-                </tbody>
-              </table>
+              <!-- 큰 KPI -->
+              <div style="text-align:center;margin-bottom:10px;padding:8px;background:#FFFBEB;border-radius:10px;">
+                <div style="font-size:30px;font-weight:800;color:#D97706;line-height:1;">107<span style="font-size:14px;">명</span></div>
+                <div style="font-size:9.5px;color:var(--muted);">아카데미 연간 채용 목표</div>
+              </div>
+              <!-- 가로 막대 차트 -->
+              <div style="font-size:10px;font-weight:700;color:var(--navy);margin-bottom:6px;">채용 루트별 목표 인원</div>
+              <div style="margin-bottom:5px;">
+                <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px;"><span style="color:var(--text);">P-TECH</span><span style="font-weight:700;color:#D97706;">20명</span></div>
+                <div style="height:9px;background:#FDE68A;border-radius:99px;"><div style="height:100%;width:57%;background:linear-gradient(90deg,#D97706,#F59E0B);border-radius:99px;"></div></div>
+              </div>
+              <div style="margin-bottom:5px;">
+                <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px;"><span style="color:var(--text);">대학 연계</span><span style="font-weight:700;color:#D97706;">32명</span></div>
+                <div style="height:9px;background:#FDE68A;border-radius:99px;"><div style="height:100%;width:91%;background:linear-gradient(90deg,#D97706,#F59E0B);border-radius:99px;"></div></div>
+              </div>
+              <div style="margin-bottom:5px;">
+                <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px;"><span style="color:var(--text);">중장년 모집</span><span style="font-weight:700;color:#B45309;">35명 ★</span></div>
+                <div style="height:9px;background:#FDE68A;border-radius:99px;"><div style="height:100%;width:100%;background:linear-gradient(90deg,#B45309,#D97706);border-radius:99px;"></div></div>
+              </div>
+              <div style="margin-bottom:10px;">
+                <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px;"><span style="color:var(--text);">특성화고</span><span style="font-weight:700;color:#D97706;">20명</span></div>
+                <div style="height:9px;background:#FDE68A;border-radius:99px;"><div style="height:100%;width:57%;background:linear-gradient(90deg,#D97706,#F59E0B);border-radius:99px;"></div></div>
+              </div>
+              <!-- 운영 방안 -->
+              <div style="background:#FFF7ED;border-radius:7px;padding:7px 9px;border-left:3px solid #F59E0B;">
+                <div style="font-size:9.5px;font-weight:700;color:#92400E;margin-bottom:2px;">운영 방안 — 배달형 매장</div>
+                <div style="font-size:9px;color:var(--muted);line-height:1.5;">조리·포장·운영 실무 체득 후 수요 매장에 순차 배치 → BOH 일용직 채용 건수 감소</div>
+              </div>
             </div>
           </div>
+
           <div class="flow-arrow">→</div>
+
+          <!-- ③ 매장 운영 교육 플랜 -->
           <div class="flow-stage s3">
             <div class="stage-head"><div class="stage-num">3</div><div><div class="stage-label">매장 운영 교육 플랜</div><div class="stage-sub">3개월 과정 · 수료 후 BOH 현장 투입</div></div></div>
             <div class="stage-body" style="padding:10px 12px;">
-              <div style="font-size:11px;font-weight:700;color:var(--navy);margin-bottom:6px;">▶ 3개월 교육 플랜</div>
-              <table style="width:100%;border-collapse:collapse;font-size:10.5px;">
-                <thead>
-                  <tr style="background:#0F2147;color:#fff;">
-                    <th style="padding:5px 6px;text-align:center;font-weight:600;">기간</th>
-                    <th style="padding:5px 6px;text-align:center;font-weight:600;">과정</th>
-                    <th style="padding:5px 6px;text-align:left;font-weight:600;">내용</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr style="border-bottom:1px solid #E8EDF5;">
-                    <td style="padding:5px 6px;text-align:center;font-weight:700;white-space:nowrap;">1개월</td>
-                    <td style="padding:5px 6px;text-align:center;font-weight:600;color:var(--navy);white-space:nowrap;">기초교육</td>
-                    <td style="padding:5px 6px;color:var(--muted);font-size:10px;">조리 기본기 · 위생 · 브랜드별 매뉴얼 교육</td>
-                  </tr>
-                  <tr style="border-bottom:1px solid #E8EDF5;background:#F8FAFC;">
-                    <td style="padding:5px 6px;text-align:center;font-weight:700;white-space:nowrap;">2개월~</td>
-                    <td style="padding:5px 6px;text-align:center;font-weight:600;color:#059669;white-space:nowrap;">실무형 교육</td>
-                    <td style="padding:5px 6px;color:var(--muted);font-size:10px;">배달형 매장 실제 운영 (영업하며 실습 진행)</td>
-                  </tr>
-                  <tr style="background:#EEF3FB;">
-                    <td style="padding:5px 6px;text-align:center;font-weight:700;white-space:nowrap;color:#059669;">수료 후</td>
-                    <td style="padding:5px 6px;text-align:center;font-weight:700;color:#059669;white-space:nowrap;">매장 배치</td>
-                    <td style="padding:5px 6px;font-size:10px;font-weight:600;color:#065F46;">수요 매장 순차 배치 · BOH 일용직 대체</td>
-                  </tr>
-                </tbody>
-              </table>
+              <!-- 3개월 진행 바 -->
+              <div style="display:flex;height:22px;border-radius:8px;overflow:hidden;font-size:9px;font-weight:700;margin-bottom:12px;">
+                <div style="flex:1;background:linear-gradient(90deg,#1A4FAB,#2563EB);display:flex;align-items:center;justify-content:center;color:#fff;">1개월</div>
+                <div style="width:2px;background:#fff;"></div>
+                <div style="flex:2;background:linear-gradient(90deg,#059669,#10B981);display:flex;align-items:center;justify-content:center;color:#fff;">2개월~</div>
+                <div style="width:2px;background:#fff;"></div>
+                <div style="flex:1;background:linear-gradient(90deg,#D97706,#F59E0B);display:flex;align-items:center;justify-content:center;color:#fff;">수료 후</div>
+              </div>
+              <!-- 타임라인 3단계 -->
+              <div style="display:flex;flex-direction:column;gap:7px;">
+                <div style="display:flex;gap:8px;align-items:flex-start;">
+                  <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#1A4FAB,#2563EB);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800;flex-shrink:0;">1</div>
+                  <div style="background:#EEF3FB;border-radius:8px;padding:7px 9px;flex:1;border-left:3px solid #1A4FAB;">
+                    <div style="font-size:10.5px;font-weight:700;color:#1A4FAB;margin-bottom:2px;">기초교육 (1개월)</div>
+                    <div style="font-size:9px;color:var(--muted);line-height:1.5;">조리 기본기 · 위생 · 안전 기준 이수<br>브랜드별 매뉴얼 교육 진행</div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:8px;align-items:flex-start;">
+                  <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#059669,#10B981);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800;flex-shrink:0;">2</div>
+                  <div style="background:#ECFDF5;border-radius:8px;padding:7px 9px;flex:1;border-left:3px solid #059669;">
+                    <div style="font-size:10.5px;font-weight:700;color:#059669;margin-bottom:2px;">실무형 교육 (2개월~)</div>
+                    <div style="font-size:9px;color:var(--muted);line-height:1.5;">배달형 매장 실제 운영<br>영업하며 조리·포장·운영 실습 병행</div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:8px;align-items:flex-start;">
+                  <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#D97706,#F59E0B);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:800;flex-shrink:0;">✓</div>
+                  <div style="background:#FFFBEB;border-radius:8px;padding:7px 9px;flex:1;border-left:3px solid #F59E0B;">
+                    <div style="font-size:10.5px;font-weight:700;color:#D97706;margin-bottom:2px;">매장 배치 (수료 후)</div>
+                    <div style="font-size:9px;color:var(--muted);line-height:1.5;">수요 매장 순차 배치<br>BOH 일용직 대체 인력으로 즉시 투입</div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;padding:14px 38px 32px;">
-        <!-- 왼쪽: 일용직 현황 설명 -->
-        <div style="background:#EEF3FB;border-radius:12px 0 0 12px;padding:16px 18px;border:1px solid var(--border);border-right:none;">
-          <ul style="font-size:11.5px;line-height:1.8;color:var(--text);padding-left:16px;margin:0;">
-            <li>2025년 연간 BOH 일용직 4,386건 중 기초 인력 657건을 아카데미 대체 가능 대상으로 설정</li>
-            <li>기초 인력 657건 × 평균 단가 150,000원 기준, 연간 약 98,550,000원 절감 가능</li>
-            <li>고급 인력은 채용팀 중심, 중급 인력은 채용팀과 아카데미 병행, 기초 인력은 아카데미 중심으로 공급 구조 전환</li>
-          </ul>
-        </div>
-        <!-- 가운데: 기초 운영방안 설명 -->
-        <div style="background:#EEF3FB;padding:16px 18px;border:1px solid var(--border);border-right:none;">
-          <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:8px;">아카데미 채용 목표 : 107명</div>
-          <ul style="font-size:11.5px;line-height:1.8;color:var(--text);padding-left:16px;margin:0;">
-            <li>P-TECH, 대학, 중장년, 특성화고 연계를 통한 인력 공급 루트 확보</li>
-            <li>배달형 실습 매장을 활용하여 교육생의 조리·포장·운영 실무 경험 강화</li>
-            <li>교육 수료 후 주요 매장에 순차 배치하여 BOH 일용직 채용 건수 감소</li>
-            <li>외부 일용직 의존도 완화 및 현장 투입 가능한 인력 Pool 확보</li>
-          </ul>
-        </div>
-        <!-- 오른쪽: 매장 운영 교육 플랜 설명 -->
-        <div style="background:#EEF3FB;border-radius:0 12px 12px 0;padding:16px 18px;border:1px solid var(--border);">
-          <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:8px;">3개월 교육 과정</div>
-          <ul style="font-size:11.5px;line-height:1.8;color:var(--text);padding-left:16px;margin:0;">
-            <li><b>1개월차</b> — 조리 기본기·위생·안전 기준 이수 후 브랜드별 매뉴얼 교육 진행</li>
-            <li><b>2개월차~</b> — 배달형 매장을 실제 운영하며 조리·포장·운영 실무를 영업과 병행하여 체득</li>
-            <li>수료 후 수요 매장에 순차 배치하여 BOH 일용직 대체 인력으로 즉시 투입</li>
-          </ul>
+
         </div>
       </div>
     </section>
@@ -686,6 +689,24 @@
           </div>
         </div>
 
+        <div class="bm-card" data-cat="labor">
+          <div class="sec-card c-blue">
+            <div class="sec-card-head"><span>📄 표준 근로계약서 샘플 — 아카데미 교육생</span><span class="meta">양식 · 노무사 검토 필요</span></div>
+            <div class="sec-card-body">
+              <div class="bm-row"><span class="bm-k">제1조 기간</span><span class="bm-v">2026년 ○월 ○일 ~ ○월 ○일 (수습 ○개월 포함). ※ 수습 감액은 1년 이상 계약 시 최저임금의 10% 이내만 가능</span></div>
+              <div class="bm-row"><span class="bm-k">제2조 장소</span><span class="bm-v">SL&amp;C 조리 아카데미(방배동) 및 수료 후 배치 매장</span></div>
+              <div class="bm-row"><span class="bm-k">제3조 업무</span><span class="bm-v">조리 교육·훈련 및 실무(도시락 생산·배달 운영 보조)</span></div>
+              <div class="bm-row"><span class="bm-k">제4조 근로시간</span><span class="bm-v">1일 8시간·주 40시간(휴게 1시간 별도). <b>교육시간과 근로시간 명확 구분 기재</b></span></div>
+              <div class="bm-row"><span class="bm-k">제5조 임금</span><span class="bm-v">월 ○○○원(<b>최저임금 100% 이상</b>), 매월 ○일 지급. 연장·야간·휴일근로 가산수당 별도</span></div>
+              <div class="bm-row"><span class="bm-k">제6조 4대보험</span><span class="bm-v"><b>국민연금·건강보험·고용보험·산재보험 가입</b>(입사일 기준 즉시)</span></div>
+              <div class="bm-row"><span class="bm-k">제7조 교육</span><span class="bm-v">3개월 과정·수료 평가 실시. <b>※ 교육비 반환·의무복무 위약금 조항 미포함</b>(근로기준법 제20조 준수)</span></div>
+              <div class="bm-row"><span class="bm-k">제8조 안전</span><span class="bm-v">입교 시 안전보건교육 이수 의무, 보호구(미끄럼방지화 등) 착용</span></div>
+              <div class="bm-row"><span class="bm-k">제9조 기타</span><span class="bm-v">본 계약에 정하지 않은 사항은 근로기준법·취업규칙에 따름</span></div>
+              <div class="alert alert-amber"><div>⚠️</div><div><b>참고용 샘플입니다.</b> 실제 체결 전 노무사 검토 필수. 일학습병행제 활용 시 <b>학습근로자 계약서 별도 작성</b>(훈련시간·근로시간 구분).</div></div>
+            </div>
+          </div>
+        </div>
+
         <div class="bm-card" data-cat="edu">
           <div class="sec-card c-accent">
             <div class="sec-card-head"><span>⑥ 교육-현장 괴리 & 효과(ROI) 측정 불가</span><span class="meta">교육 효과</span></div>
@@ -718,6 +739,39 @@
               <div class="bm-row"><span class="bm-k">근거</span><span class="bm-v">교육서비스업 재해 형태: 전도 26.4%·화상 17.2%. 산업안전보건법상 현장실습생도 안전보건교육 의무 대상</span></div>
               <div class="alert alert-green"><div>✅</div><div><b>SL&amp;C 해결:</b> 입교 첫날 <b>안전보건교육(칼·화상 응급·미끄럼방지화) 실시+서명 기록 보관</b> · 미끄럼방지 매트·칼 보관함·방화장갑 비치 · 훈련 중 <b>산재보험 적용 사전 확인</b></div></div>
               <div class="bm-src">출처 · <a href="https://www.law.go.kr/LSW/lsInfoP.do?lsiSeq=244353" target="_blank" rel="noopener">산업안전보건법 시행규칙</a></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bm-card" data-cat="safety">
+          <div class="sec-card c-teal">
+            <div class="sec-card-head"><span>✅ 입교 안전 체크리스트 — 조리 실습</span><span class="meta">양식 · 기록 보관</span></div>
+            <div class="sec-card-body">
+              <div class="chk-cols">
+                <div>
+                  <div class="chk-h">입교 전·당일</div>
+                  <div class="chk-item"><span class="cb">☐</span><span>안전보건교육 <b>8시간↑ 실시 + 서명 기록 보관</b></span></div>
+                  <div class="chk-item"><span class="cb">☐</span><span>칼 다루기·화상 응급처치·전도 예방 교육</span></div>
+                  <div class="chk-item"><span class="cb">☐</span><span>미끄럼 방지화 지급·착용 확인</span></div>
+                  <div class="chk-item"><span class="cb">☐</span><span>산재보험 가입 확인</span></div>
+                  <div class="chk-h">시설·장비 비치</div>
+                  <div class="chk-item"><span class="cb">☐</span><span>미끄럼 방지 매트 / 바닥 물기 관리</span></div>
+                  <div class="chk-item"><span class="cb">☐</span><span>칼 전용 보관함 · 내열(방화) 장갑</span></div>
+                  <div class="chk-item"><span class="cb">☐</span><span>소화기·구급함 위치 안내, 응급 연락망 게시</span></div>
+                </div>
+                <div>
+                  <div class="chk-h">조리 실습 중</div>
+                  <div class="chk-item"><span class="cb">☐</span><span>칼 사용 구역 지정·정리정돈</span></div>
+                  <div class="chk-item"><span class="cb">☐</span><span>뜨거운 기물 '고온' 표시</span></div>
+                  <div class="chk-item"><span class="cb">☐</span><span>바닥 물기·기름 즉시 제거</span></div>
+                  <div class="chk-item"><span class="cb">☐</span><span>가스·전기 기기 사용 후 차단 확인</span></div>
+                  <div class="chk-h">기록·관리</div>
+                  <div class="chk-item"><span class="cb">☐</span><span>안전교육 일지 작성·보관</span></div>
+                  <div class="chk-item"><span class="cb">☐</span><span>사고 발생 시 보고 절차 게시</span></div>
+                  <div class="chk-item"><span class="cb">☐</span><span>월 1회 안전 점검 실시</span></div>
+                </div>
+              </div>
+              <div class="alert alert-green"><div>🛡</div><div>산업안전보건법상 <b>현장실습생도 안전보건교육 의무 대상</b> — 교육 실시·기록 미비 시 사업주 책임. 교육 일지·서명은 반드시 보관.</div></div>
             </div>
           </div>
         </div>
