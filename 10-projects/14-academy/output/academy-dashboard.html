@@ -50,6 +50,7 @@
   .c-gold .sec-card-head{background:linear-gradient(90deg,#B45309,#D97706);}
   .c-green .sec-card-head{background:linear-gradient(90deg,#047857,#059669);}
   .c-teal .sec-card-head{background:linear-gradient(90deg,#0369A1,#0891B2);}
+  .c-accent .sec-card-head{background:linear-gradient(90deg,#B91C1C,#E84B1A);}
   .sec-card-body{padding:14px 16px;flex:1;}
   .pipe-row{margin-bottom:13px;}
   .pipe-head{display:flex;justify-content:space-between;margin-bottom:4px;font-size:12px;}
@@ -60,20 +61,75 @@
   th{background:#F8FAFC;padding:7px 8px;text-align:right;font-weight:700;border-bottom:2px solid var(--border);color:var(--navy);font-size:11px;}
   th.l{text-align:left;}
   td{padding:6px 8px;border-bottom:1px solid #F1F5F9;text-align:right;white-space:nowrap;}
-  td.l{text-align:left;font-weight:600;}
+  td.l{text-align:left;font-weight:600;white-space:normal;}
   tr:last-child td{border-bottom:none;}
   .cum{color:var(--blue);font-weight:700;}
   .total-row td{background:#EFF4FB;font-weight:800;border-top:2px solid var(--border);}
+  .num-cell{text-align:right;font-weight:600;color:var(--blue);white-space:nowrap;}
   .bars{display:flex;align-items:flex-end;gap:8px;height:140px;padding-top:10px;}
   .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;height:100%;}
   .bar{width:70%;max-width:38px;background:linear-gradient(180deg,#3B82F6,#1A4FAB);border-radius:5px 5px 0 0;min-height:2px;}
   .bar-val{font-size:10.5px;font-weight:700;color:var(--navy);}
   .bar-lbl{font-size:10px;color:var(--muted);}
-  .ms-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:6px;}
+  .ms-row,.mini-stat{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:6px;}
   .ms-item{flex:1;min-width:90px;background:var(--light);border-radius:8px;padding:10px;text-align:center;}
   .ms-item .ms-num{font-size:19px;font-weight:800;color:var(--navy);}
   .ms-item .ms-lbl{font-size:10px;color:var(--muted);margin-top:2px;}
   .note{font-size:10.5px;color:var(--muted);margin-top:8px;line-height:1.5;}
+  .sub-h{font-size:11.5px;font-weight:700;color:var(--navy);margin:2px 0 6px;}
+
+  /* ── 인포그래픽 카드 요소 ── */
+  .row-item{display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid #F1F5F9;}
+  .row-item:last-child{border-bottom:none;}
+  .ri-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+  .ri-label{font-size:11.5px;color:var(--text);flex:1;}
+  .ri-val{font-size:11.5px;font-weight:700;white-space:nowrap;flex-shrink:0;}
+  .inner-div{border:none;border-top:1px solid #E2E8F0;margin:9px 0;}
+  .donut-row{display:flex;align-items:center;gap:14px;padding:8px 0;}
+  .donut-wrap{position:relative;flex-shrink:0;}
+  .donut-wrap svg{display:block;}
+  .donut-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;}
+  .donut-center .big{font-size:18px;font-weight:800;color:var(--navy);}
+  .donut-center .sm{font-size:9px;color:var(--muted);}
+  .legend-row{display:flex;align-items:center;gap:6px;margin-bottom:5px;}
+  .legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+  .legend-lbl{font-size:11px;}
+  .legend-pct{font-size:11px;font-weight:700;margin-left:auto;}
+  .timeline{padding:4px 0;}
+  .tl-item{display:flex;gap:10px;margin-bottom:12px;}
+  .tl-left{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+  .tl-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+  .tl-line{flex:1;width:2px;background:#E2E8F0;margin-top:2px;}
+  .tl-title{font-size:12.5px;font-weight:700;margin-bottom:2px;}
+  .tl-desc{font-size:11px;color:var(--muted);}
+  .alert{border-radius:8px;padding:9px 12px;margin:6px 0;font-size:11.5px;display:flex;gap:7px;align-items:flex-start;}
+  .alert-red{background:#FEF2F2;border-left:3px solid #EF4444;}
+  .alert-green{background:#F0FDF4;border-left:3px solid #22C55E;}
+  .alert-amber{background:#FFFBEB;border-left:3px solid #F59E0B;}
+  .alert-blue{background:#EFF6FF;border-left:3px solid #3B82F6;}
+  .case-box{background:#F8FAFC;border-radius:8px;padding:10px 12px;margin:6px 0;border-left:3px solid var(--teal);}
+  .case-box .case-title{font-size:11.5px;font-weight:700;color:var(--teal);margin-bottom:4px;}
+  .case-box .case-text{font-size:11px;color:var(--text);line-height:1.55;}
+  .org-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 0;}
+  .org-box{background:var(--navy);color:#fff;border-radius:8px;padding:7px 18px;font-size:12px;font-weight:700;text-align:center;min-width:120px;}
+  .org-box.sub{background:var(--blue);font-size:11.5px;font-weight:600;}
+  .org-box.task{background:#F1F5F9;color:var(--text);font-size:10.5px;font-weight:500;border:1px solid var(--border);}
+  .org-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+  .org-line{width:2px;height:12px;background:var(--border);}
+  .space-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:6px 0;}
+  .space-cell{border-radius:7px;padding:9px 11px;font-size:11px;}
+  .space-cell .sc-title{font-weight:700;margin-bottom:2px;font-size:11.5px;}
+  .sim-box{border:1.5px dashed var(--gold);border-radius:10px;padding:11px 13px;margin:6px 0;background:#FFFDF5;}
+  .sim-box .sim-title{font-size:11.5px;font-weight:700;color:var(--gold);margin-bottom:6px;}
+  .aftercare-row{display:flex;gap:6px;margin:4px 0 8px;flex-wrap:wrap;}
+  .ac-item{flex:1;min-width:90px;background:#F0FDF4;border:1px solid #A7F3D0;border-radius:7px;padding:9px;font-size:10.5px;text-align:center;}
+  .ac-item .ac-ico{font-size:18px;margin-bottom:3px;}
+  .ac-item .ac-lbl{font-weight:600;color:#065F46;font-size:11.5px;}
+  .ac-item .ac-desc{color:var(--muted);font-size:10px;margin-top:2px;}
+  .tag{display:inline-block;font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:4px;letter-spacing:0.5px;}
+  .tag-red{background:#FEE2E2;color:#991B1B;}
+  .tag-green{background:#DCFCE7;color:#166534;}
+  .tag-gold{background:#FEF3C7;color:#92400E;}
   .doc-foot{background:var(--navy);color:rgba(255,255,255,0.55);font-size:10.5px;padding:11px 40px;display:flex;justify-content:space-between;}
   .doc-foot strong{color:rgba(255,255,255,0.85);}
 </style>
@@ -93,9 +149,9 @@
   <!-- ===== 왼쪽 탭 네비게이션 ===== -->
   <nav class="tabs">
     <div class="tabs-cap">VIEWS</div>
-    <button class="tab active" data-view="v1"><span class="tnum">1</span>기존 아카데미 현황</button>
-    <button class="tab" data-view="v2"><span class="tnum">2</span>신규 채용 계획</button>
-    <button class="tab" data-view="v3"><span class="tnum">3</span>신규 아카데미 운영 방안</button>
+    <button class="tab active" data-view="v1"><span class="tnum">1</span>신규 아카데미 채용 계획</button>
+    <button class="tab" data-view="v2"><span class="tnum">2</span>신규 아카데미 운영방안</button>
+    <button class="tab" data-view="v3"><span class="tnum">3</span>기존 아카데미 현황</button>
     <button class="tab" data-view="v4"><span class="tnum">4</span>아카데미 상세 커리큘럼</button>
     <button class="tab" data-view="v5"><span class="tnum">5</span>채용팀 역할 분담</button>
     <button class="tab" data-view="v6"><span class="tnum">6</span>사후 관리 방안</button>
@@ -106,8 +162,8 @@
   <!-- ===== 오른쪽 뷰 영역 ===== -->
   <main class="views">
 
-    <!-- ===== 뷰1: 기존 아카데미 현황 (누계 자동집계 — data.js 기반) ===== -->
-    <section id="v1" class="view active">
+    <!-- ===== 뷰3: 기존 아카데미 현황 (누계 자동집계 — data.js 기반) ===== -->
+    <section id="v3" class="view">
       <div class="grid">
         <div class="sec-card c-blue wide">
           <div class="sec-card-head"><span>🎯 연간 목표 대비 누계 진행률</span><span class="meta" id="prog-asof"></span></div>
@@ -131,66 +187,254 @@
       </div>
     </section>
 
-    <!-- ===== 뷰2: 신규 채용 계획 — 여기에 내용 작성 ===== -->
+    <!-- ===== 뷰1: 신규 아카데미 채용 계획 ===== -->
+    <section id="v1" class="view active">
+      <div class="grid">
+        <div class="sec-card c-blue wide">
+          <div class="sec-card-head"><span>👥 채용 수요 현황 및 시장 공급 분석</span></div>
+          <div class="sec-card-body">
+            <div class="mini-stat">
+              <div class="ms-item"><div class="ms-num" style="color:#EF4444">61%</div><div class="ms-lbl">경력직 구인 어려움<br>(외식업 전체)</div></div>
+              <div class="ms-item"><div class="ms-num" style="color:#D97706">4.2개월</div><div class="ms-lbl">평균 충원 소요<br>(중급 이상)</div></div>
+              <div class="ms-item"><div class="ms-num" style="color:#1A4FAB">38%</div><div class="ms-lbl">신입 1년내<br>조기 이직률</div></div>
+            </div>
+            <hr class="inner-div">
+            <div class="sub-h">⚡ 직급별 채용 난이도</div>
+            <div class="pipe-row"><div class="pipe-head"><span>🔴 고급 기능직 (숙련 조리장급)</span><span style="color:var(--muted)">매우 어려움 92%</span></div><div class="pipe-track"><div class="pipe-fill" style="width:92%;background:linear-gradient(90deg,#EF4444,#F87171)"></div></div></div>
+            <div class="pipe-row"><div class="pipe-head"><span>🟠 중급 기능직 (경력 2~5년)</span><span style="color:var(--muted)">어려움 75%</span></div><div class="pipe-track"><div class="pipe-fill" style="width:75%;background:linear-gradient(90deg,#F97316,#FDBA74)"></div></div></div>
+            <div class="pipe-row"><div class="pipe-head"><span>🟢 기초·신입 (아카데미 대상)</span><span style="color:var(--muted)">상대적 용이 30%</span></div><div class="pipe-track"><div class="pipe-fill" style="width:30%;background:linear-gradient(90deg,#22C55E,#86EFAC)"></div></div></div>
+            <div class="alert alert-red" style="margin-top:8px;"><div>📌</div><div><b>실제 사례:</b> 2024 고용노동부 외식업 실태조사 — 조리사 미충원 사업장 중 <b>68%가 경력직 부족</b>을 1순위 원인으로 응답. 서울·수도권 스시 오마카세 조리장 평균 공고→채용 기간 <b>5.8개월</b> (2023 잡코리아 분석)</div></div>
+          </div>
+        </div>
+
+        <div class="sec-card c-blue">
+          <div class="sec-card-head"><span>🔀 인력 수급 파이프라인 (연 200명)</span></div>
+          <div class="sec-card-body">
+            <div class="donut-row">
+              <div class="donut-wrap">
+                <svg width="90" height="90" viewBox="0 0 36 36">
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#E2E8F0" stroke-width="3.8"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#2563EB" stroke-width="3.8" stroke-dasharray="70 30" stroke-dashoffset="25"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#7C3AED" stroke-width="3.8" stroke-dasharray="20 80" stroke-dashoffset="-45"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#059669" stroke-width="3.8" stroke-dasharray="10 90" stroke-dashoffset="-71"/>
+                </svg>
+                <div class="donut-center"><div class="big">200</div><div class="sm">명/년</div></div>
+              </div>
+              <div style="flex:1">
+                <div class="legend-row"><div class="legend-dot" style="background:#2563EB"></div><span class="legend-lbl">직접 채용</span><span class="legend-pct" style="color:#1D4ED8">70% · 140명</span></div>
+                <div class="legend-row"><div class="legend-dot" style="background:#7C3AED"></div><span class="legend-lbl">일·학습병행</span><span class="legend-pct" style="color:#5B21B6">20% · 40명</span></div>
+                <div class="legend-row"><div class="legend-dot" style="background:#059669"></div><span class="legend-lbl">중장년층 채용</span><span class="legend-pct" style="color:#065F46">10% · 20명</span></div>
+              </div>
+            </div>
+            <hr class="inner-div">
+            <div class="row-item"><div class="ri-dot" style="background:#2563EB"></div><span class="ri-label"><b>직접 채용 (70%)</b> — 잡코리아·사람인·인크루트 경력직 소싱, 경쟁사 스카우팅, 요리학원 협약 네트워크</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#7C3AED"></div><span class="ri-label"><b>일·학습병행 (20%)</b> — HRD-Net 연계, 훈련비 정부지원, 아카데미 커리큘럼 인정 단위 설계</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#059669"></div><span class="ri-label"><b>중장년층 (10%)</b> — 50+ 전직지원 연계, 고용촉진장려금 활용, 파트타임→정규 전환 설계</span></div>
+          </div>
+        </div>
+
+        <div class="sec-card c-teal">
+          <div class="sec-card-head"><span>🎯 채용 3-트랙 구성</span></div>
+          <div class="sec-card-body">
+            <div class="row-item"><div class="ri-dot" style="background:#3B82F6"></div><span class="ri-label">고급 기능직 (숙련 조리사)</span><span class="ri-val" style="color:#1D4ED8">30% / 60명</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#8B5CF6"></div><span class="ri-label">중급 기능직 (경력 2~5년)</span><span class="ri-val" style="color:#6D28D9">60% / 120명</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#10B981"></div><span class="ri-label">기초 기능직 · 신입</span><span class="ri-val" style="color:#065F46">10% / 20명</span></div>
+            <div class="note">미숙련 신입은 아카데미 입교 → 실무 훈련 후 매장 배치.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 뷰2: 신규 아카데미 운영방안 ===== -->
     <section id="v2" class="view">
-      <div class="view-pad">
-        <div class="view-title">신규 채용 계획</div>
-        <div class="view-desc">연간 채용 목표·트랙·소싱 전략 등 신규 채용 계획을 정리합니다.</div>
-        <div class="placeholder"><b>자료 업데이트 예정</b><br>이 뷰의 내용은 곧 채워집니다.</div>
+      <div class="grid">
+        <div class="sec-card c-gold wide">
+          <div class="sec-card-head"><span>🏪 아카데미 매장 시뮬레이션 (방배동)</span></div>
+          <div class="sec-card-body">
+            <div class="sim-box">
+              <div class="sim-title">📍 방배동 근거리 매장 운영 시나리오 (총 50평)</div>
+              <div class="space-grid">
+                <div class="space-cell" style="background:#FEF3C7;border:1px solid #FDE68A;"><div class="sc-title" style="color:#92400E;">📦 도시락 생산 구역</div><div style="font-size:10.5px;color:#78350F;">25평 · 산업용 조리 장비<br>일 300~500팩 생산 목표</div></div>
+                <div class="space-cell" style="background:#DCFCE7;border:1px solid #86EFAC;"><div class="sc-title" style="color:#166534;">🛵 배달 운영 구역</div><div style="font-size:10.5px;color:#14532D;">배달의민족·쿠팡이츠 입점<br>픽업·배달 동시 운영</div></div>
+                <div class="space-cell" style="background:#EFF6FF;border:1px solid #BFDBFE;"><div class="sc-title" style="color:#1E40AF;">🎓 훈련 교실 구역</div><div style="font-size:10.5px;color:#1E3A8A;">15평 · 이론+데모 공간<br>20석 강의 가능</div></div>
+                <div class="space-cell" style="background:#FAF5FF;border:1px solid #E9D5FF;"><div class="sc-title" style="color:#5B21B6;">🗂 사무·행정 구역</div><div style="font-size:10.5px;color:#4C1D95;">10평 · 담당자 2명<br>인사·회계·보고</div></div>
+              </div>
+            </div>
+            <hr class="inner-div">
+            <div class="sub-h">📊 예상 매출·운영 지표 (월간)</div>
+            <div class="row-item"><div class="ri-dot" style="background:#D97706"></div><span class="ri-label">도시락 매출 (300팩×22일×3,500원)</span><span class="ri-val" style="color:#92400E;">약 2,310만원</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#D97706"></div><span class="ri-label">배달 플랫폼 수수료 (약 15%)</span><span class="ri-val" style="color:#EF4444;">-347만원</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#D97706"></div><span class="ri-label">재료비 (매출의 35%)</span><span class="ri-val" style="color:#EF4444;">-808만원</span></div>
+            <div class="row-item" style="background:#FFFBEB;border-radius:5px;padding:6px;"><div class="ri-dot" style="background:#F59E0B"></div><span class="ri-label" style="font-weight:700;">순 기여 (운영비 일부 상쇄)</span><span class="ri-val" style="color:#D97706;font-size:13px;">약 1,155만원</span></div>
+          </div>
+        </div>
+
+        <div class="sec-card c-gold">
+          <div class="sec-card-head"><span>👨‍🍳 아카데미 핵심 운영 인력</span></div>
+          <div class="sec-card-body">
+            <div class="org-wrap">
+              <div class="org-box" style="background:linear-gradient(135deg,#B45309,#D97706);">아카데미 총괄 (원장급)</div>
+              <div class="org-line"></div>
+              <div class="org-row"><div class="org-box sub" style="background:linear-gradient(135deg,#D97706,#F59E0B);min-width:110px;">수석 훈련 강사</div><div class="org-box sub" style="background:linear-gradient(135deg,#D97706,#F59E0B);min-width:110px;">행정 매니저</div></div>
+              <div class="org-line"></div>
+              <div class="org-row"><div class="org-box task">보조 강사 ×1</div><div class="org-box task">매장 운영 담당</div><div class="org-box task">인사·회계</div></div>
+            </div>
+            <hr class="inner-div">
+            <div class="row-item"><div class="ri-dot" style="background:#D97706"></div><span class="ri-label"><b>수석 강사:</b> 10년↑ 현장 경력 필수, 브랜드 조리 매뉴얼 마스터, 수료 평가 주관</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#D97706"></div><span class="ri-label"><b>행정 매니저:</b> 교육생 출결·평가 관리, 매장 재무 정산, 채용팀 연계 보고</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#D97706"></div><span class="ri-label"><b>매장 운영 담당:</b> 도시락 QC·플랫폼 주문 처리, 재고 발주, 위생 점검</span></div>
+          </div>
+        </div>
+
+        <div class="sec-card c-accent">
+          <div class="sec-card-head"><span>💰 아카데미 예상 투자·운영 비용</span></div>
+          <div class="sec-card-body">
+            <table class="budget-table">
+              <thead><tr><th class="l">항목</th><th class="l">구분</th><th>금액</th></tr></thead>
+              <tbody>
+                <tr><td class="l">인테리어·시설 공사</td><td class="l"><span class="tag tag-red">초기투자</span></td><td class="num-cell">7,000만원</td></tr>
+                <tr><td class="l">산업용 조리장비</td><td class="l"><span class="tag tag-red">초기투자</span></td><td class="num-cell">5,000만원</td></tr>
+                <tr><td class="l">보증금 (방배동 기준)</td><td class="l"><span class="tag tag-red">초기투자</span></td><td class="num-cell">5,000만원</td></tr>
+                <tr><td class="l">집기·비품</td><td class="l"><span class="tag tag-red">초기투자</span></td><td class="num-cell">1,500만원</td></tr>
+                <tr class="total-row"><td class="l" colspan="2"><b>초기 투자 합계</b></td><td class="num-cell" style="color:#B91C1C;">1억 8,500만원</td></tr>
+                <tr><td class="l">인건비 (4명)</td><td class="l"><span class="tag tag-gold">월 운영</span></td><td class="num-cell">1,200만원/월</td></tr>
+                <tr><td class="l">임차료 (방배동)</td><td class="l"><span class="tag tag-gold">월 운영</span></td><td class="num-cell">300만원/월</td></tr>
+                <tr><td class="l">재료비·운영 소모품</td><td class="l"><span class="tag tag-gold">월 운영</span></td><td class="num-cell">850만원/월</td></tr>
+                <tr><td class="l">매출 수익 상쇄</td><td class="l"><span class="tag tag-green">월 수익</span></td><td class="num-cell" style="color:#166534;">-1,155만원/월</td></tr>
+                <tr class="total-row"><td class="l" colspan="2"><b>월 순 운영비</b></td><td class="num-cell" style="color:#D97706;">약 1,195만원</td></tr>
+                <tr class="total-row"><td class="l" colspan="2"><b>연간 총 소요 비용</b></td><td class="num-cell" style="color:#B91C1C;">약 3억 2,840만원</td></tr>
+              </tbody>
+            </table>
+            <div class="alert alert-green" style="margin-top:8px;"><div>✅</div><div>일용직 연간 <b>14억원</b> 대비, 아카데미 연간 투자 <b>~3.3억</b> → <b>10.7억 절감 가능성</b> (3년차 기준)</div></div>
+          </div>
+        </div>
+
+        <div class="sec-card c-green wide">
+          <div class="sec-card-head"><span>🏬 매장 배치 구조 및 인건비 안분</span></div>
+          <div class="sec-card-body">
+            <div class="alert alert-blue"><div>💡</div><div><b>핵심 정책:</b> 수료생 배치 후 <b>3개월간</b> 해당 매장 인건비 미부과 → <b>본사 비용 처리 또는 전사 안분</b></div></div>
+            <hr class="inner-div">
+            <div class="row-item"><div class="ri-dot" style="background:#059669"></div><span class="ri-label"><b>배치 기준:</b> 수료 역량 등급 + 해당 브랜드 수요 매칭</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#059669"></div><span class="ri-label"><b>배치 통보:</b> 수료 2주 전 영업팀에 사전 고지</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#059669"></div><span class="ri-label"><b>인건비 안분:</b> 배치 1~3개월 — 월 약 240만원 본사 부담</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#059669"></div><span class="ri-label"><b>정규 편입:</b> 3개월 평가 후 매장 정규 인력 전환</span></div>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- ===== 뷰3: 신규 아카데미 운영 방안 — 여기에 내용 작성 ===== -->
-    <section id="v3" class="view">
-      <div class="view-pad">
-        <div class="view-title">신규 아카데미 운영 방안</div>
-        <div class="view-desc">방배동 매장 운영·정원·교육 형태 등 아카데미 운영 방안을 정리합니다.</div>
-        <div class="placeholder"><b>자료 업데이트 예정</b><br>이 뷰의 내용은 곧 채워집니다.</div>
-      </div>
-    </section>
-
-    <!-- ===== 뷰4: 아카데미 상세 커리큘럼 — 여기에 내용 작성 ===== -->
+    <!-- ===== 뷰4: 아카데미 상세 커리큘럼 ===== -->
     <section id="v4" class="view">
-      <div class="view-pad">
-        <div class="view-title">아카데미 상세 커리큘럼</div>
-        <div class="view-desc">3개월 과정 월차별 커리큘럼·평가 기준을 정리합니다.</div>
-        <div class="placeholder"><b>자료 업데이트 예정</b><br>이 뷰의 내용은 곧 채워집니다.</div>
+      <div class="grid">
+        <div class="sec-card c-gold wide">
+          <div class="sec-card-head"><span>📅 교육 커리큘럼 (3개월 과정)</span><span class="meta">이론 20% + 실무 80%</span></div>
+          <div class="sec-card-body">
+            <div class="timeline">
+              <div class="tl-item"><div class="tl-left"><div class="tl-dot" style="background:#D97706"></div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-title">1개월차 — 기초 위생·안전·조리 이론</div><div class="tl-desc">HACCP·식품위생법 이론, 칼·화기 안전, 기초 소스·육수 원리, 브랜드 메뉴 히스토리</div></div></div>
+              <div class="tl-item"><div class="tl-left"><div class="tl-dot" style="background:#F59E0B"></div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-title">2개월차 — 실무 조리 훈련 (도시락 라인)</div><div class="tl-desc">도시락 라인 풀 운영 참여, 주문 대응·생산량 관리, 반복 숙련 훈련, 1차 역량 평가</div></div></div>
+              <div class="tl-item"><div class="tl-left"><div class="tl-dot" style="background:#EF4444"></div></div><div class="tl-content"><div class="tl-title">3개월차 — 브랜드 특화 실습 + 수료 평가</div><div class="tl-desc">배치 브랜드 특화 메뉴 집중 훈련, 피크타임 운영 참여, 최종 역량 평가 → 수료 판정</div></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="sec-card c-gold wide">
+          <div class="sec-card-head"><span>🧭 운영 원칙</span></div>
+          <div class="sec-card-body">
+            <div class="row-item"><div class="ri-dot" style="background:#D97706"></div><span class="ri-label">월 정원 <b>10명</b> · 실제 매장 영업 병행(OJT형 실무 훈련)</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#D97706"></div><span class="ri-label">단계별 역량 평가(1차→최종) 통과 시 수료 판정</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#D97706"></div><span class="ri-label">수료 후 배치 브랜드 특화 메뉴 사전 집중 훈련</span></div>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- ===== 뷰5: 채용팀 역할 분담 — 여기에 내용 작성 ===== -->
+    <!-- ===== 뷰5: 채용팀 역할 분담 ===== -->
     <section id="v5" class="view">
-      <div class="view-pad">
-        <div class="view-title">채용팀 역할 분담</div>
-        <div class="view-desc">채용팀 조직·R&amp;R·업무 프로세스를 정리합니다.</div>
-        <div class="placeholder"><b>자료 업데이트 예정</b><br>이 뷰의 내용은 곧 채워집니다.</div>
+      <div class="grid">
+        <div class="sec-card c-teal">
+          <div class="sec-card-head"><span>📋 채용팀 역할 분담 (R&amp;R)</span></div>
+          <div class="sec-card-body">
+            <div class="org-wrap">
+              <div class="org-box">채용팀장 (HR Manager)</div>
+              <div class="org-line"></div>
+              <div class="org-row"><div class="org-box sub">채용 담당자 ×2</div><div class="org-box sub">소싱 전문가 ×1</div></div>
+              <div class="org-line"></div>
+              <div class="org-row"><div class="org-box task">공고·스크리닝</div><div class="org-box task">면접·평가</div><div class="org-box task">아카데미 연계</div></div>
+            </div>
+            <hr class="inner-div">
+            <div class="row-item"><div class="ri-dot" style="background:#0891B2"></div><span class="ri-label">매장 수요 접수 → 채용 공고 집행 (2주 이내)</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#0891B2"></div><span class="ri-label">경력자 → 영업팀 직배치 결정</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#0891B2"></div><span class="ri-label">미숙련 신입 → 아카데미 입교 의뢰서 발행</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#0891B2"></div><span class="ri-label">월간 채용 KPI 보고 (충원율·소요일)</span></div>
+          </div>
+        </div>
+
+        <div class="sec-card c-green">
+          <div class="sec-card-head"><span>🏪 매장(영업팀) 역할 분담</span></div>
+          <div class="sec-card-body">
+            <div class="row-item"><div class="ri-dot" style="background:#059669"></div><span class="ri-label"><b>수요 신청:</b> 결원 발생 시 HR 포털 통해 포지션·일정 요청 (서면 프로세스)</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#059669"></div><span class="ri-label"><b>OJT 제공:</b> 배치 후 2주간 기존 조리 베테랑과 1:1 사수 매칭 운영</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#059669"></div><span class="ri-label"><b>3개월 평가:</b> 매장장 직접 역량·근태 평가 보고서 제출 (아카데미 공유)</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#059669"></div><span class="ri-label"><b>피드백 제공:</b> 아카데미 교육 개선 의견 분기 1회 공식 채널 제출</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#059669"></div><span class="ri-label"><b>일용직 감축:</b> 아카데미 수료자 배치 비율 확대 → 영업팀 목표 KPI 포함</span></div>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- ===== 뷰6: 사후 관리 방안 — 여기에 내용 작성 ===== -->
+    <!-- ===== 뷰6: 사후 관리 방안 ===== -->
     <section id="v6" class="view">
-      <div class="view-pad">
-        <div class="view-title">사후 관리 방안</div>
-        <div class="view-desc">배치 후 체크인·멘토링·이탈 방지 등 사후 관리 활동을 정리합니다.</div>
-        <div class="placeholder"><b>자료 업데이트 예정</b><br>이 뷰의 내용은 곧 채워집니다.</div>
+      <div class="grid">
+        <div class="sec-card c-green wide">
+          <div class="sec-card-head"><span>🌱 배치 후 사후 관리 활동</span></div>
+          <div class="sec-card-body">
+            <div class="aftercare-row">
+              <div class="ac-item"><div class="ac-ico">📞</div><div class="ac-lbl">D+7 체크콜</div><div class="ac-desc">배치 1주 후<br>적응 확인 전화</div></div>
+              <div class="ac-item"><div class="ac-ico">📋</div><div class="ac-lbl">월 1회 면담</div><div class="ac-desc">아카데미 담당자<br>현장 방문 면담</div></div>
+              <div class="ac-item"><div class="ac-ico">📊</div><div class="ac-lbl">3개월 평가</div><div class="ac-desc">역량·근태·<br>매장장 평점</div></div>
+            </div>
+            <hr class="inner-div">
+            <div class="row-item"><div class="ri-dot" style="background:#059669"></div><span class="ri-label"><b>아카데미 멘토링:</b> 수료 후 6개월까지 수석 강사 카카오채널 직통 Q&amp;A 지원</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#059669"></div><span class="ri-label"><b>매장장 교육:</b> 아카데미 수료생 지도법 1일 워크숍 (분기 1회)</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#059669"></div><span class="ri-label"><b>이탈 조기 감지:</b> 월 출근율 85% 미만 알림 → HR 즉각 개입 프로세스</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#059669"></div><span class="ri-label"><b>커리어 패스 제시:</b> 6개월 근속 → 부반장, 12개월 → 반장 승격 로드맵 공유</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#059669"></div><span class="ri-label"><b>피드백 루프:</b> 매장 만족도 월 보고 → 아카데미 커리큘럼 반영 개선</span></div>
+            <div class="alert alert-green" style="margin-top:8px;"><div>🎯</div><div><b>사후 관리 목표:</b> 배치 후 6개월 재직률 <b>75%↑</b>, 매장장 만족도 <b>4.0/5.0↑</b></div></div>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- ===== 뷰7: 이슈 및 해결 방안 — 여기에 내용 작성 ===== -->
+    <!-- ===== 뷰7: 이슈 및 해결 방안 ===== -->
     <section id="v7" class="view">
-      <div class="view-pad">
-        <div class="view-title">이슈 및 해결 방안</div>
-        <div class="view-desc">예상 부작용·리스크와 해결 방안(참고 사례 포함)을 정리합니다.</div>
-        <div class="placeholder"><b>자료 업데이트 예정</b><br>이 뷰의 내용은 곧 채워집니다.</div>
+      <div class="grid">
+        <div class="sec-card c-accent wide">
+          <div class="sec-card-head"><span>⚠️ 예상 부작용 및 이슈 해결 방안</span></div>
+          <div class="sec-card-body">
+            <div class="alert alert-red"><div>🔴</div><div><b>Issue 1 — 현장 수요 불일치:</b> 아카데미 수료생이 매장 피크타임 즉시 전력 투입 어려움</div></div>
+            <div class="case-box"><div class="case-title">📖 참고: 본아이에프 '본죽&amp;비빔밥' 아카데미 모델</div><div class="case-text">배치 초기 2~4주는 '서포터' 역할 지정, 기존 조리사 옆 보조 → 4주 후 독립 스테이션 담당 전환. 현장 부담 최소화.</div></div>
+            <div class="alert alert-amber" style="margin-top:8px;"><div>🟡</div><div><b>Issue 2 — 인사행정 이슈:</b> 배치 인원의 고용 형태·사회보험 처리, 수습기간 vs 정규직 구분 불명확</div></div>
+            <div class="case-box"><div class="case-title">📖 참고: CJ푸드빌 인턴→정규 전환 프로세스</div><div class="case-text">3개월 '인턴십 협약서' 사전 체결, 4대보험 본사 부담, 3개월 후 평가 기반 정규 전환 확정 통보. 법적 분쟁 Zero 사례.</div></div>
+            <div class="alert alert-red" style="margin-top:8px;"><div>🔴</div><div><b>Issue 3 — 조기 이탈:</b> 배치 후 1~2개월 내 퇴직 리스크 (신입 조리사 30일 이탈율 평균 25%)</div></div>
+            <div class="case-box"><div class="case-title">📖 참고: 이랜드이츠 '리텐션 인센티브' 설계</div><div class="case-text">3개월 완주 시 '수료 수당' 30만원 지급, 6개월 근속 시 급여 인상 확정 약속 → 3개월 이탈율 25% → 8%로 감소.</div></div>
+            <div class="alert alert-amber" style="margin-top:8px;"><div>🟡</div><div><b>Issue 4 — 매장장 저항:</b> "검증 안 된 인력 보내지 마라" 현장 반발 가능</div></div>
+            <div class="case-box"><div class="case-title">💡 해결책 제안</div><div class="case-text">① 수료증·역량 등급카드 동봉 배치<br>② 매장장 대상 사전 오리엔테이션 1시간 진행<br>③ 3개월 인건비 무부담 인센티브 강조</div></div>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- ===== 뷰8: 타브랜드 아카데미 — 여기에 내용 작성 ===== -->
+    <!-- ===== 뷰8: 타브랜드 아카데미 (벤치마킹) ===== -->
     <section id="v8" class="view">
-      <div class="view-pad">
-        <div class="view-title">타브랜드 아카데미</div>
-        <div class="view-desc">타사·타브랜드 조리 아카데미 벤치마킹 사례를 정리합니다.</div>
-        <div class="placeholder"><b>자료 업데이트 예정</b><br>이 뷰의 내용은 곧 채워집니다.</div>
+      <div class="grid">
+        <div class="sec-card c-teal wide">
+          <div class="sec-card-head"><span>🏷 타브랜드 조리 아카데미 벤치마킹</span></div>
+          <div class="sec-card-body">
+            <div class="case-box" style="border-left-color:#2563EB;"><div class="case-title" style="color:#1D4ED8;">본아이에프 — '본죽&amp;비빔밥' 아카데미 모델</div><div class="case-text"><b>현장 연착륙(서포터제):</b> 배치 초기 2~4주는 '서포터' 역할로 기존 조리사 옆 보조 → 4주 후 독립 스테이션 담당 전환. 수료생의 피크타임 즉시 투입 부담을 줄임.</div></div>
+            <div class="case-box" style="border-left-color:#7C3AED;"><div class="case-title" style="color:#5B21B6;">CJ푸드빌 — 인턴→정규 전환 프로세스</div><div class="case-text"><b>고용 안정·법적 리스크 제거:</b> 3개월 '인턴십 협약서' 사전 체결, 4대보험 본사 부담, 3개월 후 평가 기반 정규 전환 확정 통보. 법적 분쟁 Zero 운영.</div></div>
+            <div class="case-box" style="border-left-color:#059669;"><div class="case-title" style="color:#065F46;">이랜드이츠 — '리텐션 인센티브' 설계</div><div class="case-text"><b>조기 이탈 방지:</b> 3개월 완주 시 '수료 수당' 30만원, 6개월 근속 시 급여 인상 확정 → 3개월 이탈율 <b>25% → 8%</b>로 감소.</div></div>
+            <div class="note">위 3개 사례는 우리 아카데미의 ① 현장 연착륙 ② 고용·행정 안정 ③ 리텐션 설계에 직접 적용 가능. (상세 이슈-해결 매핑은 '이슈 및 해결 방안' 뷰 참조)</div>
+          </div>
+        </div>
       </div>
     </section>
 
