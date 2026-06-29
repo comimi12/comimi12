@@ -16,7 +16,7 @@
   .doc-header{background:linear-gradient(135deg,#0A1A3A 0%,#1A4FAB 60%,#2563EB 100%);color:#fff;padding:28px 40px 22px;position:relative;overflow:hidden;}
   .doc-header::before{content:'';position:absolute;right:-60px;top:-60px;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,0.05);}
   .header-top{display:flex;align-items:center;gap:18px;margin-bottom:18px;}
-  .brand-logo{height:60px;width:auto;flex-shrink:0;}
+  .brand-logo{height:80px;width:auto;flex-shrink:0;}
   .header-top .htext{flex:1;min-width:0;}
   .header-eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.55);margin-bottom:6px;}
   .header-title{font-size:24px;font-weight:900;letter-spacing:-0.5px;margin-bottom:4px;}
@@ -72,7 +72,6 @@
     <img class="brand-logo" src="logo.png" alt="삼천리 SL&amp;C">
     <div class="htext">
       <div class="header-title" id="h-title"></div>
-      <div class="header-sub" id="h-sub"></div>
     </div>
   </div>
   <div class="header-kpis" id="h-kpis"></div>
@@ -137,7 +136,6 @@
 
   // ── 헤더 ──
   document.getElementById('h-title').textContent = D.meta.title;
-  document.getElementById('h-sub').textContent = D.meta.sub + ' · 기준 ' + last.ym;
   document.getElementById('h-kpis').innerHTML = [
     chip(cumChae, '/ '+D.targets.채용.total+'명', '누계 채용'),
     chip(cumSuryo, '/ '+D.targets.수료+'명', '누계 수료'),
