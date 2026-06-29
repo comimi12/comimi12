@@ -121,6 +121,21 @@
   .chk-cols{display:grid;grid-template-columns:1fr 1fr;gap:0 20px;}
   @media(max-width:680px){.chk-cols{grid-template-columns:1fr;}}
 
+  /* ── 사후관리 시각화 (이탈율 막대·원인·예산) ── */
+  .hbar-row{display:flex;align-items:center;gap:10px;margin-bottom:9px;font-size:11px;}
+  .hbar-label{width:230px;flex-shrink:0;line-height:1.3;}
+  .hbar-track{flex:1;height:20px;background:#EEF2F8;border-radius:5px;overflow:hidden;}
+  .hbar-fill{height:100%;border-radius:5px;display:flex;align-items:center;justify-content:flex-end;padding-right:7px;color:#fff;font-weight:800;font-size:10px;min-width:34px;}
+  .cause-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(186px,1fr));gap:11px;}
+  .cause-cell{border:1px solid var(--border);border-radius:11px;padding:12px;background:#fff;box-shadow:var(--shadow);}
+  .cause-cell .cc-h{font-weight:800;font-size:12.5px;color:var(--navy);margin-bottom:5px;display:flex;align-items:center;gap:6px;}
+  .cc-l{font-size:9px;font-weight:800;letter-spacing:.4px;margin-top:8px;text-transform:uppercase;color:var(--muted);}
+  .cc-l.sign{color:#B91C1C;}
+  .cc-l.act{color:#047857;}
+  .cc-t{font-size:10.5px;line-height:1.45;margin-top:2px;color:var(--text);}
+  .stack{display:flex;height:34px;border-radius:8px;overflow:hidden;margin:8px 0 6px;}
+  .stack > div{display:flex;align-items:center;justify-content:center;color:#fff;font-size:9.5px;font-weight:700;text-align:center;line-height:1.15;padding:0 2px;}
+
   /* ── 인포그래픽 요소 ── */
   .row-item{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid #F1F5F9;}
   .row-item:last-child{border-bottom:none;}
@@ -227,62 +242,48 @@
             <div class="stage-body" style="padding:10px 12px;">
               <!-- KPI 3개 -->
               <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:10px;">
-                <div style="background:#EEF3FB;border-radius:8px;padding:7px 4px;text-align:center;">
-                  <div style="font-size:18px;font-weight:800;color:#1A4FAB;line-height:1.1;">381</div>
-                  <div style="font-size:9px;color:var(--muted);margin-top:1px;">연간 채용 목표</div>
+                <div style="background:#EEF3FB;border-radius:8px;padding:7px 4px;text-align:center;border-bottom:3px solid #1A4FAB;">
+                  <div style="font-size:20px;font-weight:800;color:#1A4FAB;line-height:1.1;">381</div>
+                  <div style="font-size:8.5px;color:var(--muted);margin-top:2px;">연간 채용 목표</div>
                 </div>
-                <div style="background:#FFF7ED;border-radius:8px;padding:7px 4px;text-align:center;">
-                  <div style="font-size:18px;font-weight:800;color:#D97706;line-height:1.1;">4,386</div>
-                  <div style="font-size:9px;color:var(--muted);margin-top:1px;">일용직 건수(2025)</div>
+                <div style="background:#FFF7ED;border-radius:8px;padding:7px 4px;text-align:center;border-bottom:3px solid #D97706;">
+                  <div style="font-size:20px;font-weight:800;color:#D97706;line-height:1.1;">275</div>
+                  <div style="font-size:8.5px;color:var(--muted);margin-top:2px;">BOH 인원수(2025)</div>
                 </div>
-                <div style="background:#ECFDF5;border-radius:8px;padding:7px 4px;text-align:center;">
-                  <div style="font-size:18px;font-weight:800;color:#059669;line-height:1.1;">657</div>
-                  <div style="font-size:9px;color:var(--muted);margin-top:1px;">아카데미 대체 가능</div>
-                </div>
-              </div>
-              <!-- 도넛차트 + 범례 -->
-              <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;">
-                <svg width="78" height="78" viewBox="0 0 36 36" style="flex-shrink:0;">
-                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#E2E8F0" stroke-width="4.2"/>
-                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#1A4FAB" stroke-width="4.2" stroke-dasharray="67.7 32.3" stroke-dashoffset="25"/>
-                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#7C3AED" stroke-width="4.2" stroke-dasharray="19.5 80.5" stroke-dashoffset="-42.7"/>
-                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#059669" stroke-width="4.2" stroke-dasharray="12.8 87.2" stroke-dashoffset="-62.2"/>
-                  <text x="18" y="17.5" text-anchor="middle" dominant-baseline="middle" fill="#0F2147" font-size="5" font-weight="800">381명</text>
-                  <text x="18" y="22" text-anchor="middle" dominant-baseline="middle" fill="#64748B" font-size="3.5">연간 목표</text>
-                </svg>
-                <div style="flex:1;min-width:0;">
-                  <div style="margin-bottom:5px;">
-                    <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px;"><span style="font-weight:700;color:#1A4FAB;">고급 254명</span><span style="color:var(--muted);">67.7%</span></div>
-                    <div style="height:6px;background:#E2E8F0;border-radius:99px;"><div style="height:100%;width:67.7%;background:#1A4FAB;border-radius:99px;"></div></div>
-                  </div>
-                  <div style="margin-bottom:5px;">
-                    <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px;"><span style="font-weight:700;color:#7C3AED;">중급 79명</span><span style="color:var(--muted);">19.5%</span></div>
-                    <div style="height:6px;background:#E2E8F0;border-radius:99px;"><div style="height:100%;width:19.5%;background:#7C3AED;border-radius:99px;"></div></div>
-                  </div>
-                  <div>
-                    <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px;"><span style="font-weight:700;color:#059669;">기초 48명</span><span style="color:var(--muted);">12.8%</span></div>
-                    <div style="height:6px;background:#E2E8F0;border-radius:99px;"><div style="height:100%;width:12.8%;background:#059669;border-radius:99px;"></div></div>
-                  </div>
+                <div style="background:#ECFDF5;border-radius:8px;padding:7px 4px;text-align:center;border-bottom:3px solid #059669;">
+                  <div style="font-size:20px;font-weight:800;color:#059669;line-height:1.1;">107</div>
+                  <div style="font-size:8.5px;color:var(--muted);margin-top:2px;">아카데미 대체 목표</div>
                 </div>
               </div>
-              <!-- 담당 배지 3개 -->
-              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:8px;">
-                <div style="background:#EEF3FB;border-radius:6px;padding:5px 3px;text-align:center;border-top:2px solid #1A4FAB;">
-                  <div style="font-size:9px;font-weight:700;color:#1A4FAB;">고급</div>
-                  <div style="font-size:8.5px;color:var(--muted);">채용팀 직접</div>
-                </div>
-                <div style="background:#F5F3FF;border-radius:6px;padding:5px 3px;text-align:center;border-top:2px solid #7C3AED;">
-                  <div style="font-size:9px;font-weight:700;color:#7C3AED;">중급</div>
-                  <div style="font-size:8.5px;color:var(--muted);">채용팀+아카데미</div>
-                </div>
-                <div style="background:#ECFDF5;border-radius:6px;padding:5px 3px;text-align:center;border-top:2px solid #059669;">
-                  <div style="font-size:9px;font-weight:700;color:#059669;">기초</div>
-                  <div style="font-size:8.5px;color:var(--muted);">아카데미 중심</div>
-                </div>
-              </div>
+              <!-- 세로 막대차트 (SVG) -->
+              <div style="font-size:10px;font-weight:700;color:var(--navy);margin-bottom:4px;">트랙별 채용 목표 인원</div>
+              <svg width="100%" height="96" viewBox="0 0 200 96" preserveAspectRatio="none" style="display:block;margin-bottom:8px;overflow:visible;">
+                <line x1="0" y1="15" x2="200" y2="15" stroke="#F1F5F9" stroke-width="0.8"/>
+                <line x1="0" y1="35" x2="200" y2="35" stroke="#F1F5F9" stroke-width="0.8"/>
+                <line x1="0" y1="55" x2="200" y2="55" stroke="#F1F5F9" stroke-width="0.8"/>
+                <line x1="0" y1="75" x2="200" y2="75" stroke="#E2E8F0" stroke-width="0.8"/>
+                <!-- 고급 254명: 254/381=66.7% → h=50 -->
+                <rect x="10" y="25" width="52" height="50" rx="5" fill="url(#g1)"/>
+                <defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2563EB"/><stop offset="100%" stop-color="#1A4FAB"/></linearGradient></defs>
+                <text x="36" y="22" text-anchor="middle" fill="#1A4FAB" font-size="7.5" font-weight="800">254명</text>
+                <text x="36" y="86" text-anchor="middle" fill="#475569" font-size="7" font-weight="600">고급</text>
+                <text x="36" y="94" text-anchor="middle" fill="#94A3B8" font-size="6">채용팀</text>
+                <!-- 중급 79명: 79/381=20.7% → h=15.6 -->
+                <rect x="76" y="59" width="52" height="16" rx="5" fill="url(#g2)"/>
+                <defs><linearGradient id="g2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8B5CF6"/><stop offset="100%" stop-color="#7C3AED"/></linearGradient></defs>
+                <text x="102" y="56" text-anchor="middle" fill="#7C3AED" font-size="7.5" font-weight="800">79명</text>
+                <text x="102" y="86" text-anchor="middle" fill="#475569" font-size="7" font-weight="600">중급</text>
+                <text x="102" y="94" text-anchor="middle" fill="#94A3B8" font-size="6">채용팀+아카데미</text>
+                <!-- 기초 48명: 48/381=12.6% → h=9.5 -->
+                <rect x="142" y="65.5" width="52" height="9.5" rx="4" fill="url(#g3)"/>
+                <defs><linearGradient id="g3" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#10B981"/><stop offset="100%" stop-color="#059669"/></linearGradient></defs>
+                <text x="168" y="62" text-anchor="middle" fill="#059669" font-size="7.5" font-weight="800">48명</text>
+                <text x="168" y="86" text-anchor="middle" fill="#475569" font-size="7" font-weight="600">기초</text>
+                <text x="168" y="94" text-anchor="middle" fill="#94A3B8" font-size="6">아카데미</text>
+              </svg>
               <!-- 절감 인사이트 -->
               <div style="background:#FFF7ED;border-radius:7px;padding:7px 9px;border-left:3px solid #D97706;">
-                <div style="font-size:9.5px;color:#92400E;line-height:1.6;">657건 × 150,000원 → 연간 <b style="color:#B45309;">약 9,855만원</b> 절감 가능</div>
+                <div style="font-size:9.5px;color:#92400E;line-height:1.6;">BOH <b>275명</b> 중 기초 인력 <b>107명</b>을 아카데미로 대체 · 일용직 대비 연간 <b style="color:#B45309;">약 9,855만원</b> 절감 가능</div>
               </div>
             </div>
           </div>
@@ -294,27 +295,54 @@
             <div class="stage-head"><div class="stage-num">2</div><div><div class="stage-label">기초 운영방안</div><div class="stage-sub">아카데미 채용 목표 · 107명</div></div></div>
             <div class="stage-body" style="padding:10px 12px;">
               <!-- 큰 KPI -->
-              <div style="text-align:center;margin-bottom:10px;padding:8px;background:#FFFBEB;border-radius:10px;">
-                <div style="font-size:30px;font-weight:800;color:#D97706;line-height:1;">107<span style="font-size:14px;">명</span></div>
-                <div style="font-size:9.5px;color:var(--muted);">아카데미 연간 채용 목표</div>
+              <div style="text-align:center;margin-bottom:10px;padding:8px 4px;background:#FFFBEB;border-radius:10px;border:1px solid #FDE68A;">
+                <div style="font-size:32px;font-weight:800;color:#D97706;line-height:1;">107<span style="font-size:15px;font-weight:600;">명</span></div>
+                <div style="font-size:9px;color:var(--muted);">아카데미 연간 채용 목표</div>
               </div>
-              <!-- 가로 막대 차트 -->
-              <div style="font-size:10px;font-weight:700;color:var(--navy);margin-bottom:6px;">채용 루트별 목표 인원</div>
-              <div style="margin-bottom:5px;">
-                <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px;"><span style="color:var(--text);">P-TECH</span><span style="font-weight:700;color:#D97706;">20명</span></div>
-                <div style="height:9px;background:#FDE68A;border-radius:99px;"><div style="height:100%;width:57%;background:linear-gradient(90deg,#D97706,#F59E0B);border-radius:99px;"></div></div>
-              </div>
-              <div style="margin-bottom:5px;">
-                <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px;"><span style="color:var(--text);">대학 연계</span><span style="font-weight:700;color:#D97706;">32명</span></div>
-                <div style="height:9px;background:#FDE68A;border-radius:99px;"><div style="height:100%;width:91%;background:linear-gradient(90deg,#D97706,#F59E0B);border-radius:99px;"></div></div>
-              </div>
-              <div style="margin-bottom:5px;">
-                <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px;"><span style="color:var(--text);">중장년 모집</span><span style="font-weight:700;color:#B45309;">35명 ★</span></div>
-                <div style="height:9px;background:#FDE68A;border-radius:99px;"><div style="height:100%;width:100%;background:linear-gradient(90deg,#B45309,#D97706);border-radius:99px;"></div></div>
-              </div>
-              <div style="margin-bottom:10px;">
-                <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px;"><span style="color:var(--text);">특성화고</span><span style="font-weight:700;color:#D97706;">20명</span></div>
-                <div style="height:9px;background:#FDE68A;border-radius:99px;"><div style="height:100%;width:57%;background:linear-gradient(90deg,#D97706,#F59E0B);border-radius:99px;"></div></div>
+              <!-- 2×2 원형 진행 카드 -->
+              <div style="font-size:10px;font-weight:700;color:var(--navy);margin-bottom:6px;">채용 루트별 목표 (총 107명)</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:8px;">
+                <!-- P-TECH 20명 18.7% -->
+                <div style="background:#FEF9C3;border-radius:10px;padding:8px 6px;text-align:center;">
+                  <svg width="52" height="52" viewBox="0 0 44 44" style="display:block;margin:0 auto 4px;">
+                    <circle cx="22" cy="22" r="18" fill="none" stroke="#FDE68A" stroke-width="4.5"/>
+                    <circle cx="22" cy="22" r="18" fill="none" stroke="#D97706" stroke-width="4.5" stroke-dasharray="21.1 92" stroke-dashoffset="28.3" stroke-linecap="round"/>
+                    <text x="22" y="22" text-anchor="middle" dominant-baseline="middle" fill="#92400E" font-size="7.5" font-weight="800">20명</text>
+                  </svg>
+                  <div style="font-size:9.5px;font-weight:700;color:#92400E;">P-TECH</div>
+                  <div style="font-size:8px;color:var(--muted);">18.7%</div>
+                </div>
+                <!-- 대학연계 32명 29.9% -->
+                <div style="background:#FEF9C3;border-radius:10px;padding:8px 6px;text-align:center;">
+                  <svg width="52" height="52" viewBox="0 0 44 44" style="display:block;margin:0 auto 4px;">
+                    <circle cx="22" cy="22" r="18" fill="none" stroke="#FDE68A" stroke-width="4.5"/>
+                    <circle cx="22" cy="22" r="18" fill="none" stroke="#B45309" stroke-width="4.5" stroke-dasharray="33.8 79.3" stroke-dashoffset="28.3" stroke-linecap="round"/>
+                    <text x="22" y="22" text-anchor="middle" dominant-baseline="middle" fill="#92400E" font-size="7.5" font-weight="800">32명</text>
+                  </svg>
+                  <div style="font-size:9.5px;font-weight:700;color:#92400E;">대학 연계</div>
+                  <div style="font-size:8px;color:var(--muted);">29.9%</div>
+                </div>
+                <!-- 중장년 35명 32.7% -->
+                <div style="background:#FEF3C7;border-radius:10px;padding:8px 6px;text-align:center;border:1.5px solid #FDE68A;">
+                  <svg width="52" height="52" viewBox="0 0 44 44" style="display:block;margin:0 auto 4px;">
+                    <circle cx="22" cy="22" r="18" fill="none" stroke="#FDE68A" stroke-width="4.5"/>
+                    <circle cx="22" cy="22" r="18" fill="none" stroke="#92400E" stroke-width="4.5" stroke-dasharray="37 76.1" stroke-dashoffset="28.3" stroke-linecap="round"/>
+                    <text x="22" y="21" text-anchor="middle" dominant-baseline="middle" fill="#92400E" font-size="7.5" font-weight="800">35명</text>
+                    <text x="22" y="28" text-anchor="middle" dominant-baseline="middle" fill="#D97706" font-size="5.5" font-weight="700">★최다</text>
+                  </svg>
+                  <div style="font-size:9.5px;font-weight:700;color:#92400E;">중장년</div>
+                  <div style="font-size:8px;color:var(--muted);">32.7%</div>
+                </div>
+                <!-- 특성화고 20명 18.7% -->
+                <div style="background:#FEF9C3;border-radius:10px;padding:8px 6px;text-align:center;">
+                  <svg width="52" height="52" viewBox="0 0 44 44" style="display:block;margin:0 auto 4px;">
+                    <circle cx="22" cy="22" r="18" fill="none" stroke="#FDE68A" stroke-width="4.5"/>
+                    <circle cx="22" cy="22" r="18" fill="none" stroke="#D97706" stroke-width="4.5" stroke-dasharray="21.1 92" stroke-dashoffset="28.3" stroke-linecap="round"/>
+                    <text x="22" y="22" text-anchor="middle" dominant-baseline="middle" fill="#92400E" font-size="7.5" font-weight="800">20명</text>
+                  </svg>
+                  <div style="font-size:9.5px;font-weight:700;color:#92400E;">특성화고</div>
+                  <div style="font-size:8px;color:var(--muted);">18.7%</div>
+                </div>
               </div>
               <!-- 운영 방안 -->
               <div style="background:#FFF7ED;border-radius:7px;padding:7px 9px;border-left:3px solid #F59E0B;">
@@ -330,35 +358,63 @@
           <div class="flow-stage s3">
             <div class="stage-head"><div class="stage-num">3</div><div><div class="stage-label">매장 운영 교육 플랜</div><div class="stage-sub">3개월 과정 · 수료 후 BOH 현장 투입</div></div></div>
             <div class="stage-body" style="padding:10px 12px;">
-              <!-- 3개월 진행 바 -->
-              <div style="display:flex;height:22px;border-radius:8px;overflow:hidden;font-size:9px;font-weight:700;margin-bottom:12px;">
-                <div style="flex:1;background:linear-gradient(90deg,#1A4FAB,#2563EB);display:flex;align-items:center;justify-content:center;color:#fff;">1개월</div>
-                <div style="width:2px;background:#fff;"></div>
-                <div style="flex:2;background:linear-gradient(90deg,#059669,#10B981);display:flex;align-items:center;justify-content:center;color:#fff;">2개월~</div>
-                <div style="width:2px;background:#fff;"></div>
-                <div style="flex:1;background:linear-gradient(90deg,#D97706,#F59E0B);display:flex;align-items:center;justify-content:center;color:#fff;">수료 후</div>
+              <!-- Gantt 차트 -->
+              <div style="font-size:10px;font-weight:700;color:var(--navy);margin-bottom:5px;">교육 일정 (월별 Gantt)</div>
+              <div style="margin-bottom:10px;">
+                <div style="display:grid;grid-template-columns:56px 1fr;gap:0;margin-bottom:3px;">
+                  <div></div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;text-align:center;">
+                    <div style="font-size:8px;color:var(--muted);font-weight:600;">1개월</div>
+                    <div style="font-size:8px;color:var(--muted);font-weight:600;">2개월</div>
+                    <div style="font-size:8px;color:var(--muted);font-weight:600;">3개월~</div>
+                  </div>
+                </div>
+                <div style="display:grid;grid-template-columns:56px 1fr;gap:4px;align-items:center;margin-bottom:4px;">
+                  <div style="font-size:9px;color:var(--text);font-weight:700;text-align:right;padding-right:6px;">기초교육</div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px;">
+                    <div style="height:14px;background:linear-gradient(90deg,#1A4FAB,#2563EB);border-radius:4px;"></div>
+                    <div style="height:14px;background:#E2E8F0;border-radius:4px;"></div>
+                    <div style="height:14px;background:#E2E8F0;border-radius:4px;"></div>
+                  </div>
+                </div>
+                <div style="display:grid;grid-template-columns:56px 1fr;gap:4px;align-items:center;margin-bottom:4px;">
+                  <div style="font-size:9px;color:var(--text);font-weight:700;text-align:right;padding-right:6px;">실무교육</div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px;">
+                    <div style="height:14px;background:#E2E8F0;border-radius:4px;"></div>
+                    <div style="height:14px;background:linear-gradient(90deg,#059669,#10B981);border-radius:4px;"></div>
+                    <div style="height:14px;background:linear-gradient(90deg,#059669,#10B981);border-radius:4px;"></div>
+                  </div>
+                </div>
+                <div style="display:grid;grid-template-columns:56px 1fr;gap:4px;align-items:center;">
+                  <div style="font-size:9px;color:var(--text);font-weight:700;text-align:right;padding-right:6px;">매장배치</div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px;">
+                    <div style="height:14px;background:#E2E8F0;border-radius:4px;"></div>
+                    <div style="height:14px;background:#E2E8F0;border-radius:4px;"></div>
+                    <div style="height:14px;background:linear-gradient(90deg,#D97706,#F59E0B);border-radius:4px;"></div>
+                  </div>
+                </div>
               </div>
-              <!-- 타임라인 3단계 -->
-              <div style="display:flex;flex-direction:column;gap:7px;">
-                <div style="display:flex;gap:8px;align-items:flex-start;">
-                  <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#1A4FAB,#2563EB);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800;flex-shrink:0;">1</div>
-                  <div style="background:#EEF3FB;border-radius:8px;padding:7px 9px;flex:1;border-left:3px solid #1A4FAB;">
-                    <div style="font-size:10.5px;font-weight:700;color:#1A4FAB;margin-bottom:2px;">기초교육 (1개월)</div>
-                    <div style="font-size:9px;color:var(--muted);line-height:1.5;">조리 기본기 · 위생 · 안전 기준 이수<br>브랜드별 매뉴얼 교육 진행</div>
+              <!-- 단계 카드 -->
+              <div style="display:flex;flex-direction:column;gap:6px;">
+                <div style="display:flex;gap:7px;align-items:center;">
+                  <div style="width:24px;height:24px;border-radius:50%;background:#1A4FAB;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800;flex-shrink:0;">1</div>
+                  <div style="background:#EEF3FB;border-radius:7px;padding:6px 8px;flex:1;border-left:3px solid #1A4FAB;">
+                    <div style="font-size:10px;font-weight:700;color:#1A4FAB;">기초교육 (1개월)</div>
+                    <div style="font-size:9px;color:var(--muted);">조리 기본기 · 위생 · 브랜드 매뉴얼</div>
                   </div>
                 </div>
-                <div style="display:flex;gap:8px;align-items:flex-start;">
-                  <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#059669,#10B981);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800;flex-shrink:0;">2</div>
-                  <div style="background:#ECFDF5;border-radius:8px;padding:7px 9px;flex:1;border-left:3px solid #059669;">
-                    <div style="font-size:10.5px;font-weight:700;color:#059669;margin-bottom:2px;">실무형 교육 (2개월~)</div>
-                    <div style="font-size:9px;color:var(--muted);line-height:1.5;">배달형 매장 실제 운영<br>영업하며 조리·포장·운영 실습 병행</div>
+                <div style="display:flex;gap:7px;align-items:center;">
+                  <div style="width:24px;height:24px;border-radius:50%;background:#059669;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800;flex-shrink:0;">2</div>
+                  <div style="background:#ECFDF5;border-radius:7px;padding:6px 8px;flex:1;border-left:3px solid #059669;">
+                    <div style="font-size:10px;font-weight:700;color:#059669;">실무형 교육 (2개월~)</div>
+                    <div style="font-size:9px;color:var(--muted);">배달형 매장 실제 운영 · 영업 병행</div>
                   </div>
                 </div>
-                <div style="display:flex;gap:8px;align-items:flex-start;">
-                  <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#D97706,#F59E0B);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:800;flex-shrink:0;">✓</div>
-                  <div style="background:#FFFBEB;border-radius:8px;padding:7px 9px;flex:1;border-left:3px solid #F59E0B;">
-                    <div style="font-size:10.5px;font-weight:700;color:#D97706;margin-bottom:2px;">매장 배치 (수료 후)</div>
-                    <div style="font-size:9px;color:var(--muted);line-height:1.5;">수요 매장 순차 배치<br>BOH 일용직 대체 인력으로 즉시 투입</div>
+                <div style="display:flex;gap:7px;align-items:center;">
+                  <div style="width:24px;height:24px;border-radius:50%;background:#D97706;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:800;flex-shrink:0;">✓</div>
+                  <div style="background:#FFFBEB;border-radius:7px;padding:6px 8px;flex:1;border-left:3px solid #D97706;">
+                    <div style="font-size:10px;font-weight:700;color:#D97706;">매장 배치 (수료 후)</div>
+                    <div style="font-size:9px;color:var(--muted);">수요 매장 배치 · BOH 일용직 대체</div>
                   </div>
                 </div>
               </div>
@@ -596,8 +652,128 @@
     <!-- ===== 뷰6: 사후 관리 방안 ===== -->
     <section id="v6" class="view">
       <div class="grid">
+
+        <!-- A. 타브랜드·업계 이탈율 벤치마크 -->
+        <div class="sec-card c-accent wide">
+          <div class="sec-card-head"><span>📉 타브랜드·업계 이탈율 벤치마크 — 사후관리의 효과</span></div>
+          <div class="sec-card-body">
+            <div class="hbar-row"><div class="hbar-label">🇺🇸 미국 외식업 전체 (연간 이직)</div><div class="hbar-track"><div class="hbar-fill" style="width:74%;background:linear-gradient(90deg,#B91C1C,#EF4444)">74%</div></div></div>
+            <div class="hbar-row"><div class="hbar-label">🇰🇷 학교급식 조리실무사 (자발 퇴사·2024)</div><div class="hbar-track"><div class="hbar-fill" style="width:60%;background:linear-gradient(90deg,#B91C1C,#EF4444)">60%</div></div></div>
+            <div class="hbar-row"><div class="hbar-label">🇺🇸 QSR 신입 90일 내 이탈 <span style="color:var(--muted)">(참고)</span></div><div class="hbar-track"><div class="hbar-fill" style="width:54%;background:linear-gradient(90deg,#F97316,#FDBA74)">54%</div></div></div>
+            <div class="hbar-row"><div class="hbar-label">🇺🇸 조리직 라인쿡 (연간)</div><div class="hbar-track"><div class="hbar-fill" style="width:43%;background:linear-gradient(90deg,#F97316,#FDBA74)">43%</div></div></div>
+            <div class="hbar-row"><div class="hbar-label">🇰🇷 전산업 신입 1년내 조기퇴사</div><div class="hbar-track"><div class="hbar-fill" style="width:29%;background:linear-gradient(90deg,#94A3B8,#CBD5E1)">29%</div></div></div>
+            <div class="hbar-row"><div class="hbar-label">⭐ NRAEF 어프렌티스십 <b>(멘토링·사후관리)</b></div><div class="hbar-track"><div class="hbar-fill" style="width:20%;background:linear-gradient(90deg,#047857,#10B981)">20%</div></div></div>
+            <div class="alert alert-green"><div>💡</div><div><b>사후관리 효과:</b> 멘토링 적용 시 이직율 <b>19%→9%(절반↓)</b>(MentorcliQ) · 공식 온보딩 시 신입 잔류 <b>50%↑</b>(Aberdeen) · 어프렌티스십+멘토 운영 시 잔류 <b>80%</b>(NRAEF)</div></div>
+            <div class="note">※ 국내 외식 대기업 아카데미 수료생 이탈율은 비공개 → 해외·공공·업계 지표로 벤치마크. 출처 · <a href="https://www.joinhomebase.com/blog/restaurant-employee-turnover" target="_blank" rel="noopener">Homebase</a> · <a href="https://chooserestaurants.org/news-releases/apprenticeship-creates-pathways-to-advancement-for-restaurant-workers/" target="_blank" rel="noopener">NRAEF</a> · <a href="https://www.saramin.co.kr/zf_user/help/live/view?idx=108787" target="_blank" rel="noopener">사람인</a> · <a href="https://www.fsnews.co.kr/news/articleView.html?idxno=55748" target="_blank" rel="noopener">대한급식신문</a> · <a href="https://www.mentorcliq.com/blog/mentoring-increases-employee-retention" target="_blank" rel="noopener">MentorcliQ</a></div>
+          </div>
+        </div>
+
+        <!-- B. 90일 사후관리 목표 KPI (PPT) -->
         <div class="sec-card c-green wide">
-          <div class="sec-card-head"><span>🌱 배치 후 사후 관리 활동</span></div>
+          <div class="sec-card-head"><span>🎯 90일 사후관리 목표 (KPI)</span><span class="meta">핵심: 4주 본사교육 후 '현장 전환 충격'을 90일 관리체계로 흡수</span></div>
+          <div class="sec-card-body">
+            <div class="ms-row">
+              <div class="ms-item"><div class="ms-num" style="color:#059669">+15%p</div><div class="ms-lbl">90일 정착률</div></div>
+              <div class="ms-item"><div class="ms-num" style="color:#EF4444">-30%</div><div class="ms-lbl">30일 내 조기이탈</div></div>
+              <div class="ms-item"><div class="ms-num" style="color:#1A4FAB">4.2/5</div><div class="ms-lbl">현장 만족도</div></div>
+              <div class="ms-item"><div class="ms-num" style="color:#D97706">90%</div><div class="ms-lbl">점장 체크리스트 실행률</div></div>
+            </div>
+            <div class="note">출처: 내부 「아카데미생 사후관리 방안」 (임원보고용)</div>
+          </div>
+        </div>
+
+        <!-- C. 이탈 원인 5대 카테고리 (PPT) -->
+        <div class="sec-card c-accent wide">
+          <div class="sec-card-head"><span>🔍 이탈 원인 5대 카테고리 → 현장 징후 → 관리 포인트</span></div>
+          <div class="sec-card-body">
+            <div class="cause-grid">
+              <div class="cause-cell">
+                <div class="cc-h">📋 인사·노무</div>
+                <div class="cc-t">근로계약·임금·근로시간/휴게·안전·괴롭힘 이슈</div>
+                <div class="cc-l sign">현장 징후</div><div class="cc-t">질문 회피, 불만 누적, 근무표 민감</div>
+                <div class="cc-l act">관리 포인트</div><div class="cc-t">배치 전 조건 설명서 + 첫 주 노무 FAQ + 점장 체크리스트</div>
+              </div>
+              <div class="cause-cell">
+                <div class="cc-h">🍳 업무 적응</div>
+                <div class="cc-t">본사교육과 매장 현실 간 난이도 차이</div>
+                <div class="cc-l sign">현장 징후</div><div class="cc-t">실수 증가, 피드백 회피, 표정 저하</div>
+                <div class="cc-l act">관리 포인트</div><div class="cc-t">7일 Shadowing, 30일 난이도 단계화, 실수 허용 메시지</div>
+              </div>
+              <div class="cause-cell">
+                <div class="cc-h">🤝 관계·문화</div>
+                <div class="cc-t">점장·선배 소통 방식 차이, 소속감 부족</div>
+                <div class="cc-l sign">현장 징후</div><div class="cc-t">혼자 식사, 질문 감소, 팀 대화 이탈</div>
+                <div class="cc-l act">관리 포인트</div><div class="cc-t">버디 지정, 주 1회 10분 면담, 칭찬·환영 루틴</div>
+              </div>
+              <div class="cause-cell">
+                <div class="cc-h">📈 보상·성장</div>
+                <div class="cc-t">미래 경로·보상 체감 부족</div>
+                <div class="cc-l sign">현장 징후</div><div class="cc-t">"계속 해야 하나" 발언, 타사 비교</div>
+                <div class="cc-l act">관리 포인트</div><div class="cc-t">90일 성장 로드맵, 미션형 소액 리워드, 우수자 공개 인정</div>
+              </div>
+              <div class="cause-cell">
+                <div class="cc-h">💜 생활·심리</div>
+                <div class="cc-t">스케줄·통근·체력 부담, 고객응대 스트레스</div>
+                <div class="cc-l sign">현장 징후</div><div class="cc-t">지각·결근 전조, 감정 소진</div>
+                <div class="cc-l act">관리 포인트</div><div class="cc-t">초기 스케줄 안정화, 고충 핫라인, 조기 위험신호 알림</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- D. 90일 관리 캘린더 (PPT) -->
+        <div class="sec-card c-green wide">
+          <div class="sec-card-head"><span>📅 90일 관리 캘린더</span></div>
+          <div class="sec-card-body">
+            <div class="timeline">
+              <div class="tl-item"><div class="tl-left"><div class="tl-dot" style="background:#0891B2"></div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-title">D-3 ~ D+1 · 불안 제거 <span style="color:var(--muted);font-weight:500;font-size:10px">담당: HR+점장</span></div><div class="tl-desc">배치 안내콜, 근무조건·FAQ 전달, 환영 메시지</div></div></div>
+              <div class="tl-item"><div class="tl-left"><div class="tl-dot" style="background:#2563EB"></div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-title">D+7 · 적응 확인 <span style="color:var(--muted);font-weight:500;font-size:10px">담당: 점장</span></div><div class="tl-desc">버디 동행, 10분 면담, 첫 주 고충 즉시 조치</div></div></div>
+              <div class="tl-item"><div class="tl-left"><div class="tl-dot" style="background:#7C3AED"></div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-title">D+30 · 초기 정착 <span style="color:var(--muted);font-weight:500;font-size:10px">담당: SV+점장</span></div><div class="tl-desc">업무 체크, 성장 피드백, 1차 만족도 조사</div></div></div>
+              <div class="tl-item"><div class="tl-left"><div class="tl-dot" style="background:#059669"></div></div><div class="tl-content"><div class="tl-title">D+60 ~ 90 · 잔류 강화 <span style="color:var(--muted);font-weight:500;font-size:10px">담당: HR+SV</span></div><div class="tl-desc">미션 달성 인정, 커리어 면담, 우수자 공유</div></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- E. 1인당 5만원 예산 (PPT) -->
+        <div class="sec-card c-gold">
+          <div class="sec-card-head"><span>💰 1인당 예산 설계 (상한 5만원)</span></div>
+          <div class="sec-card-body">
+            <div class="stack">
+              <div style="width:20%;background:#3B82F6">D+1<br>웰컴 1만</div>
+              <div style="width:20%;background:#0891B2">D+7<br>커피챗 1만</div>
+              <div style="width:30%;background:#D97706">D+30<br>미션 1.5만</div>
+              <div style="width:20%;background:#7C3AED">D+60<br>미션 1만</div>
+              <div style="width:10%;background:#059669">D+90<br>0.5만</div>
+            </div>
+            <table>
+              <tbody>
+                <tr><td class="l">D+1 웰컴 쿠폰·간식</td><td class="num-cell">10,000</td></tr>
+                <tr><td class="l">D+7 버디 커피챗</td><td class="num-cell">10,000</td></tr>
+                <tr><td class="l">D+30 정착 미션 리워드</td><td class="num-cell">15,000</td></tr>
+                <tr><td class="l">D+60 학습·업무 미션 리워드</td><td class="num-cell">10,000</td></tr>
+                <tr><td class="l">D+90 수료·인정 소품</td><td class="num-cell">5,000</td></tr>
+                <tr class="total-row"><td class="l">1인당 상한</td><td class="num-cell" style="color:#D97706">50,000</td></tr>
+              </tbody>
+            </table>
+            <div class="note">소액 예산은 "경험·인정·관계"에 집중, 반복 관리는 무예산 루틴화.</div>
+          </div>
+        </div>
+
+        <!-- F. 무·저예산 인센티브 (PPT) -->
+        <div class="sec-card c-gold">
+          <div class="sec-card-head"><span>🎁 무·저예산 인센티브 아이디어</span></div>
+          <div class="sec-card-body">
+            <div class="row-item"><div class="ri-dot" style="background:#D97706"></div><span class="ri-label"><b>"첫 30일 생존 미션" 스탬프</b> — 단계별 달성 시각화</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#D97706"></div><span class="ri-label"><b>점장 공개 칭찬 카드</b> / 우수 사례 사내 공유</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#D97706"></div><span class="ri-label"><b>선배 버디 포인트</b> — 이탈 없이 90일 정착 시 사수에게 소액 포상</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#D97706"></div><span class="ri-label"><b>위험신호 알림</b> — 결근·불만·고충 접수 시 HR 24시간 내 개입</span></div>
+            <div class="alert alert-blue" style="margin-top:8px;"><div>📌</div><div><b>승인 요청:</b> ① 90일 표준안 시행 ② 1인당 5만원 예산 상한 ③ HR·SV·점장 역할분담 + 월간 리포트 운영</div></div>
+          </div>
+        </div>
+
+        <!-- G. 상시 운영 활동 (기존 유지) -->
+        <div class="sec-card c-green wide">
+          <div class="sec-card-head"><span>🌱 상시 사후 관리 활동 (운영)</span></div>
           <div class="sec-card-body">
             <div class="aftercare-row">
               <div class="ac-item"><div class="ac-ico">📞</div><div class="ac-lbl">D+7 체크콜</div><div class="ac-desc">배치 1주 후<br>적응 확인 전화</div></div>
@@ -610,9 +786,24 @@
             <div class="row-item"><div class="ri-dot" style="background:#059669"></div><span class="ri-label"><b>이탈 조기 감지:</b> 월 출근율 85% 미만 알림 → HR 즉각 개입 프로세스</span></div>
             <div class="row-item"><div class="ri-dot" style="background:#059669"></div><span class="ri-label"><b>커리어 패스 제시:</b> 6개월 근속 → 부반장, 12개월 → 반장 승격 로드맵 공유</span></div>
             <div class="row-item"><div class="ri-dot" style="background:#059669"></div><span class="ri-label"><b>피드백 루프:</b> 매장 만족도 월 보고 → 아카데미 커리큘럼 반영 개선</span></div>
-            <div class="alert alert-green" style="margin-top:8px;"><div>🎯</div><div><b>사후 관리 목표:</b> 배치 후 6개월 재직률 <b>75%↑</b>, 매장장 만족도 <b>4.0/5.0↑</b></div></div>
           </div>
         </div>
+
+        <!-- H. Claude 추천 추가 방안 -->
+        <div class="sec-card c-blue wide">
+          <div class="sec-card-head"><span>🤖 Claude 추천 — 추가 사후관리 방안</span><span class="meta">AI 제안</span></div>
+          <div class="sec-card-body">
+            <div class="row-item"><div class="ri-dot" style="background:#2563EB"></div><span class="ri-label"><b>이탈 예측 스코어링(조기경보):</b> 출근율·지각빈도·면담 신호·만족도를 종합해 <b>위험군 자동 분류</b> → 이 대시보드에 표시, HR 선제 개입 <span style="color:var(--muted)">(생활·심리·인사 카테고리 통합 대응)</span></span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#2563EB"></div><span class="ri-label"><b>동기(同期) 코호트 커뮤니티:</b> 같은 기수 단톡방·월 1회 모임으로 또래 지지·소속감 형성 <span style="color:var(--muted)">(관계·문화 이탈 대응)</span></span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#2563EB"></div><span class="ri-label"><b>90 → 180일 연장 관리:</b> 연구상 <b>6개월이 잔류 분기점</b> → D+180 체크인·재직 보너스 추가(90일에서 종료하지 않음)</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#2563EB"></div><span class="ri-label"><b>구조화 1:1 면담 질문지:</b> 업무·관계·생활·성장 4축 표준 질문 → <b>점장별 면담 편차 제거</b></span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#2563EB"></div><span class="ri-label"><b>퇴사 면담(Exit Interview) 환류 루프:</b> 이탈 사유 데이터화 → 분기별 커리큘럼·배치·처우 개선에 반영</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#2563EB"></div><span class="ri-label"><b>멘탈 케어(EAP) 핫라인:</b> 고객응대 스트레스·감정 소진 대응 외부 상담 연계 <span style="color:var(--muted)">(생활·심리 강화)</span></span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#2563EB"></div><span class="ri-label"><b>버디(사수) 인센티브 KPI화:</b> 담당 신입 90일 잔류 시 <b>사수에게도 포상+고과 가점</b> → 멘토링 동기 내재화</span></div>
+            <div class="alert alert-blue" style="margin-top:8px;"><div>🎯</div><div><b>기대 효과:</b> 업계 이탈율 40~70% 구간을, 멘토링·온보딩·연장관리 결합으로 <b>잔류 80%(이탈 20%) 수준</b>까지 끌어올리는 것이 목표(NRAEF·Aberdeen 근거)</div></div>
+          </div>
+        </div>
+
       </div>
     </section>
 
@@ -944,7 +1135,7 @@
     v3:{t:'기존 아카데미 현황', d:'월별 실적 누계 자동집계 — 목표 대비 진행률·트랙·절감'},
     v4:{t:'아카데미 상세 커리큘럼', d:'3개월 과정 단계별 커리큘럼과 운영 원칙'},
     v5:{t:'채용팀 역할 분담', d:'채용팀 R&R · 매장(영업팀) R&R'},
-    v6:{t:'사후 관리 방안', d:'배치 후 체크인·멘토링·이탈 방지·커리어 패스'},
+    v6:{t:'사후 관리 방안', d:'타브랜드 이탈율 벤치마크 + 90일 정착관리(원인5대·캘린더·5만원 예산) + Claude 추천 추가안'},
     v7:{t:'이슈 및 해결 방안', d:'아카데미 운영 10대 이슈 — 타브랜드·업계 근거 + 삼천리 SL&C 해결 방안 (카테고리 인덱스)'},
     v8:{t:'타브랜드 아카데미', d:'7개사(SPC·CJ·더본·아워홈·본아이에프·이랜드·롯데GRS) 조리 아카데미 벤치마킹 — 회사별 인덱스'}
   };
