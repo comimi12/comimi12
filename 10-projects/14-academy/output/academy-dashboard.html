@@ -83,6 +83,23 @@
   .note{font-size:10.5px;color:var(--muted);margin-top:8px;line-height:1.5;}
   .sub-h{font-size:11.5px;font-weight:700;color:var(--navy);margin:2px 0 7px;}
 
+  /* ── 3단 파이프라인 플로우 ── */
+  .flow-wrapper{padding:22px 38px 0;}
+  .flow-bar{display:flex;align-items:stretch;gap:0;}
+  .flow-stage{flex:1;background:#fff;border:1.5px solid var(--border);box-shadow:var(--shadow);}
+  .flow-stage:first-child{border-radius:12px 0 0 12px;border-right:none;}
+  .flow-stage:last-child{border-radius:0 12px 12px 0;border-right:1.5px solid var(--border);border-left:none;}
+  .flow-stage:nth-child(3){border-radius:0;border-right:none;border-left:none;}
+  .flow-arrow{width:38px;background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;color:var(--accent);font-weight:900;}
+  .stage-head{padding:11px 16px 9px;color:#fff;display:flex;align-items:center;gap:8px;}
+  .stage-num{width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;}
+  .stage-label{font-size:15px;font-weight:700;}
+  .stage-sub{font-size:10px;opacity:.85;}
+  .s1 .stage-head{background:linear-gradient(135deg,#1A4FAB,#2563EB);border-radius:11px 0 0 0;}
+  .s2 .stage-head{background:linear-gradient(135deg,#D97706,#F59E0B);}
+  .s3 .stage-head{background:linear-gradient(135deg,#059669,#10B981);border-radius:0 11px 0 0;}
+  .stage-body{padding:12px 15px 14px;}
+
   /* ── 인포그래픽 요소 ── */
   .row-item{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid #F1F5F9;}
   .row-item:last-child{border-bottom:none;}
@@ -180,6 +197,36 @@
 
     <!-- ===== 뷰1: 신규 아카데미 채용 계획 ===== -->
     <section id="v1" class="view active">
+      <div class="flow-wrapper">
+        <div class="flow-bar">
+          <div class="flow-stage s1">
+            <div class="stage-head"><div class="stage-num">1</div><div><div class="stage-label">채용 (Recruitment)</div><div class="stage-sub">연간 200명 · 3-트랙 파이프라인</div></div></div>
+            <div class="stage-body">
+              <div class="row-item"><div class="ri-dot" style="background:#3B82F6"></div><span class="ri-label">고급 기능직 (숙련 조리사)</span><span class="ri-val" style="color:#1D4ED8">30% / 60명</span></div>
+              <div class="row-item"><div class="ri-dot" style="background:#8B5CF6"></div><span class="ri-label">중급 기능직 (경력 2~5년)</span><span class="ri-val" style="color:#6D28D9">60% / 120명</span></div>
+              <div class="row-item"><div class="ri-dot" style="background:#10B981"></div><span class="ri-label">기초 기능직 · 신입</span><span class="ri-val" style="color:#065F46">10% / 20명</span></div>
+            </div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-stage s2">
+            <div class="stage-head"><div class="stage-num">2</div><div><div class="stage-label">아카데미 (Academy)</div><div class="stage-sub">방배동 도시락·배달매장 · 실무 훈련</div></div></div>
+            <div class="stage-body">
+              <div class="row-item"><div class="ri-dot" style="background:#D97706"></div><span class="ri-label">월 정원</span><span class="ri-val" style="color:#92400E">10명 / 3개월 과정</span></div>
+              <div class="row-item"><div class="ri-dot" style="background:#D97706"></div><span class="ri-label">교육 형태</span><span class="ri-val" style="color:#92400E">실제 매장 영업 병행</span></div>
+              <div class="row-item"><div class="ri-dot" style="background:#D97706"></div><span class="ri-label">커리큘럼</span><span class="ri-val" style="color:#92400E">이론 20% + 실무 80%</span></div>
+            </div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-stage s3">
+            <div class="stage-head"><div class="stage-num">3</div><div><div class="stage-label">매장 배치 (Deployment)</div><div class="stage-sub">수료 후 현장 배치 · 3개월 인건비 안분</div></div></div>
+            <div class="stage-body">
+              <div class="row-item"><div class="ri-dot" style="background:#059669"></div><span class="ri-label">배치 방식</span><span class="ri-val" style="color:#065F46">브랜드별 현장 OJT</span></div>
+              <div class="row-item"><div class="ri-dot" style="background:#059669"></div><span class="ri-label">인건비 지원</span><span class="ri-val" style="color:#065F46">3개월 전사 안분</span></div>
+              <div class="row-item"><div class="ri-dot" style="background:#059669"></div><span class="ri-label">사후 관리</span><span class="ri-val" style="color:#065F46">월1회 체크인·멘토링</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
       <div class="grid">
         <div class="sec-card c-blue wide">
           <div class="sec-card-head"><span>👥 채용 수요 현황 및 시장 공급 분석</span></div>
