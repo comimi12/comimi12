@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>조리 아카데미 누계 대시보드</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;900&display=swap');
+  :root{
+    --navy:#0F2147;--blue:#1A4FAB;--blue2:#2563EB;--accent:#E84B1A;--gold:#D97706;
+    --green:#059669;--teal:#0891B2;--purple:#7C3AED;--bg:#F0F4FA;--card:#FFFFFF;
+    --border:#CBD5E1;--text:#1E293B;--muted:#64748B;--light:#E8EEF8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);font-size:13px;line-height:1.55;}
+  .doc-header{background:linear-gradient(135deg,#0A1A3A 0%,#1A4FAB 60%,#2563EB 100%);color:#fff;padding:28px 40px 22px;position:relative;overflow:hidden;}
+  .doc-header::before{content:'';position:absolute;right:-60px;top:-60px;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,0.05);}
+  .header-eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.55);margin-bottom:6px;}
+  .header-title{font-size:24px;font-weight:900;letter-spacing:-0.5px;margin-bottom:4px;}
+  .header-sub{font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:18px;}
+  .header-kpis{display:flex;gap:14px;flex-wrap:wrap;}
+  .kpi-chip{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:10px 18px;text-align:center;min-width:120px;}
+  .kpi-chip .num{font-size:22px;font-weight:800;color:#fff;}
+  .kpi-chip .sub{font-size:11px;color:rgba(255,255,255,0.8);font-weight:600;}
+  .kpi-chip .lbl{font-size:10px;color:rgba(255,255,255,0.65);margin-top:2px;}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:20px 40px;}
+  .grid .wide{grid-column:1 / -1;}
+  .sec-card{background:var(--card);border-radius:12px;border:1.5px solid var(--border);overflow:hidden;display:flex;flex-direction:column;}
+  .sec-card-head{padding:11px 16px 9px;font-size:13px;font-weight:700;color:#fff;display:flex;align-items:center;gap:6px;justify-content:space-between;}
+  .sec-card-head .meta{font-size:11px;font-weight:500;opacity:.85;}
+  .c-blue .sec-card-head{background:linear-gradient(90deg,#1A4FAB,#3B82F6);}
+  .c-gold .sec-card-head{background:linear-gradient(90deg,#B45309,#D97706);}
+  .c-green .sec-card-head{background:linear-gradient(90deg,#047857,#059669);}
+  .c-teal .sec-card-head{background:linear-gradient(90deg,#0369A1,#0891B2);}
+  .sec-card-body{padding:14px 16px;flex:1;}
+  .pipe-row{margin-bottom:13px;}
+  .pipe-head{display:flex;justify-content:space-between;margin-bottom:4px;font-size:12px;}
+  .pipe-head .v{font-weight:700;}
+  .pipe-track{height:10px;background:#E2E8F0;border-radius:99px;overflow:hidden;position:relative;}
+  .pipe-fill{height:100%;border-radius:99px;transition:width .4s;}
+  .pipe-target{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--navy);}
+  table{width:100%;border-collapse:collapse;font-size:11.5px;}
+  th{background:#F8FAFC;padding:7px 8px;text-align:right;font-weight:700;border-bottom:2px solid var(--border);color:var(--navy);font-size:11px;}
+  th.l{text-align:left;}
+  td{padding:6px 8px;border-bottom:1px solid #F1F5F9;text-align:right;white-space:nowrap;}
+  td.l{text-align:left;font-weight:600;}
+  tr:last-child td{border-bottom:none;}
+  .cum{color:var(--blue);font-weight:700;}
+  .total-row td{background:#EFF4FB;font-weight:800;border-top:2px solid var(--border);}
+  .bars{display:flex;align-items:flex-end;gap:8px;height:140px;padding-top:10px;}
+  .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;height:100%;}
+  .bar{width:70%;max-width:38px;background:linear-gradient(180deg,#3B82F6,#1A4FAB);border-radius:5px 5px 0 0;min-height:2px;}
+  .bar-val{font-size:10.5px;font-weight:700;color:var(--navy);}
+  .bar-lbl{font-size:10px;color:var(--muted);}
+  .ms-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:6px;}
+  .ms-item{flex:1;min-width:90px;background:var(--light);border-radius:8px;padding:10px;text-align:center;}
+  .ms-item .ms-num{font-size:19px;font-weight:800;color:var(--navy);}
+  .ms-item .ms-lbl{font-size:10px;color:var(--muted);margin-top:2px;}
+  .alert{border-radius:8px;padding:10px 12px;margin-top:10px;font-size:12px;display:flex;gap:8px;align-items:flex-start;background:#F0FDF4;border-left:3px solid #22C55E;}
+  .doc-foot{background:var(--navy);color:rgba(255,255,255,0.55);font-size:10.5px;padding:11px 40px;display:flex;justify-content:space-between;}
+  .doc-foot strong{color:rgba(255,255,255,0.85);}
+  .note{font-size:10.5px;color:var(--muted);margin-top:8px;line-height:1.5;}
+</style>
+</head>
+<body>
+
+<div class="doc-header">
+  <div class="header-eyebrow" id="h-eyebrow"></div>
+  <div class="header-title" id="h-title"></div>
+  <div class="header-sub" id="h-sub"></div>
+  <div class="header-kpis" id="h-kpis"></div>
+</div>
+
+<div class="grid">
+
+  <div class="sec-card c-blue wide">
+    <div class="sec-card-head"><span>🎯 연간 목표 대비 누계 진행률</span><span class="meta" id="prog-asof"></span></div>
+    <div class="sec-card-body" id="progress"></div>
+  </div>
+
+  <div class="sec-card c-teal">
+    <div class="sec-card-head"><span>📊 채용 트랙별 누계</span></div>
+    <div class="sec-card-body" id="track"></div>
+  </div>
+
+  <div class="sec-card c-green">
+    <div class="sec-card-head"><span>💰 누계 절감액 추이</span></div>
+    <div class="sec-card-body" id="savings"></div>
+  </div>
+
+  <div class="sec-card c-blue wide">
+    <div class="sec-card-head"><span>📈 월별 실적 & 누계</span></div>
+    <div class="sec-card-body" style="padding:0 0 4px;">
+      <div id="trend-bars" style="padding:14px 16px 0;"></div>
+      <div style="padding:8px 16px 14px;"><div id="trend-table"></div></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="doc-foot">
+  <div><strong id="f-org"></strong></div>
+  <div id="f-doc"></div>
+</div>
+
+<script src="../data/data.js"></script>
+<script>
+(function(){
+  var D = window.ACADEMY_DATA;
+  if(!D){ document.body.innerHTML = '<p style="padding:40px">data.js 를 찾을 수 없습니다. 같은 폴더 구조(../data/data.js)를 확인하세요.</p>'; return; }
+
+  var won = function(manwon){ // 만원 → 보기 좋은 표기
+    if(manwon >= 10000){ var eok=(manwon/10000); return (Number.isInteger(eok)?eok:eok.toFixed(1))+'억'; }
+    return manwon.toLocaleString()+'만';
+  };
+  var sum = function(arr,fn){ return arr.reduce(function(a,b){return a+fn(b);},0); };
+
+  // ── 누계 계산 ──
+  var m = D.monthly;
+  var last = m[m.length-1];
+  var cumChae = sum(m, function(x){return x.채용.고급+x.채용.중급+x.채용.기초;});
+  var cumGo = sum(m, function(x){return x.채용.고급;});
+  var cumJung = sum(m, function(x){return x.채용.중급;});
+  var cumGi = sum(m, function(x){return x.채용.기초;});
+  var cumSuryo = sum(m, function(x){return x.수료;});
+  var cumBaechi = sum(m, function(x){return x.배치;});
+  var cumJeolgam = sum(m, function(x){return x.절감액;});
+  var jaejik = last.재직중;
+  var jaejikRate = cumBaechi>0 ? Math.round(jaejik/cumBaechi*100) : 0;
+
+  // ── 헤더 ──
+  document.getElementById('h-eyebrow').textContent = D.meta.org + ' · ' + D.meta.year;
+  document.getElementById('h-title').textContent = D.meta.title;
+  document.getElementById('h-sub').textContent = D.meta.sub + ' · 기준 ' + last.ym;
+  document.getElementById('h-kpis').innerHTML = [
+    chip(cumChae, '/ '+D.targets.채용.total+'명', '누계 채용'),
+    chip(cumSuryo, '/ '+D.targets.수료+'명', '누계 수료'),
+    chip(cumBaechi, '/ '+D.targets.배치+'명', '누계 배치'),
+    chip(jaejik+'명', jaejikRate+'%', '현재 재직 / 재직률'),
+    chip(won(cumJeolgam), '누계', '절감액')
+  ].join('');
+  function chip(num, sub, lbl){
+    return '<div class="kpi-chip"><div class="num">'+num+'</div><div class="sub">'+sub+'</div><div class="lbl">'+lbl+'</div></div>';
+  }
+
+  // ── 진행률 바 ──
+  document.getElementById('prog-asof').textContent = '기준 '+last.ym;
+  function progBar(label, cur, target, c1, c2){
+    var pct = target>0 ? Math.min(100, Math.round(cur/target*100)) : 0;
+    return '<div class="pipe-row">'
+      +'<div class="pipe-head"><span>'+label+'</span><span class="v">'+cur+' / '+target+' <span style="color:var(--muted)">('+pct+'%)</span></span></div>'
+      +'<div class="pipe-track"><div class="pipe-fill" style="width:'+pct+'%;background:linear-gradient(90deg,'+c1+','+c2+')"></div></div>'
+      +'</div>';
+  }
+  document.getElementById('progress').innerHTML =
+      progBar('👥 채용 (연 '+D.targets.채용.total+'명)', cumChae, D.targets.채용.total, '#1A4FAB','#3B82F6')
+    + progBar('🎓 아카데미 수료', cumSuryo, D.targets.수료, '#B45309','#F59E0B')
+    + progBar('🏬 매장 배치', cumBaechi, D.targets.배치, '#047857','#10B981')
+    + progBar('🌱 재직률 (배치 대비 현 재직)', jaejikRate, D.targets.재직률, '#0369A1','#06B6D4');
+
+  // ── 채용 트랙별 누계 ──
+  function trackBar(label, cur, target, c1, c2){
+    var pct = target>0 ? Math.min(100, Math.round(cur/target*100)) : 0;
+    return '<div class="pipe-row">'
+      +'<div class="pipe-head"><span>'+label+'</span><span class="v">'+cur+' / '+target+'명</span></div>'
+      +'<div class="pipe-track"><div class="pipe-fill" style="width:'+pct+'%;background:linear-gradient(90deg,'+c1+','+c2+')"></div></div>'
+      +'</div>';
+  }
+  document.getElementById('track').innerHTML =
+      trackBar('🔵 고급 기능직', cumGo, D.targets.채용.고급, '#1D4ED8','#3B82F6')
+    + trackBar('🟣 중급 기능직', cumJung, D.targets.채용.중급, '#6D28D9','#8B5CF6')
+    + trackBar('🟢 기초·신입', cumGi, D.targets.채용.기초, '#065F46','#10B981')
+    + '<div class="note">누계 채용 '+cumChae+'명 = 고급 '+cumGo+' · 중급 '+cumJung+' · 기초 '+cumGi+'명</div>';
+
+  // ── 절감액 추이 ──
+  var run=0; var savRows = m.map(function(x){ run+=x.절감액; return {ym:x.ym, v:x.절감액, c:run}; });
+  document.getElementById('savings').innerHTML =
+      '<div class="ms-row">'
+      + '<div class="ms-item"><div class="ms-num">'+won(cumJeolgam)+'</div><div class="ms-lbl">누계 절감액</div></div>'
+      + '<div class="ms-item"><div class="ms-num">'+won(D.baseline.일용직연간만원)+'</div><div class="ms-lbl">일용직 연간 기준</div></div>'
+      + '<div class="ms-item"><div class="ms-num">'+won(D.baseline.아카데미초기투자만원+D.baseline.아카데미연간운영만원)+'</div><div class="ms-lbl">아카데미 연 투자(초기+운영)</div></div>'
+      + '</div>'
+      + savBars(savRows)
+      + '<div class="note">절감액은 일용직 대비 월 추정치(데이터 입력값)의 누계입니다.</div>';
+  function savBars(rows){
+    var max = Math.max.apply(null, rows.map(function(r){return r.c;}).concat([1]));
+    return '<div class="bars">'+rows.map(function(r){
+      var h = Math.round(r.c/max*100);
+      return '<div class="bar-col"><div class="bar-val">'+(r.c>0?won(r.c):'-')+'</div>'
+        +'<div class="bar" style="height:'+h+'%;background:linear-gradient(180deg,#10B981,#047857)"></div>'
+        +'<div class="bar-lbl">'+r.ym.slice(5)+'월</div></div>';
+    }).join('')+'</div>';
+  }
+
+  // ── 월별 추이: 누계 채용 막대 + 표 ──
+  var runChae=0; var trend = m.map(function(x){ var mo=x.채용.고급+x.채용.중급+x.채용.기초; runChae+=mo; return {ym:x.ym, mo:mo, cum:runChae}; });
+  var maxC = Math.max.apply(null, trend.map(function(t){return t.cum;}).concat([1]));
+  document.getElementById('trend-bars').innerHTML =
+    '<div style="font-size:11.5px;font-weight:700;color:var(--navy);margin-bottom:4px;">누계 채용 추이 (목표 '+D.targets.채용.total+'명)</div>'
+    + '<div class="bars">'+trend.map(function(t){
+        var h=Math.round(t.cum/Math.max(maxC,D.targets.채용.total)*100);
+        return '<div class="bar-col"><div class="bar-val">'+t.cum+'</div>'
+          +'<div class="bar" style="height:'+h+'%"></div>'
+          +'<div class="bar-lbl">'+t.ym.slice(5)+'월</div></div>';
+      }).join('')+'</div>';
+
+  var runC=0, runS=0, runB=0, runJ=0;
+  var rows = m.map(function(x){
+    var mo=x.채용.고급+x.채용.중급+x.채용.기초; runC+=mo; runS+=x.수료; runB+=x.배치; runJ+=x.절감액;
+    return '<tr><td class="l">'+x.ym+'</td>'
+      +'<td>'+mo+'</td><td>'+x.입교+'</td><td>'+x.수료+'</td><td>'+x.배치+'</td><td>'+x.재직중+'</td><td>'+(x.절감액?won(x.절감액):'-')+'</td>'
+      +'<td class="cum">'+runC+'</td><td class="cum">'+runB+'</td><td class="cum">'+(runJ?won(runJ):'-')+'</td></tr>';
+  }).join('');
+  document.getElementById('trend-table').innerHTML =
+    '<table><thead><tr>'
+    +'<th class="l">월</th><th>채용</th><th>입교</th><th>수료</th><th>배치</th><th>재직</th><th>절감</th>'
+    +'<th>누계채용</th><th>누계배치</th><th>누계절감</th></tr></thead>'
+    +'<tbody>'+rows
+    +'<tr class="total-row"><td class="l">누계</td><td>'+cumChae+'</td><td>'+sum(m,function(x){return x.입교;})+'</td><td>'+cumSuryo+'</td><td>'+cumBaechi+'</td><td>'+jaejik+'</td><td>'+won(cumJeolgam)+'</td><td colspan="3"></td></tr>'
+    +'</tbody></table>';
+
+  // ── 푸터 ──
+  document.getElementById('f-org').textContent = D.meta.org;
+  document.getElementById('f-doc').innerHTML = '문서 '+D.meta.docno+' · 기준 '+last.ym+' · <strong>누계 자동집계</strong>';
+})();
+</script>
+</body>
+</html>
