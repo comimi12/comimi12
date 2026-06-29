@@ -100,6 +100,22 @@
   .s3 .stage-head{background:linear-gradient(135deg,#059669,#10B981);border-radius:0 11px 0 0;}
   .stage-body{padding:12px 15px 14px;}
 
+  /* ── 벤치마킹 회사 인덱스 탭 ── */
+  .bm-wrap{padding:22px 38px 34px;}
+  .subtabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
+  .subtab{padding:8px 15px;border-radius:99px;border:1px solid var(--border);background:#fff;font-family:inherit;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s;}
+  .subtab:hover{border-color:var(--blue);color:var(--blue);}
+  .subtab.active{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 4px 12px rgba(26,79,171,.28);}
+  .bm-card{margin-bottom:16px;}
+  .bm-card .sec-card{box-shadow:var(--shadow);}
+  .bm-row{display:flex;gap:12px;padding:7px 0;border-bottom:1px solid #F1F5F9;font-size:11.5px;align-items:flex-start;}
+  .bm-row:last-of-type{border-bottom:none;}
+  .bm-k{flex-shrink:0;width:84px;font-weight:700;color:var(--navy);}
+  .bm-v{flex:1;color:var(--text);}
+  .bm-src{font-size:10.5px;color:var(--muted);margin-top:10px;}
+  .bm-src a{color:var(--blue);text-decoration:none;}
+  .bm-src a:hover{text-decoration:underline;}
+
   /* ── 인포그래픽 요소 ── */
   .row-item{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid #F1F5F9;}
   .row-item:last-child{border-bottom:none;}
@@ -200,11 +216,45 @@
       <div class="flow-wrapper">
         <div class="flow-bar">
           <div class="flow-stage s1">
-            <div class="stage-head"><div class="stage-num">1</div><div><div class="stage-label">채용 (Recruitment)</div><div class="stage-sub">연간 200명 · 3-트랙 파이프라인</div></div></div>
-            <div class="stage-body">
-              <div class="row-item"><div class="ri-dot" style="background:#3B82F6"></div><span class="ri-label">고급 기능직 (숙련 조리사)</span><span class="ri-val" style="color:#1D4ED8">30% / 60명</span></div>
-              <div class="row-item"><div class="ri-dot" style="background:#8B5CF6"></div><span class="ri-label">중급 기능직 (경력 2~5년)</span><span class="ri-val" style="color:#6D28D9">60% / 120명</span></div>
-              <div class="row-item"><div class="ri-dot" style="background:#10B981"></div><span class="ri-label">기초 기능직 · 신입</span><span class="ri-val" style="color:#065F46">10% / 20명</span></div>
+            <div class="stage-head"><div class="stage-num">1</div><div><div class="stage-label">채용 (Recruitment)</div><div class="stage-sub" id="v1-total-sub">연간 381명 · 일용직 대체 계획</div></div></div>
+            <div class="stage-body" style="padding:10px 12px;">
+              <div style="font-size:11px;font-weight:700;color:var(--navy);margin-bottom:6px;">▶ 일용직 사용 현황</div>
+              <table style="width:100%;border-collapse:collapse;font-size:10.5px;">
+                <thead>
+                  <tr style="background:#0F2147;color:#fff;">
+                    <th style="padding:5px 6px;text-align:left;font-weight:600;white-space:nowrap;">경력 분류</th>
+                    <th style="padding:5px 6px;text-align:center;font-weight:600;">비율(%)</th>
+                    <th style="padding:5px 6px;text-align:center;font-weight:600;">채용 담당</th>
+                    <th style="padding:5px 6px;text-align:right;font-weight:600;white-space:nowrap;">채용 목표(명)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr style="border-bottom:1px solid #E8EDF5;">
+                    <td style="padding:5px 6px;font-weight:600;color:var(--navy);">고급</td>
+                    <td style="padding:5px 6px;text-align:center;color:var(--muted);">67.7%</td>
+                    <td style="padding:5px 6px;text-align:center;color:#1A4FAB;font-weight:600;">채용팀</td>
+                    <td style="padding:5px 6px;text-align:right;font-weight:700;">254명</td>
+                  </tr>
+                  <tr style="border-bottom:1px solid #E8EDF5;background:#F8FAFC;">
+                    <td style="padding:5px 6px;font-weight:600;color:var(--navy);">중급</td>
+                    <td style="padding:5px 6px;text-align:center;color:var(--muted);">19.5%</td>
+                    <td style="padding:5px 6px;text-align:center;font-size:10px;line-height:1.5;"><span style="color:#1A4FAB;font-weight:600;">채용팀(25%)</span><br><span style="color:#059669;font-weight:600;">아카데미(75%)</span></td>
+                    <td style="padding:5px 6px;text-align:right;font-size:10px;line-height:1.5;font-weight:700;">채용 20명<br>아카데미 59명</td>
+                  </tr>
+                  <tr style="border-bottom:1px solid #E8EDF5;">
+                    <td style="padding:5px 6px;font-weight:600;color:var(--navy);">기초</td>
+                    <td style="padding:5px 6px;text-align:center;color:var(--muted);">12.8%</td>
+                    <td style="padding:5px 6px;text-align:center;color:#059669;font-weight:600;">아카데미</td>
+                    <td style="padding:5px 6px;text-align:right;font-weight:700;">48명</td>
+                  </tr>
+                  <tr style="background:#EEF3FB;">
+                    <td style="padding:5px 6px;font-weight:800;color:var(--navy);">합계</td>
+                    <td style="padding:5px 6px;text-align:center;font-weight:700;">100%</td>
+                    <td style="padding:5px 6px;"></td>
+                    <td style="padding:5px 6px;text-align:right;font-weight:800;color:var(--navy);">381명</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
           <div class="flow-arrow">→</div>
@@ -246,38 +296,41 @@
         </div>
 
         <div class="sec-card c-blue">
-          <div class="sec-card-head"><span>🔀 인력 수급 파이프라인 (연 200명)</span></div>
+          <div class="sec-card-head"><span>🔀 인력 수급 파이프라인 (<span id="v1-pipe-total">연 120명</span>)</span></div>
           <div class="sec-card-body">
             <div class="donut-row">
               <div class="donut-wrap">
                 <svg width="92" height="92" viewBox="0 0 36 36">
                   <circle cx="18" cy="18" r="15.9" fill="none" stroke="#E2E8F0" stroke-width="3.8"/>
-                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#2563EB" stroke-width="3.8" stroke-dasharray="70 30" stroke-dashoffset="25"/>
-                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#7C3AED" stroke-width="3.8" stroke-dasharray="20 80" stroke-dashoffset="-45"/>
-                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#059669" stroke-width="3.8" stroke-dasharray="10 90" stroke-dashoffset="-71"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#2563EB" stroke-width="3.8" stroke-dasharray="33 67" stroke-dashoffset="25"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#7C3AED" stroke-width="3.8" stroke-dasharray="33 67" stroke-dashoffset="-8"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#059669" stroke-width="3.8" stroke-dasharray="17 83" stroke-dashoffset="-41"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#D97706" stroke-width="3.8" stroke-dasharray="17 83" stroke-dashoffset="-58"/>
                 </svg>
-                <div class="donut-center"><div class="big">200</div><div class="sm">명/년</div></div>
+                <div class="donut-center"><div class="big" id="v1-donut-num">120</div><div class="sm">명/년</div></div>
               </div>
               <div style="flex:1">
-                <div class="legend-row"><div class="legend-dot" style="background:#2563EB"></div><span class="legend-lbl">직접 채용</span><span class="legend-pct" style="color:#1D4ED8">70% · 140명</span></div>
-                <div class="legend-row"><div class="legend-dot" style="background:#7C3AED"></div><span class="legend-lbl">일·학습병행</span><span class="legend-pct" style="color:#5B21B6">20% · 40명</span></div>
-                <div class="legend-row"><div class="legend-dot" style="background:#059669"></div><span class="legend-lbl">중장년층 채용</span><span class="legend-pct" style="color:#065F46">10% · 20명</span></div>
+                <div class="legend-row"><div class="legend-dot" style="background:#2563EB"></div><span class="legend-lbl">외식전문가 장학생</span><span class="legend-pct" style="color:#1D4ED8">33% · 40명</span></div>
+                <div class="legend-row"><div class="legend-dot" style="background:#7C3AED"></div><span class="legend-lbl">중장년층 모집</span><span class="legend-pct" style="color:#5B21B6">33% · 40명</span></div>
+                <div class="legend-row"><div class="legend-dot" style="background:#059669"></div><span class="legend-lbl">일학습병행</span><span class="legend-pct" style="color:#065F46">17% · 20명</span></div>
+                <div class="legend-row"><div class="legend-dot" style="background:#D97706"></div><span class="legend-lbl">특성화고 현장실습</span><span class="legend-pct" style="color:#92400E">17% · 20명</span></div>
               </div>
             </div>
             <hr class="inner-div">
-            <div class="row-item"><div class="ri-dot" style="background:#2563EB"></div><span class="ri-label"><b>직접 채용 (70%)</b> — 잡코리아·사람인·인크루트 경력직 소싱, 경쟁사 스카우팅, 요리학원 협약 네트워크</span></div>
-            <div class="row-item"><div class="ri-dot" style="background:#7C3AED"></div><span class="ri-label"><b>일·학습병행 (20%)</b> — HRD-Net 연계, 훈련비 정부지원, 아카데미 커리큘럼 인정 단위 설계</span></div>
-            <div class="row-item"><div class="ri-dot" style="background:#059669"></div><span class="ri-label"><b>중장년층 (10%)</b> — 50+ 전직지원 연계, 고용촉진장려금 활용, 파트타임→정규 전환 설계</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#2563EB"></div><span class="ri-label"><b>외식전문가 장학생 (40명)</b> — 수원대·수원과학대·부천대 등 협약대학 추천, 8~9월·11월 각 20명, 1년 근속 약속</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#7C3AED"></div><span class="ri-label"><b>중장년층 모집 (40명)</b> — 서울시 중장년50+ 취업사관학교 연계, 만45세↑ 서울 거주자, 4월·9월 각 20명</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#059669"></div><span class="ri-label"><b>일학습병행 (20명)</b> — 대림대·연성대 등 협약대학 훈련생, 2년 근속 약속 (매주 2회 학교 출석)</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#D97706"></div><span class="ri-label"><b>특성화고 현장실습 (20명)</b> — 서울/경기 특성화고 3학년, 7~8월 20명, 3개월 현장실습 후 취업 연계</span></div>
           </div>
         </div>
 
         <div class="sec-card c-teal">
           <div class="sec-card-head"><span>🎯 채용 3-트랙 구성</span></div>
           <div class="sec-card-body">
-            <div class="row-item"><div class="ri-dot" style="background:#3B82F6"></div><span class="ri-label">고급 기능직 (숙련 조리사)</span><span class="ri-val" style="color:#1D4ED8">30% / 60명</span></div>
-            <div class="row-item"><div class="ri-dot" style="background:#8B5CF6"></div><span class="ri-label">중급 기능직 (경력 2~5년)</span><span class="ri-val" style="color:#6D28D9">60% / 120명</span></div>
-            <div class="row-item"><div class="ri-dot" style="background:#10B981"></div><span class="ri-label">기초 기능직 · 신입</span><span class="ri-val" style="color:#065F46">10% / 20명</span></div>
-            <div class="note">미숙련 신입은 아카데미 입교 → 실무 훈련 후 매장 배치.</div>
+            <div class="row-item"><div class="ri-dot" style="background:#3B82F6"></div><span class="ri-label">고급 기능직 — 외식전문가 장학생</span><span class="ri-val" style="color:#1D4ED8" id="v1-go-val2">33% / 40명</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#8B5CF6"></div><span class="ri-label">중급 기능직 — 중장년층 모집</span><span class="ri-val" style="color:#6D28D9" id="v1-jung-val2">33% / 40명</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#10B981"></div><span class="ri-label">기초 기능직 — 일학습병행·특성화고</span><span class="ri-val" style="color:#065F46" id="v1-gi-val2">33% / 40명</span></div>
+            <div class="note">고급: 협약대학 장학생 / 중급: 서울시50+ 중장년 / 기초: 일학습병행(20)+특성화고(20)</div>
           </div>
         </div>
       </div>
@@ -486,16 +539,130 @@
       </div>
     </section>
 
-    <!-- ===== 뷰8: 타브랜드 아카데미 (벤치마킹) ===== -->
+    <!-- ===== 뷰8: 타브랜드 아카데미 (벤치마킹) — 회사별 인덱스 탭 ===== -->
     <section id="v8" class="view">
-      <div class="grid">
-        <div class="sec-card c-teal wide">
-          <div class="sec-card-head"><span>🏷 타브랜드 조리 아카데미 벤치마킹</span></div>
-          <div class="sec-card-body">
-            <div class="case-box" style="border-left-color:#2563EB;"><div class="case-title" style="color:#1D4ED8;">본아이에프 — '본죽&amp;비빔밥' 아카데미 모델</div><div class="case-text"><b>현장 연착륙(서포터제):</b> 배치 초기 2~4주는 '서포터' 역할로 기존 조리사 옆 보조 → 4주 후 독립 스테이션 담당 전환. 수료생의 피크타임 즉시 투입 부담을 줄임.</div></div>
-            <div class="case-box" style="border-left-color:#7C3AED;"><div class="case-title" style="color:#5B21B6;">CJ푸드빌 — 인턴→정규 전환 프로세스</div><div class="case-text"><b>고용 안정·법적 리스크 제거:</b> 3개월 '인턴십 협약서' 사전 체결, 4대보험 본사 부담, 3개월 후 평가 기반 정규 전환 확정 통보. 법적 분쟁 Zero 운영.</div></div>
-            <div class="case-box" style="border-left-color:#059669;"><div class="case-title" style="color:#065F46;">이랜드이츠 — '리텐션 인센티브' 설계</div><div class="case-text"><b>조기 이탈 방지:</b> 3개월 완주 시 '수료 수당' 30만원, 6개월 근속 시 급여 인상 확정 → 3개월 이탈율 <b>25% → 8%</b>로 감소.</div></div>
-            <div class="note">위 3개 사례는 우리 아카데미의 ① 현장 연착륙 ② 고용·행정 안정 ③ 리텐션 설계에 직접 적용 가능. (상세 이슈-해결 매핑은 '이슈 및 해결 방안' 뷰 참조)</div>
+      <div class="bm-wrap">
+        <div class="subtabs" id="bm-tabs">
+          <button class="subtab active" data-bm="all">🔎 전체</button>
+          <button class="subtab" data-bm="spc">SPC</button>
+          <button class="subtab" data-bm="cj">CJ푸드빌</button>
+          <button class="subtab" data-bm="theborn">더본코리아</button>
+          <button class="subtab" data-bm="ourhome">아워홈</button>
+          <button class="subtab" data-bm="bon">본아이에프</button>
+          <button class="subtab" data-bm="eland">이랜드이츠</button>
+          <button class="subtab" data-bm="lotte">롯데GRS</button>
+        </div>
+
+        <div class="bm-card" data-co="spc">
+          <div class="sec-card c-blue">
+            <div class="sec-card-head"><span>🥖 SPC그룹 · SPC 컬리너리 아카데미</span><span class="meta">외부 전문 교육기관</span></div>
+            <div class="sec-card-body">
+              <div class="bm-row"><span class="bm-k">운영 형태</span><span class="bm-v">㈜파리크라상 운영 — 외부 수강생 + 내부 직원 대상 유료 교육기관</span></div>
+              <div class="bm-row"><span class="bm-k">연혁·제휴</span><span class="bm-v">1992 한불제과제빵학원 → SPC 컬리너리 아카데미. 2002년~ 프랑스 <b>에꼴 르노뜨르</b> 공식 파트너십</span></div>
+              <div class="bm-row"><span class="bm-k">규모·시설</span><span class="bm-v">연 약 300명 (개편 전 누적 3,000명+). 서초 양재·동작 신대방 2개 캠퍼스</span></div>
+              <div class="bm-row"><span class="bm-k">커리큘럼</span><span class="bm-v">제빵·제과 정규(국내 15~19주 + 프랑스 연수 2주), 와인·커피·단기과정. 월~목 실습 + 금 발표(PT)</span></div>
+              <div class="bm-row"><span class="bm-k">차별점</span><span class="bm-v">프랑스 MOF(요리명장) 교수진·르노뜨르 공동 커리큘럼, 현지 연수. 자격증 탈피 정통 기법 중심</span></div>
+              <div class="alert alert-blue"><div>💡</div><div><b>SL&amp;C 시사점:</b> 외부 전문기관·국제 파트너십으로 <b>교육 품질 + 수료증 대외 신뢰도</b>를 동시 확보</div></div>
+              <div class="bm-src">출처 · <a href="https://www.spcculinary.co.kr/academy/intro.do" target="_blank" rel="noopener">SPC 컬리너리 공식</a> · <a href="https://www.thinkfood.co.kr/news/articleView.html?idxno=51657" target="_blank" rel="noopener">식품음료신문</a></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bm-card" data-co="cj">
+          <div class="sec-card c-blue">
+            <div class="sec-card-head"><span>🍞 CJ푸드빌 · FV아카데미 + 상생아카데미</span><span class="meta">사내+가맹 이중 구조</span></div>
+            <div class="sec-card-body">
+              <div class="bm-row"><span class="bm-k">운영 형태</span><span class="bm-v">이원 구조 — ① FV아카데미(예비 창업·취업자 무상 직업훈련) ② 상생아카데미(가맹점 직원 무료 정기교육)</span></div>
+              <div class="bm-row"><span class="bm-k">교육 내용</span><span class="bm-v">뚜레쥬르 제빵 전문가, 투썸 커피·케이크·샌드위치 전문가 과정. 이론+실습 병행</span></div>
+              <div class="bm-row"><span class="bm-k">규모</span><span class="bm-v">상생아카데미 연 140회+ 운영. 부산 거점만으로 가맹점 직원 약 1,800명 교육 예정, 대전·충청 확대</span></div>
+              <div class="bm-row"><span class="bm-k">연계</span><span class="bm-v">수료 후 뚜레쥬르·투썸 직영/가맹 취업 연계, 해외 점포 취업·창업 기회</span></div>
+              <div class="bm-row"><span class="bm-k">차별점</span><span class="bm-v">그룹 브랜드를 교육 플랫폼화 — 교육이 가맹점 지원 + 채용 파이프라인으로 동시 기능</span></div>
+              <div class="alert alert-blue"><div>💡</div><div><b>SL&amp;C 시사점:</b> 내부 직원 교육과 외부(가맹·협력사) 교육을 <b>하나의 아카데미로 통합</b>하는 이중 목적 구조</div></div>
+              <div class="bm-src">출처 · <a href="https://cjfoodville.co.kr/story/fvacademy_intro.asp" target="_blank" rel="noopener">CJ푸드빌 공식</a> · <a href="https://www.sisaon.co.kr/news/articleView.html?idxno=30908" target="_blank" rel="noopener">시사오늘</a></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bm-card" data-co="theborn">
+          <div class="sec-card c-green">
+            <div class="sec-card-head"><span>👨‍🍳 더본코리아 · 더본외식산업개발원</span><span class="meta">다거점 + 공공협력</span></div>
+            <div class="sec-card-body">
+              <div class="bm-row"><span class="bm-k">운영 형태</span><span class="bm-v">자체 교육기관 — 예산(2관)·문경·군산 등 4개 센터. 일부는 지자체 공공재원으로 건립, 더본이 운영</span></div>
+              <div class="bm-row"><span class="bm-k">과정</span><span class="bm-v">전문·창업(동양식·양식·베이커리·카페·1:1) / 가정·취미 / 창업컨설팅·정부위탁·자격증</span></div>
+              <div class="bm-row"><span class="bm-k">성과</span><span class="bm-v">개원 초기 3개월간 13개 과정·170명 이수 (충청신문 보도)</span></div>
+              <div class="bm-row"><span class="bm-k">차별점</span><span class="bm-v">백종원 브랜드 연계 창업 교육 + 지역 농산물 메뉴개발·외식 컨설팅 패키지, 지방 다거점 확산</span></div>
+              <div class="alert alert-amber"><div>⚠️</div><div><b>SL&amp;C 시사점:</b> 지자체 협력으로 시설 투자 부담↓(공공-민간 파트너십). 단, 2025년 군산 센터 <b>예산 특혜 논란</b> 리스크 참고</div></div>
+              <div class="bm-src">출처 · <a href="https://edutheborn.com/" target="_blank" rel="noopener">더본외식산업개발원 공식</a> · <a href="https://www.dailycc.net/news/articleView.html?idxno=668227" target="_blank" rel="noopener">충청신문</a> · <a href="https://www.khan.co.kr/article/202504281415001" target="_blank" rel="noopener">경향신문(논란)</a></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bm-card" data-co="ourhome">
+          <div class="sec-card c-teal">
+            <div class="sec-card-head"><span>🍚 아워홈 · 사내 조리 인재 교육 + '밥 소믈리에'</span><span class="meta">Train-the-Trainer</span></div>
+            <div class="sec-card-body">
+              <div class="bm-row"><span class="bm-k">운영 형태</span><span class="bm-v">대외 공개 아카데미 없음 — 신입 공채 조리사·영양사 대상 사내 교육 (총 1년 과정)</span></div>
+              <div class="bm-row"><span class="bm-k">교육 단계</span><span class="bm-v">입문교육(10일, 2025년 79명) → 직무교육 → 현장 OJT → 멘토링</span></div>
+              <div class="bm-row"><span class="bm-k">특화</span><span class="bm-v"><b>'밥 소믈리에'</b> 사내 자격제 — 사내 셰프 10명 취득, 전국 구내식당 조리담당자 대상 취반 교육을 순회 전파</span></div>
+              <div class="bm-row"><span class="bm-k">차별점</span><span class="bm-v">전문 자격을 <b>교육자 역량으로 전환</b> — 품질 균일화와 인재 육성을 단일 메커니즘으로 연결</span></div>
+              <div class="alert alert-blue"><div>💡</div><div><b>SL&amp;C 시사점:</b> 핵심 기술(조리 표준)을 <b>사내 자격제도화</b> → 자격자가 사내 강사로 기능하는 경량 교육 체계</div></div>
+              <div class="bm-src">출처 · <a href="https://recruit.ourhome.co.kr/pageView.do?sPage=0202" target="_blank" rel="noopener">아워홈 인재육성</a> · <a href="https://www.youthdaily.co.kr/news/article.html?no=211709" target="_blank" rel="noopener">청년일보</a></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bm-card" data-co="bon">
+          <div class="sec-card c-gold">
+            <div class="sec-card-head"><span>🥣 본아이에프 · '본 전문가' 자격제도</span><span class="meta">저비용 자격검정형</span></div>
+            <div class="sec-card-body">
+              <div class="bm-row"><span class="bm-k">운영 형태</span><span class="bm-v">가맹점 대상 자격검정 중심 사내 교육 — 독립 건물보다 자격·평가 체계로 운영</span></div>
+              <div class="bm-row"><span class="bm-k">자격 단계</span><span class="bm-v">3단계 — ① 가맹점 운영역량 평가 ② 본사 필기 ③ 조리 실기평가 (본죽·본죽&amp;비빔밥·본도시락 전 가맹점)</span></div>
+              <div class="bm-row"><span class="bm-k">미달 지원</span><span class="bm-v">불합격 매장은 결과 분석·맞춤 피드백, 현장 컨설팅, 온라인 교육, 자가 학습 툴 제공</span></div>
+              <div class="bm-row"><span class="bm-k">차별점</span><span class="bm-v">합격 매장 홍보 지원·혜택, 미합격 등급 관리 — 자격제도가 <b>품질관리 + 동기부여</b> 도구로 기능</span></div>
+              <div class="alert alert-blue"><div>💡</div><div><b>SL&amp;C 시사점:</b> 대규모 시설 없이 <b>자격검정만으로 전 조리 인력 역량 표준화</b> 가능한 저비용·고효율 모델</div></div>
+              <div class="bm-src">출처 · <a href="https://www.bongroup.co.kr/bon-view/news/669" target="_blank" rel="noopener">본그룹 뉴스룸</a> · <a href="https://www.bonif.co.kr/founding/info" target="_blank" rel="noopener">본아이에프 공식</a></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bm-card" data-co="eland">
+          <div class="sec-card c-green">
+            <div class="sec-card-head"><span>🍽 이랜드이츠 · '쿡마스터' 인증제도</span><span class="meta">조리역량=커리어</span></div>
+            <div class="sec-card-body">
+              <div class="bm-row"><span class="bm-k">운영 형태</span><span class="bm-v">조리 인증제 중심 품질관리 + '외식 경영자 양성' 4년 성장 트랙 병행</span></div>
+              <div class="bm-row"><span class="bm-k">인증 단계</span><span class="bm-v">화이트 → 레드 → 블랙 → 쿡마스터 → 원스타(2026 신설) 5단계, 연 3회+ 정기 평가</span></div>
+              <div class="bm-row"><span class="bm-k">평가 방식</span><span class="bm-v">필기(마스터북 전 범위) + 실기(1g·1mm 오차 심사, 크로스 체크). 미달 시 강등</span></div>
+              <div class="bm-row"><span class="bm-k">성과</span><span class="bm-v">2026년 쿡마스터 13명 선정, 원스타 그랑프리 신설·해외 연수 제공 예정</span></div>
+              <div class="alert alert-blue"><div>💡</div><div><b>SL&amp;C 시사점:</b> 조리 역량 = <b>커리어 사다리(승진·해외연수 연동)</b>로 설계 → 직원 리텐션 강화에 직결</div></div>
+              <div class="bm-src">출처 · <a href="https://www.thevaluenews.co.kr/news/196438" target="_blank" rel="noopener">더밸류뉴스</a> · <a href="https://www.thefairnews.co.kr/news/articleView.html?idxno=59792" target="_blank" rel="noopener">더페어</a></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bm-card" data-co="lotte">
+          <div class="sec-card c-accent">
+            <div class="sec-card-head"><span>🍔 롯데GRS · 롯데GRS 아카데미</span><span class="meta">파일럿샵 실습형</span></div>
+            <div class="sec-card-body">
+              <div class="bm-row"><span class="bm-k">운영 형태</span><span class="bm-v">금천롯데타워 5~10층 전용 시설. 임직원·가맹점·일반인·중고생(진로체험) 대상 종합 교육기관</span></div>
+              <div class="bm-row"><span class="bm-k">시설</span><span class="bm-v">강의실 7개, <b>파일럿샵</b>(롯데리아·엔제리너스·크리스피크림 실제 매장형 실습장), 기숙시설 40명, 히스토리 뮤지엄</span></div>
+              <div class="bm-row"><span class="bm-k">교육 체계</span><span class="bm-v">입문·리더육성·직무역량·온라인·공통·ESG 6개 영역</span></div>
+              <div class="bm-row"><span class="bm-k">디지털</span><span class="bm-v">메타캠퍼스·3D 스토어 러닝·영상 스튜디오, 글로벌 6개국 동시 원격 교육</span></div>
+              <div class="alert alert-blue"><div>💡</div><div><b>SL&amp;C 시사점:</b> 교육 전용 <b>파일럿 키친/매장</b> 구축이 실무 숙련도에 가장 직접적 투자 (방배동 아카데미 매장 모델과 동일 맥락)</div></div>
+              <div class="bm-src">출처 · <a href="https://www.lottegrs.com/kor/company/college.jsp" target="_blank" rel="noopener">롯데GRS 아카데미 공식</a></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bm-card" data-co="summary">
+          <div class="sec-card c-teal">
+            <div class="sec-card-head"><span>🧭 벤치마킹 종합 시사점 (SL&amp;C 관점)</span></div>
+            <div class="sec-card-body">
+              <div class="row-item"><div class="ri-dot" style="background:#0891B2"></div><span class="ri-label"><b>모델 선택:</b> 내부 역량 강화 → 아워홈·이랜드형 <b>자격제도</b> / 외부 인재 유입 → SPC·CJ형 <b>교육원</b> / 지역 거점 → 더본형 <b>다센터</b></span></div>
+              <div class="row-item"><div class="ri-dot" style="background:#0891B2"></div><span class="ri-label"><b>최소 비용:</b> 본아이에프(자격검정)·아워홈(밥 소믈리에 Train-the-Trainer)은 시설 투자 없이 전사 역량 표준화 성공</span></div>
+              <div class="row-item"><div class="ri-dot" style="background:#0891B2"></div><span class="ri-label"><b>차별화:</b> 이랜드처럼 조리 인증 등급을 승진·해외연수와 연동하면 교육 참여 동기가 자생적으로 발생</span></div>
+              <div class="row-item"><div class="ri-dot" style="background:#0891B2"></div><span class="ri-label"><b>국제 제휴:</b> SPC의 에꼴 르노뜨르 연계처럼 외부 공인 커리큘럼과 연동 시 수료증 대외 신뢰도 확보</span></div>
+              <div class="note">신세계푸드·놀부·교촌은 조리 특화 아카데미 공개 자료가 확인되지 않아 제외함.</div>
+            </div>
           </div>
         </div>
       </div>
@@ -516,7 +683,7 @@
     v5:{t:'채용팀 역할 분담', d:'채용팀 R&R · 매장(영업팀) R&R'},
     v6:{t:'사후 관리 방안', d:'배치 후 체크인·멘토링·이탈 방지·커리어 패스'},
     v7:{t:'이슈 및 해결 방안', d:'예상 부작용·리스크와 해결책 (참고 사례 포함)'},
-    v8:{t:'타브랜드 아카데미', d:'본아이에프·CJ푸드빌·이랜드이츠 벤치마킹'}
+    v8:{t:'타브랜드 아카데미', d:'7개사(SPC·CJ·더본·아워홈·본아이에프·이랜드·롯데GRS) 조리 아카데미 벤치마킹 — 회사별 인덱스'}
   };
   var order = ['v1','v2','v3','v4','v5','v6','v7','v8'];
   function setHead(id){
@@ -536,6 +703,23 @@
       window.scrollTo(0,0);
     });
   });
+
+  // ── 뷰8: 회사별 인덱스 탭 ──
+  (function(){
+    var tabs=document.querySelectorAll('#bm-tabs .subtab');
+    var cards=document.querySelectorAll('#v8 .bm-card');
+    tabs.forEach(function(b){
+      b.addEventListener('click',function(){
+        var sel=b.getAttribute('data-bm');
+        tabs.forEach(function(x){x.classList.remove('active');});
+        b.classList.add('active');
+        cards.forEach(function(c){
+          var co=c.getAttribute('data-co');
+          c.style.display=(sel==='all'||co===sel)?'':'none';
+        });
+      });
+    });
+  })();
 
   // ── 뷰3: 누계 대시보드 렌더 (data.js 기반) ──
   function boot(){
@@ -636,6 +820,24 @@
 
   var fo=document.getElementById('f-org'); if(fo) fo.textContent=D.meta.org;
   var fd=document.getElementById('f-doc'); if(fd) fd.innerHTML='문서 '+D.meta.docno+' · 기준 '+last.ym;
+
+  // ── 뷰1: data.js targets 기반 동적 업데이트 ──
+  var tgt = D.targets.채용;
+  var pGo   = Math.round(tgt.고급  / tgt.total * 100);
+  var pJung = Math.round(tgt.중급  / tgt.total * 100);
+  var pGi   = 100 - pGo - pJung;
+  function setEl(id, txt){ var el=document.getElementById(id); if(el) el.textContent=txt; }
+  setEl('v1-total-sub',  '연간 '+tgt.total+'명 · 3-트랙 파이프라인');
+  setEl('v1-go-val',     pGo+'% / '+tgt.고급+'명');
+  setEl('v1-jung-val',   pJung+'% / '+tgt.중급+'명');
+  setEl('v1-gi-val',     pGi+'% / '+tgt.기초+'명');
+  setEl('v1-go-val2',    pGo+'% / '+tgt.고급+'명');
+  setEl('v1-jung-val2',  pJung+'% / '+tgt.중급+'명');
+  setEl('v1-gi-val2',    pGi+'% / '+tgt.기초+'명');
+  setEl('v1-donut-num',  tgt.total);
+  setEl('v1-pipe-total', '연 '+tgt.total+'명');
+  if(document.getElementById('v1').classList.contains('active'))
+    setEl('vh-desc','연간 '+tgt.total+'명 채용 수요·시장 공급 분석과 인력 수급 파이프라인');
   }
 
   var s=document.createElement('script');
