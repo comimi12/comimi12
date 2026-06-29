@@ -15,9 +15,12 @@
   body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);font-size:13px;line-height:1.55;}
   .doc-header{background:linear-gradient(135deg,#0A1A3A 0%,#1A4FAB 60%,#2563EB 100%);color:#fff;padding:28px 40px 22px;position:relative;overflow:hidden;}
   .doc-header::before{content:'';position:absolute;right:-60px;top:-60px;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,0.05);}
+  .header-top{display:flex;align-items:center;gap:18px;margin-bottom:18px;}
+  .brand-logo{height:72px;width:auto;flex-shrink:0;}
+  .header-top .htext{flex:1;min-width:0;}
   .header-eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.55);margin-bottom:6px;}
   .header-title{font-size:24px;font-weight:900;letter-spacing:-0.5px;margin-bottom:4px;}
-  .header-sub{font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:18px;}
+  .header-sub{font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:0;}
   .header-kpis{display:flex;gap:14px;flex-wrap:wrap;}
   .kpi-chip{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:10px 18px;text-align:center;min-width:120px;}
   .kpi-chip .num{font-size:22px;font-weight:800;color:#fff;}
@@ -65,9 +68,14 @@
 <body>
 
 <div class="doc-header">
-  <div class="header-eyebrow" id="h-eyebrow"></div>
-  <div class="header-title" id="h-title"></div>
-  <div class="header-sub" id="h-sub"></div>
+  <div class="header-top">
+    <img class="brand-logo" src="logo.png" alt="삼천리 SL&amp;C">
+    <div class="htext">
+      <div class="header-eyebrow" id="h-eyebrow"></div>
+      <div class="header-title" id="h-title"></div>
+      <div class="header-sub" id="h-sub"></div>
+    </div>
+  </div>
   <div class="header-kpis" id="h-kpis"></div>
 </div>
 
