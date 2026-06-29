@@ -71,7 +71,6 @@
   <div class="header-top">
     <img class="brand-logo" src="logo.png" alt="삼천리 SL&amp;C">
     <div class="htext">
-      <div class="header-eyebrow" id="h-eyebrow"></div>
       <div class="header-title" id="h-title"></div>
       <div class="header-sub" id="h-sub"></div>
     </div>
@@ -137,7 +136,6 @@
   var jaejikRate = cumBaechi>0 ? Math.round(jaejik/cumBaechi*100) : 0;
 
   // ── 헤더 ──
-  document.getElementById('h-eyebrow').textContent = D.meta.org + ' · ' + D.meta.year;
   document.getElementById('h-title').textContent = D.meta.title;
   document.getElementById('h-sub').textContent = D.meta.sub + ' · 기준 ' + last.ym;
   document.getElementById('h-kpis').innerHTML = [
