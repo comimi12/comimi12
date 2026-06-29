@@ -2,6 +2,10 @@
 
 SL&C 조리 아카데미 인력 파이프라인(채용 → 아카데미 → 매장 배치) 대시보드 프로젝트.
 
+> **🔗 라이브 협업 대시보드** (2인 교차 업데이트): https://comimi12.github.io/academy-dashboard/
+> 라이브 데이터 수정은 **별도 공유 repo `comimi12/academy-dashboard`** 에서 한다. 이 워크스페이스 폴더는 기획 문서(PRD·전략 인포그래픽)와 초기 데이터의 보관처다.
+> 공유 repo 작업본은 `_deploy/` 에 클론돼 있음 (gitignore). 협업 절차는 그 repo의 `CLAUDE.md` 참조.
+
 ## 폴더 구성
 
 ```
