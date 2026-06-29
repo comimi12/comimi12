@@ -20,6 +20,28 @@ HEADER_TOKENS = ("매장명",)
 SKIP_TOKENS = ("현황", "조회년월", "nan")
 
 
+def is_xlsx(path):
+    """진짜 xlsx(zip, PK 매직)인지. 사내 DRM(DRMONE)으로 재암호화된 파일은 거른다."""
+    try:
+        with open(path, "rb") as f:
+            return f.read(4) == b"PK\x03\x04"
+    except OSError:
+        return False
+
+
+def load_prior():
+    """직전에 생성된 eck_data.js를 파싱해 월별 cs/qscs 캐시로 반환.
+    DRM 잠긴 과거월은 다시 파싱 못 하므로 마지막 정상값을 유지하는 fallback."""
+    if not os.path.exists(OUTJS):
+        return None
+    try:
+        txt = open(OUTJS, encoding="utf-8").read()
+        s, e = txt.index("{"), txt.rstrip().rstrip(";").rindex("}") + 1
+        return json.loads(txt[s:e])
+    except Exception:
+        return None
+
+
 def is_excluded(name):
     """본부/센트럴키친 매장 제외 (예: 호우섬CK). 이름이 'CK'로 끝나면 본부로 간주."""
     n = (name or "").strip()
@@ -44,7 +66,7 @@ def brand_of(store):
 
 def parse_cs(path):
     """행: 매장 × 일자(1..31) O/빈칸 → 매장별 일별 완료."""
-    df = pd.ExcelFile(path).parse(0, header=None)
+    df = pd.ExcelFile(path, engine="openpyxl").parse(0, header=None)
     # 헤더행 찾기 (col0 == '매장명')
     hrow = None
     for i in range(len(df)):
@@ -79,7 +101,7 @@ def parse_cs(path):
 
 def parse_qscs(path):
     """행: 등록 매장별 (작성일자/교육일시). 존재=등록."""
-    df = pd.ExcelFile(path).parse(0, header=None)
+    df = pd.ExcelFile(path, engine="openpyxl").parse(0, header=None)
     recs = []
     for i in range(len(df)):
         name = str(df.iloc[i, 0]).strip()
@@ -119,31 +141,70 @@ def main():
     if not months:
         raise SystemExit("[ERR] data/eck 에 cs_*.xlsx / qscs_*.xlsx 가 없습니다. 먼저 eck_scrape.py 실행")
 
+    prior = load_prior()           # 마지막 정상 결과(과거월 DRM 잠김 시 유지)
+    prior_cs = (prior or {}).get("cs", {})
+    prior_qscs = (prior or {}).get("qscs", {})
+    kept = []                      # 이전 데이터로 유지한 월 (로그용)
+
     cs_by, qscs_by, dim_by = {}, {}, {}
     # 전 월 CS 매장 합집합 (명단 fallback)
     union_roster = []
     union_seen = set()
 
-    parsed_cs = {}
+    parsed_cs = {}                 # mo → 파싱 결과, 또는 None(읽기 실패→이전값 유지)
     for mo in months:
         y, m = map(int, mo.split("-"))
         dim_by[mo] = calendar.monthrange(y, m)[1]
         cs_path = os.path.join(DATA, f"cs_{mo}.xlsx")
-        if os.path.exists(cs_path):
+        if os.path.exists(cs_path) and is_xlsx(cs_path):
             try:
                 parsed_cs[mo] = parse_cs(cs_path)
             except SystemExit:
                 parsed_cs[mo] = {"stores": [], "days": []}
+            except Exception as e:
+                print(f"[warn] cs_{mo} 파싱 실패({type(e).__name__}) → 이전 데이터 유지")
+                parsed_cs[mo] = None
+        else:
+            # 파일 없음 또는 DRM 재암호화(DRMONE) → 이전 정상값 유지
+            parsed_cs[mo] = None
+        if parsed_cs[mo]:
             for s in parsed_cs[mo]["stores"]:
                 if s["store"] not in union_seen:
                     union_seen.add(s["store"]); union_roster.append(s["store"])
 
     for mo in months:
-        cs = parsed_cs.get(mo, {"stores": [], "days": []})
-        cs_by[mo] = {"stores": cs["stores"], "days": cs["days"], "store_count": len(cs["stores"])}
+        # ── CS (View 5) ──
+        if parsed_cs[mo]:
+            cs = parsed_cs[mo]
+            cs_by[mo] = {"stores": cs["stores"], "days": cs["days"], "store_count": len(cs["stores"])}
+        elif mo in prior_cs:
+            cs_by[mo] = prior_cs[mo]
+            cs = {"stores": cs_by[mo].get("stores", []), "days": cs_by[mo].get("days", [])}
+            if mo not in kept:
+                kept.append(mo)
+        else:
+            cs = {"stores": [], "days": []}
+            cs_by[mo] = {"stores": [], "days": [], "store_count": 0}
 
+        # ── QSCS (View 6) ──
         qscs_path = os.path.join(DATA, f"qscs_{mo}.xlsx")
-        rows = parse_qscs(qscs_path) if os.path.exists(qscs_path) else []
+        if os.path.exists(qscs_path) and is_xlsx(qscs_path):
+            try:
+                rows = parse_qscs(qscs_path)
+            except Exception as e:
+                print(f"[warn] qscs_{mo} 파싱 실패({type(e).__name__}) → 이전 데이터 유지")
+                rows = None
+        else:
+            rows = None
+        if rows is None:
+            # 파일 없음/DRM → 이전 정상값 유지
+            if mo in prior_qscs:
+                qscs_by[mo] = prior_qscs[mo]
+                if mo not in kept:
+                    kept.append(mo)
+            else:
+                qscs_by[mo] = {"registered": [], "not_registered": [], "reg_count": 0, "roster_count": 0}
+            continue
         # 실제 등록 = 작성일자가 있는 행만. (리포트는 전 매장을 나열하고, 등록한 곳만 작성일자가 채워짐)
         reg = [r for r in rows if r.get("date")]
         reg_set = {r["store"] for r in reg}
@@ -166,6 +227,8 @@ def main():
 
     size = os.path.getsize(OUTJS) / 1024
     print(f"[OK] eck_data.js 생성 ({size:,.0f} KB) — {len(months)}개월 {months[0]}~{months[-1]}")
+    if kept:
+        print(f"[keep] DRM/없음으로 이전 데이터 유지: {', '.join(kept)}")
     for mo in months:
         print(f"     {mo}  CS {cs_by[mo]['store_count']}매장×{len(cs_by[mo]['days'])}일"
               f" · QSCS 등록 {qscs_by[mo]['reg_count']}/명단 {qscs_by[mo]['roster_count']}"
