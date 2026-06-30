@@ -196,6 +196,14 @@
     .tab{width:auto;margin-bottom:0;}
     .grid{grid-template-columns:1fr;padding:18px;}
   }
+
+  /* ── 뷰1: 화면 꽉 채움 (스크롤 없이 한눈에) ── */
+  #v1 .flow-wrapper{padding:12px 30px 0;height:calc(100vh - 118px);display:flex;flex-direction:column;}
+  #v1 .flow-bar{flex:1;min-height:0;overflow:hidden;}
+  #v1 .flow-stage{display:flex;flex-direction:column;overflow:hidden;}
+  #v1 .stage-body{flex:1;overflow-y:auto;padding:8px 10px;}
+  #v1 .stage-body::-webkit-scrollbar{width:3px;}
+  #v1 .stage-body::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:99px;}
 </style>
 </head>
 <body>
@@ -241,50 +249,55 @@
             <div class="stage-head"><div class="stage-num">1</div><div><div class="stage-label">채용</div><div class="stage-sub" id="v1-total-sub">2025년 연간 일용직 사용 현황</div></div></div>
             <div class="stage-body" style="padding:10px 12px;">
               <!-- KPI 3개 -->
-              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:10px;">
-                <div style="background:#EEF3FB;border-radius:8px;padding:7px 4px;text-align:center;border-bottom:3px solid #1A4FAB;">
-                  <div style="font-size:20px;font-weight:800;color:#1A4FAB;line-height:1.1;">381</div>
-                  <div style="font-size:8.5px;color:var(--muted);margin-top:2px;">연간 채용 목표</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:7px;">
+                <div style="background:#EEF3FB;border-radius:7px;padding:5px 4px;text-align:center;border-bottom:3px solid #1A4FAB;">
+                  <div style="font-size:18px;font-weight:800;color:#1A4FAB;line-height:1.1;">381</div>
+                  <div style="font-size:8px;color:var(--muted);margin-top:1px;">연간 채용 목표</div>
                 </div>
-                <div style="background:#FFF7ED;border-radius:8px;padding:7px 4px;text-align:center;border-bottom:3px solid #D97706;">
-                  <div style="font-size:20px;font-weight:800;color:#D97706;line-height:1.1;">275</div>
-                  <div style="font-size:8.5px;color:var(--muted);margin-top:2px;">BOH 인원수(2025)</div>
+                <div style="background:#FFF7ED;border-radius:7px;padding:5px 4px;text-align:center;border-bottom:3px solid #D97706;">
+                  <div style="font-size:18px;font-weight:800;color:#D97706;line-height:1.1;">275</div>
+                  <div style="font-size:8px;color:var(--muted);margin-top:1px;">BOH 인원수(2025)</div>
                 </div>
-                <div style="background:#ECFDF5;border-radius:8px;padding:7px 4px;text-align:center;border-bottom:3px solid #059669;">
-                  <div style="font-size:20px;font-weight:800;color:#059669;line-height:1.1;">107</div>
-                  <div style="font-size:8.5px;color:var(--muted);margin-top:2px;">아카데미 대체 목표</div>
+                <div style="background:#ECFDF5;border-radius:7px;padding:5px 4px;text-align:center;border-bottom:3px solid #059669;">
+                  <div style="font-size:18px;font-weight:800;color:#059669;line-height:1.1;">107</div>
+                  <div style="font-size:8px;color:var(--muted);margin-top:1px;">아카데미 대체 목표</div>
                 </div>
               </div>
-              <!-- 세로 막대차트 (SVG) -->
-              <div style="font-size:10px;font-weight:700;color:var(--navy);margin-bottom:4px;">트랙별 채용 목표 인원</div>
-              <svg width="100%" height="96" viewBox="0 0 200 96" preserveAspectRatio="none" style="display:block;margin-bottom:8px;overflow:visible;">
-                <line x1="0" y1="15" x2="200" y2="15" stroke="#F1F5F9" stroke-width="0.8"/>
-                <line x1="0" y1="35" x2="200" y2="35" stroke="#F1F5F9" stroke-width="0.8"/>
-                <line x1="0" y1="55" x2="200" y2="55" stroke="#F1F5F9" stroke-width="0.8"/>
-                <line x1="0" y1="75" x2="200" y2="75" stroke="#E2E8F0" stroke-width="0.8"/>
-                <!-- 고급 254명: 254/381=66.7% → h=50 -->
-                <rect x="10" y="25" width="52" height="50" rx="5" fill="url(#g1)"/>
-                <defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2563EB"/><stop offset="100%" stop-color="#1A4FAB"/></linearGradient></defs>
-                <text x="36" y="22" text-anchor="middle" fill="#1A4FAB" font-size="7.5" font-weight="800">254명</text>
-                <text x="36" y="86" text-anchor="middle" fill="#475569" font-size="7" font-weight="600">고급</text>
-                <text x="36" y="94" text-anchor="middle" fill="#94A3B8" font-size="6">채용팀</text>
-                <!-- 중급 79명: 79/381=20.7% → h=15.6 -->
-                <rect x="76" y="59" width="52" height="16" rx="5" fill="url(#g2)"/>
-                <defs><linearGradient id="g2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8B5CF6"/><stop offset="100%" stop-color="#7C3AED"/></linearGradient></defs>
-                <text x="102" y="56" text-anchor="middle" fill="#7C3AED" font-size="7.5" font-weight="800">79명</text>
-                <text x="102" y="86" text-anchor="middle" fill="#475569" font-size="7" font-weight="600">중급</text>
-                <text x="102" y="94" text-anchor="middle" fill="#94A3B8" font-size="6">채용팀+아카데미</text>
-                <!-- 기초 48명: 48/381=12.6% → h=9.5 -->
-                <rect x="142" y="65.5" width="52" height="9.5" rx="4" fill="url(#g3)"/>
-                <defs><linearGradient id="g3" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#10B981"/><stop offset="100%" stop-color="#059669"/></linearGradient></defs>
-                <text x="168" y="62" text-anchor="middle" fill="#059669" font-size="7.5" font-weight="800">48명</text>
-                <text x="168" y="86" text-anchor="middle" fill="#475569" font-size="7" font-weight="600">기초</text>
-                <text x="168" y="94" text-anchor="middle" fill="#94A3B8" font-size="6">아카데미</text>
-              </svg>
+              <!-- 트랙 도넛 차트 -->
+              <div style="font-size:10px;font-weight:700;color:var(--navy);margin-bottom:8px;text-align:center;letter-spacing:.3px;">트랙별 채용 목표 인원</div>
+              <div style="display:flex;justify-content:center;margin-bottom:8px;">
+                <svg width="112" height="112" viewBox="0 0 36 36">
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#E2E8F0" stroke-width="3.2"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#1A4FAB" stroke-width="3.2" stroke-dasharray="66.67 33.33" stroke-dashoffset="25"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#7C3AED" stroke-width="3.2" stroke-dasharray="20.73 79.27" stroke-dashoffset="-41.67"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#059669" stroke-width="3.2" stroke-dasharray="12.60 87.40" stroke-dashoffset="-62.4"/>
+                  <text x="18" y="16" text-anchor="middle" dominant-baseline="middle" fill="#0F2147" font-size="4.8" font-weight="800">381명</text>
+                  <text x="18" y="20.8" text-anchor="middle" dominant-baseline="middle" fill="#64748B" font-size="2.9">연간 채용 목표</text>
+                </svg>
+              </div>
+              <!-- 범례 카드 (차트 아래 3열) -->
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:8px;">
+                <div style="background:#EEF3FB;border-radius:7px;padding:5px 4px;text-align:center;border-top:3px solid #1A4FAB;">
+                  <div style="font-size:14px;font-weight:800;color:#1A4FAB;line-height:1.1;">254명</div>
+                  <div style="font-size:8px;font-weight:700;color:#1A4FAB;margin-top:1px;">고급 · 66.7%</div>
+                  <div style="font-size:7px;color:var(--muted);">채용팀 직접</div>
+                </div>
+                <div style="background:#F5F3FF;border-radius:7px;padding:5px 4px;text-align:center;border-top:3px solid #7C3AED;">
+                  <div style="font-size:14px;font-weight:800;color:#7C3AED;line-height:1.1;">79명</div>
+                  <div style="font-size:8px;font-weight:700;color:#7C3AED;margin-top:1px;">중급 · 20.7%</div>
+                  <div style="font-size:7px;color:var(--muted);">채용팀+아카데미</div>
+                </div>
+                <div style="background:#ECFDF5;border-radius:7px;padding:5px 4px;text-align:center;border-top:3px solid #059669;">
+                  <div style="font-size:14px;font-weight:800;color:#059669;line-height:1.1;">48명</div>
+                  <div style="font-size:8px;font-weight:700;color:#059669;margin-top:1px;">기초 · 12.6%</div>
+                  <div style="font-size:7px;color:var(--muted);">아카데미 중심</div>
+                </div>
+              </div>
               <!-- 절감 인사이트 -->
               <div style="background:#FFF7ED;border-radius:7px;padding:7px 9px;border-left:3px solid #D97706;">
                 <div style="font-size:9.5px;color:#92400E;line-height:1.6;">BOH <b>275명</b> 중 기초 인력 <b>107명</b>을 아카데미로 대체 · 일용직 대비 연간 <b style="color:#B45309;">약 9,855만원</b> 절감 가능</div>
               </div>
+              <div style="font-size:8.5px;color:var(--muted);margin-top:7px;text-align:center;line-height:1.45;border-top:1px dashed var(--border);padding-top:6px;">📌 2025년도 일용직 사용 기준 연간 채용 목표 설정</div>
             </div>
           </div>
 
@@ -358,64 +371,87 @@
           <div class="flow-stage s3">
             <div class="stage-head"><div class="stage-num">3</div><div><div class="stage-label">매장 운영 교육 플랜</div><div class="stage-sub">3개월 과정 · 수료 후 BOH 현장 투입</div></div></div>
             <div class="stage-body" style="padding:10px 12px;">
-              <!-- Gantt 차트 -->
-              <div style="font-size:10px;font-weight:700;color:var(--navy);margin-bottom:5px;">교육 일정 (월별 Gantt)</div>
-              <div style="margin-bottom:10px;">
-                <div style="display:grid;grid-template-columns:56px 1fr;gap:0;margin-bottom:3px;">
-                  <div></div>
-                  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;text-align:center;">
-                    <div style="font-size:8px;color:var(--muted);font-weight:600;">1개월</div>
-                    <div style="font-size:8px;color:var(--muted);font-weight:600;">2개월</div>
-                    <div style="font-size:8px;color:var(--muted);font-weight:600;">3개월~</div>
+              <!-- 상단 KPI 3개 -->
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:10px;">
+                <div style="background:#ECFDF5;border-radius:8px;padding:6px 4px;text-align:center;border-bottom:2px solid #059669;">
+                  <div style="font-size:17px;font-weight:800;color:#059669;line-height:1.1;">107명</div>
+                  <div style="font-size:7.5px;color:var(--muted);margin-top:1px;">연간 입교 목표</div>
+                </div>
+                <div style="background:#EEF3FB;border-radius:8px;padding:6px 4px;text-align:center;border-bottom:2px solid #1A4FAB;">
+                  <div style="font-size:17px;font-weight:800;color:#1A4FAB;line-height:1.1;">3개월</div>
+                  <div style="font-size:7.5px;color:var(--muted);margin-top:1px;">교육 과정</div>
+                </div>
+                <div style="background:#FFF7ED;border-radius:8px;padding:6px 4px;text-align:center;border-bottom:2px solid #D97706;">
+                  <div style="font-size:17px;font-weight:800;color:#D97706;line-height:1.1;">75명</div>
+                  <div style="font-size:7.5px;color:var(--muted);margin-top:1px;">연간 배치 목표</div>
+                </div>
+              </div>
+              <!-- 3단 카드 (원형 + 커리큘럼) -->
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:7px;">
+                <!-- 기초교육 -->
+                <div style="background:#EEF3FB;border-radius:9px;padding:8px 5px;text-align:center;border-top:3px solid #1A4FAB;display:flex;flex-direction:column;align-items:center;gap:3px;">
+                  <svg width="62" height="62" viewBox="0 0 44 44" style="display:block;">
+                    <circle cx="22" cy="22" r="18" fill="none" stroke="#DBEAFE" stroke-width="5"/>
+                    <circle cx="22" cy="22" r="18" fill="none" stroke="#1A4FAB" stroke-width="5" stroke-dasharray="37.6 75.5" stroke-dashoffset="28.3" stroke-linecap="round"/>
+                    <text x="22" y="19.5" text-anchor="middle" dominant-baseline="middle" fill="#1A4FAB" font-size="8.5" font-weight="800">33%</text>
+                    <text x="22" y="27" text-anchor="middle" dominant-baseline="middle" fill="#64748B" font-size="4.2">1개월</text>
+                  </svg>
+                  <div style="font-size:9.5px;font-weight:800;color:#1A4FAB;">기초교육</div>
+                  <div style="background:#DBEAFE;border-radius:99px;padding:1px 6px;font-size:6.5px;font-weight:700;color:#1A4FAB;">1개월 집중</div>
+                  <div style="width:100%;text-align:left;margin-top:2px;">
+                    <div style="font-size:7px;color:var(--muted);line-height:1.6;padding:0 2px;">· 조리 기본기 습득<br>· 위생·안전 기준<br>· 브랜드별 매뉴얼</div>
                   </div>
                 </div>
-                <div style="display:grid;grid-template-columns:56px 1fr;gap:4px;align-items:center;margin-bottom:4px;">
-                  <div style="font-size:9px;color:var(--text);font-weight:700;text-align:right;padding-right:6px;">기초교육</div>
-                  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px;">
-                    <div style="height:14px;background:linear-gradient(90deg,#1A4FAB,#2563EB);border-radius:4px;"></div>
-                    <div style="height:14px;background:#E2E8F0;border-radius:4px;"></div>
-                    <div style="height:14px;background:#E2E8F0;border-radius:4px;"></div>
+                <!-- 실무교육 -->
+                <div style="background:#ECFDF5;border-radius:9px;padding:8px 5px;text-align:center;border-top:3px solid #059669;display:flex;flex-direction:column;align-items:center;gap:3px;">
+                  <svg width="62" height="62" viewBox="0 0 44 44" style="display:block;">
+                    <circle cx="22" cy="22" r="18" fill="none" stroke="#D1FAE5" stroke-width="5"/>
+                    <circle cx="22" cy="22" r="18" fill="none" stroke="#059669" stroke-width="5" stroke-dasharray="75.4 37.7" stroke-dashoffset="28.3" stroke-linecap="round"/>
+                    <text x="22" y="19.5" text-anchor="middle" dominant-baseline="middle" fill="#059669" font-size="8.5" font-weight="800">67%</text>
+                    <text x="22" y="27" text-anchor="middle" dominant-baseline="middle" fill="#64748B" font-size="4.2">2개월~</text>
+                  </svg>
+                  <div style="font-size:9.5px;font-weight:800;color:#059669;">실무교육</div>
+                  <div style="background:#D1FAE5;border-radius:99px;padding:1px 6px;font-size:6.5px;font-weight:700;color:#059669;">2개월 실전</div>
+                  <div style="width:100%;text-align:left;margin-top:2px;">
+                    <div style="font-size:7px;color:var(--muted);line-height:1.6;padding:0 2px;">· 배달형 매장 실운영<br>· 주문·조리·포장 실전<br>· 매출·영업 관리</div>
                   </div>
                 </div>
-                <div style="display:grid;grid-template-columns:56px 1fr;gap:4px;align-items:center;margin-bottom:4px;">
-                  <div style="font-size:9px;color:var(--text);font-weight:700;text-align:right;padding-right:6px;">실무교육</div>
-                  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px;">
-                    <div style="height:14px;background:#E2E8F0;border-radius:4px;"></div>
-                    <div style="height:14px;background:linear-gradient(90deg,#059669,#10B981);border-radius:4px;"></div>
-                    <div style="height:14px;background:linear-gradient(90deg,#059669,#10B981);border-radius:4px;"></div>
-                  </div>
-                </div>
-                <div style="display:grid;grid-template-columns:56px 1fr;gap:4px;align-items:center;">
-                  <div style="font-size:9px;color:var(--text);font-weight:700;text-align:right;padding-right:6px;">매장배치</div>
-                  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px;">
-                    <div style="height:14px;background:#E2E8F0;border-radius:4px;"></div>
-                    <div style="height:14px;background:#E2E8F0;border-radius:4px;"></div>
-                    <div style="height:14px;background:linear-gradient(90deg,#D97706,#F59E0B);border-radius:4px;"></div>
+                <!-- 매장배치 -->
+                <div style="background:#FFFBEB;border-radius:9px;padding:8px 5px;text-align:center;border-top:3px solid #D97706;display:flex;flex-direction:column;align-items:center;gap:3px;">
+                  <svg width="62" height="62" viewBox="0 0 44 44" style="display:block;">
+                    <circle cx="22" cy="22" r="18" fill="none" stroke="#FEF3C7" stroke-width="5"/>
+                    <circle cx="22" cy="22" r="18" fill="none" stroke="#D97706" stroke-width="5" stroke-dasharray="113.1 0" stroke-dashoffset="28.3" stroke-linecap="round"/>
+                    <text x="22" y="19.5" text-anchor="middle" dominant-baseline="middle" fill="#D97706" font-size="8.5" font-weight="800">완료</text>
+                    <text x="22" y="27" text-anchor="middle" dominant-baseline="middle" fill="#64748B" font-size="4.2">수료 후</text>
+                  </svg>
+                  <div style="font-size:9.5px;font-weight:800;color:#D97706;">매장 배치</div>
+                  <div style="background:#FEF3C7;border-radius:99px;padding:1px 6px;font-size:6.5px;font-weight:700;color:#D97706;">즉시 배치</div>
+                  <div style="width:100%;text-align:left;margin-top:2px;">
+                    <div style="font-size:7px;color:var(--muted);line-height:1.6;padding:0 2px;">· 수요 매장 순차 배치<br>· BOH 일용직 대체<br>· 정직원 전환 검토</div>
                   </div>
                 </div>
               </div>
-              <!-- 단계 카드 -->
-              <div style="display:flex;flex-direction:column;gap:6px;">
-                <div style="display:flex;gap:7px;align-items:center;">
-                  <div style="width:24px;height:24px;border-radius:50%;background:#1A4FAB;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800;flex-shrink:0;">1</div>
-                  <div style="background:#EEF3FB;border-radius:7px;padding:6px 8px;flex:1;border-left:3px solid #1A4FAB;">
-                    <div style="font-size:10px;font-weight:700;color:#1A4FAB;">기초교육 (1개월)</div>
-                    <div style="font-size:9px;color:var(--muted);">조리 기본기 · 위생 · 브랜드 매뉴얼</div>
-                  </div>
+              <!-- 하단 성과 지표 2열 -->
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px;">
+                <div style="background:#F0FDF4;border-radius:7px;padding:5px 8px;border-left:3px solid #059669;">
+                  <div style="font-size:7.5px;font-weight:700;color:#059669;">수료율 목표</div>
+                  <div style="font-size:15px;font-weight:800;color:#059669;line-height:1.1;">80%</div>
+                  <div style="font-size:7px;color:var(--muted);">입교 107명 → 수료 86명</div>
                 </div>
-                <div style="display:flex;gap:7px;align-items:center;">
-                  <div style="width:24px;height:24px;border-radius:50%;background:#059669;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800;flex-shrink:0;">2</div>
-                  <div style="background:#ECFDF5;border-radius:7px;padding:6px 8px;flex:1;border-left:3px solid #059669;">
-                    <div style="font-size:10px;font-weight:700;color:#059669;">실무형 교육 (2개월~)</div>
-                    <div style="font-size:9px;color:var(--muted);">배달형 매장 실제 운영 · 영업 병행</div>
-                  </div>
+                <div style="background:#FFF7ED;border-radius:7px;padding:5px 8px;border-left:3px solid #D97706;">
+                  <div style="font-size:7.5px;font-weight:700;color:#D97706;">6개월 재직률</div>
+                  <div style="font-size:15px;font-weight:800;color:#D97706;line-height:1.1;">75%</div>
+                  <div style="font-size:7px;color:var(--muted);">배치 75명 → 56명 정착</div>
                 </div>
-                <div style="display:flex;gap:7px;align-items:center;">
-                  <div style="width:24px;height:24px;border-radius:50%;background:#D97706;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:800;flex-shrink:0;">✓</div>
-                  <div style="background:#FFFBEB;border-radius:7px;padding:6px 8px;flex:1;border-left:3px solid #D97706;">
-                    <div style="font-size:10px;font-weight:700;color:#D97706;">매장 배치 (수료 후)</div>
-                    <div style="font-size:9px;color:var(--muted);">수요 매장 배치 · BOH 일용직 대체</div>
-                  </div>
+              </div>
+              <!-- 기대 효과 -->
+              <div style="background:#F8FAFC;border-radius:7px;padding:6px 9px;border:1px solid #E2E8F0;">
+                <div style="font-size:8.5px;font-weight:700;color:var(--navy);margin-bottom:3px;">기대 효과</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 8px;">
+                  <div style="font-size:7px;color:var(--muted);line-height:1.5;display:flex;gap:3px;"><span style="color:#1A4FAB;font-weight:700;">·</span>BOH 일용직 비용 절감</div>
+                  <div style="font-size:7px;color:var(--muted);line-height:1.5;display:flex;gap:3px;"><span style="color:#059669;font-weight:700;">·</span>브랜드 숙지 인력 확보</div>
+                  <div style="font-size:7px;color:var(--muted);line-height:1.5;display:flex;gap:3px;"><span style="color:#7C3AED;font-weight:700;">·</span>수요 매장 공백 최소화</div>
+                  <div style="font-size:7px;color:var(--muted);line-height:1.5;display:flex;gap:3px;"><span style="color:#D97706;font-weight:700;">·</span>정직원 전환 장기 안정화</div>
                 </div>
               </div>
             </div>
@@ -429,43 +465,171 @@
     <section id="v2" class="view">
       <div class="grid">
 
-        <!-- 상단 와이드: 공간 계획 -->
+        <!-- ① 상단 와이드: 6개 원형 카테고리 카드 -->
         <div class="sec-card c-gold wide">
           <div class="sec-card-head"><span>📍 방배동 아카데미 매장 시뮬레이션 — 차이797 서래마을점 인근 (50평)</span></div>
           <div class="sec-card-body">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
-              <div class="alert alert-blue" style="margin:0;"><div>📌</div><div><b>차이797 서래마을점</b> (서초구 방배동 810-2, 동광로 78) 인근 · 서래마을 상권 내 <b>50평</b> 규모 · 지하1층~5층 모두 검토 가능</div></div>
-              <div class="alert alert-green" style="margin:0;"><div>🏠</div><div><b>참고 매물</b>: 방배역 도보 3분 리모델링 1층 상가 (지하1층·지상7층 건물) · 제2종 근린생활시설 · 음식점 허가 가능 · 즉시 입주<br><span style="font-size:10px;color:var(--muted);">출처: buildingforest.co.kr (2026년 기준)</span></div></div>
+            <!-- 위치 요약 한 줄 -->
+            <div style="text-align:center;font-size:11px;color:var(--muted);margin-bottom:16px;background:#FFFBEB;border-radius:8px;padding:7px 12px;border:1px solid #FDE68A;">
+              서초구 방배동 810-2 (동광로 78) 인근 &nbsp;·&nbsp; 방배역 도보 3분 &nbsp;·&nbsp; 제2종 근린생활시설 &nbsp;·&nbsp; 음식점 허가 가능 &nbsp;·&nbsp; 즉시 입주
             </div>
-            <div class="space-grid">
-              <div class="space-cell" style="background:#FEF3C7;border:1px solid #FDE68A;">
-                <div class="sc-title" style="color:#92400E;">📦 도시락 생산 구역</div>
-                <div style="font-size:10.5px;color:#78350F;line-height:1.6;">25평 · 산업용 조리 장비<br>일 300~500팩 생산 목표<br><b>배달의민족·쿠팡이츠 입점</b></div>
+            <!-- 6개 원형 카드 (1줄) -->
+            <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px;">
+              <!-- 위치 -->
+              <div style="text-align:center;">
+                <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#DBEAFE,#93C5FD);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 8px;box-shadow:0 4px 12px rgba(59,130,246,.2);">📍</div>
+                <div style="font-size:10.5px;font-weight:700;color:var(--navy);margin-bottom:3px;">위치</div>
+                <div style="font-size:9px;color:var(--muted);line-height:1.55;">서래마을 상권<br>차이797 인근</div>
               </div>
-              <div class="space-cell" style="background:#DCFCE7;border:1px solid #86EFAC;">
-                <div class="sc-title" style="color:#166534;">🎓 훈련 교실 구역</div>
-                <div style="font-size:10.5px;color:#14532D;line-height:1.6;">15평 · 이론 + 데모 실습 공간<br>20석 강의 가능<br><b>브랜드 매뉴얼 교육 전용</b></div>
+              <!-- 총 규모 -->
+              <div style="text-align:center;">
+                <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#FEF9C3,#FDE68A);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 8px;box-shadow:0 4px 12px rgba(217,119,6,.2);">🏠</div>
+                <div style="font-size:10.5px;font-weight:700;color:var(--navy);margin-bottom:3px;">총 규모</div>
+                <div style="font-size:9px;color:var(--muted);line-height:1.55;">50평<br>즉시 입주 가능</div>
               </div>
-              <div class="space-cell" style="background:#EFF6FF;border:1px solid #BFDBFE;">
-                <div class="sc-title" style="color:#1E40AF;">🛵 배달 운영 구역</div>
-                <div style="font-size:10.5px;color:#1E3A8A;line-height:1.6;">픽업·배달 동시 운영<br>교육생이 직접 주문 처리<br><b>실무 감각 현장 체득</b></div>
+              <!-- 생산 구역 -->
+              <div style="text-align:center;">
+                <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#FEF3C7,#FCD34D);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 8px;box-shadow:0 4px 12px rgba(251,191,36,.2);">📦</div>
+                <div style="font-size:10.5px;font-weight:700;color:var(--navy);margin-bottom:3px;">생산 구역</div>
+                <div style="font-size:9px;color:var(--muted);line-height:1.55;">25평<br>일 300~500팩</div>
               </div>
-              <div class="space-cell" style="background:#FAF5FF;border:1px solid #E9D5FF;">
-                <div class="sc-title" style="color:#5B21B6;">🗂 사무·행정 구역</div>
-                <div style="font-size:10.5px;color:#4C1D95;line-height:1.6;">10평 · 담당자 2명<br>인사·회계·보고<br><b>교육생 출결·평가 관리</b></div>
+              <!-- 교육 구역 -->
+              <div style="text-align:center;">
+                <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#DCFCE7,#86EFAC);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 8px;box-shadow:0 4px 12px rgba(5,150,105,.2);">🎓</div>
+                <div style="font-size:10.5px;font-weight:700;color:var(--navy);margin-bottom:3px;">교육 구역</div>
+                <div style="font-size:9px;color:var(--muted);line-height:1.55;">15평<br>20석 강의실</div>
+              </div>
+              <!-- 배달 운영 -->
+              <div style="text-align:center;">
+                <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#EFF6FF,#BFDBFE);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 8px;box-shadow:0 4px 12px rgba(37,99,235,.2);">🛵</div>
+                <div style="font-size:10.5px;font-weight:700;color:var(--navy);margin-bottom:3px;">배달 운영</div>
+                <div style="font-size:9px;color:var(--muted);line-height:1.55;">픽업·배달<br>실무 현장 실습</div>
+              </div>
+              <!-- 행정 구역 -->
+              <div style="text-align:center;">
+                <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#FAF5FF,#E9D5FF);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 8px;box-shadow:0 4px 12px rgba(124,58,237,.2);">🗂</div>
+                <div style="font-size:10.5px;font-weight:700;color:var(--navy);margin-bottom:3px;">행정 구역</div>
+                <div style="font-size:9px;color:var(--muted);line-height:1.55;">10평<br>담당자 2명</div>
               </div>
             </div>
-            <hr class="inner-div">
-            <div class="sub-h">📊 예상 매출·운영 지표 (월간)</div>
-            <div class="row-item"><div class="ri-dot" style="background:#D97706"></div><span class="ri-label">도시락 매출 (300팩×22일×3,500원)</span><span class="ri-val" style="color:#92400E;">약 2,310만원</span></div>
-            <div class="row-item"><div class="ri-dot" style="background:#EF4444"></div><span class="ri-label">배달 플랫폼 수수료 (약 15%)</span><span class="ri-val" style="color:#EF4444;">−347만원</span></div>
-            <div class="row-item"><div class="ri-dot" style="background:#EF4444"></div><span class="ri-label">재료비 (매출의 35%)</span><span class="ri-val" style="color:#EF4444;">−808만원</span></div>
-            <div class="row-item" style="background:#FFFBEB;border-radius:6px;padding:6px;"><div class="ri-dot" style="background:#F59E0B"></div><span class="ri-label" style="font-weight:700;">순 기여 (운영비 일부 상쇄)</span><span class="ri-val" style="color:#D97706;font-size:13px;">약 1,155만원/월</span></div>
           </div>
         </div>
 
-        <!-- 좌: 현재 운영 실적 -->
-        <div class="sec-card c-blue">
+        <!-- ② 좌: 예상 매출·운영 지표 -->
+        <div class="sec-card c-gold">
+          <div class="sec-card-head"><span>📊 예상 매출·운영 지표 (월간)</span></div>
+          <div class="sec-card-body">
+            <!-- KPI 요약 3개 -->
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;">
+              <div style="background:#FFFBEB;border-radius:10px;padding:10px 6px;text-align:center;border-top:3px solid #D97706;">
+                <div style="font-size:17px;font-weight:800;color:#92400E;line-height:1.1;">2,310<span style="font-size:10px;">만원</span></div>
+                <div style="font-size:8.5px;color:var(--muted);margin-top:2px;">월 매출</div>
+              </div>
+              <div style="background:#FEF2F2;border-radius:10px;padding:10px 6px;text-align:center;border-top:3px solid #EF4444;">
+                <div style="font-size:17px;font-weight:800;color:#B91C1C;line-height:1.1;">1,155<span style="font-size:10px;">만원</span></div>
+                <div style="font-size:8.5px;color:var(--muted);margin-top:2px;">월 비용 차감</div>
+              </div>
+              <div style="background:#ECFDF5;border-radius:10px;padding:10px 6px;text-align:center;border-top:3px solid #059669;">
+                <div style="font-size:17px;font-weight:800;color:#059669;line-height:1.1;">1,155<span style="font-size:10px;">만원</span></div>
+                <div style="font-size:8.5px;color:var(--muted);margin-top:2px;">순 기여/월</div>
+              </div>
+            </div>
+            <!-- 항목별 상세 -->
+            <div class="sub-h" style="margin-bottom:8px;">항목별 내역</div>
+            <div class="row-item"><div class="ri-dot" style="background:#D97706"></div><span class="ri-label">도시락 매출 (300팩×22일×3,500원)</span><span class="ri-val" style="color:#92400E;">약 2,310만원</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#EF4444"></div><span class="ri-label">배달 플랫폼 수수료 (약 15%)</span><span class="ri-val" style="color:#EF4444;">−347만원</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#EF4444"></div><span class="ri-label">재료비 (매출의 35%)</span><span class="ri-val" style="color:#EF4444;">−808만원</span></div>
+            <div class="row-item" style="background:#FFFBEB;border-radius:6px;padding:6px;margin-top:4px;"><div class="ri-dot" style="background:#F59E0B"></div><span class="ri-label" style="font-weight:700;">순 기여 (운영비 일부 상쇄)</span><span class="ri-val" style="color:#D97706;font-size:13px;">약 1,155만원/월</span></div>
+          </div>
+        </div>
+
+        <!-- ③ 우: 투자·운영 비용 -->
+        <div class="sec-card c-accent">
+          <div class="sec-card-head"><span>💰 아카데미 투자·운영 비용 (서래마을 실시세 기준)</span></div>
+          <div class="sec-card-body">
+            <div style="font-size:10px;color:var(--muted);margin-bottom:8px;">※ 서초구 방배동 서래마을 인근 50평(165㎡) 1층 상가 · 2025~2026년 실매물 시세 기준 · 중개사 실거래가 확인 필요</div>
+            <table class="budget-table">
+              <thead><tr><th class="l">항목</th><th class="l">구분</th><th>금액</th></tr></thead>
+              <tbody>
+                <tr><td class="l">인테리어·시설 공사 (주방+교육구획)</td><td class="l"><span class="tag tag-red">초기투자</span></td><td class="num-cell">7,000만원</td></tr>
+                <tr><td class="l">산업용 조리장비</td><td class="l"><span class="tag tag-red">초기투자</span></td><td class="num-cell">5,000만원</td></tr>
+                <tr><td class="l">보증금 (서래마을 50평 실시세)</td><td class="l"><span class="tag tag-red">초기투자</span></td><td class="num-cell" style="font-weight:700;">1억원 <span style="font-size:9px;color:var(--muted);">*회수 가능</span></td></tr>
+                <tr><td class="l">HACCP 인증·컨설팅</td><td class="l"><span class="tag tag-red">초기투자</span></td><td class="num-cell">500만원</td></tr>
+                <tr><td class="l">집기·비품</td><td class="l"><span class="tag tag-red">초기투자</span></td><td class="num-cell">1,500만원</td></tr>
+                <tr class="total-row"><td class="l" colspan="2"><b>초기 투자 합계</b> <span style="font-size:9px;font-weight:400;color:var(--muted);">(보증금 포함)</span></td><td class="num-cell" style="color:#B91C1C;">2억 4,000만원</td></tr>
+                <tr><td class="l">인건비 (총괄·강사·운영·행정 4명)</td><td class="l"><span class="tag tag-gold">월 운영</span></td><td class="num-cell">1,200만원/월</td></tr>
+                <tr><td class="l">월세 (서래마을 50평 · 실시세)</td><td class="l"><span class="tag tag-gold">월 운영</span></td><td class="num-cell" style="font-weight:700;">650만원/월</td></tr>
+                <tr><td class="l">관리비</td><td class="l"><span class="tag tag-gold">월 운영</span></td><td class="num-cell">100만원/월</td></tr>
+                <tr><td class="l">재료비·소모품</td><td class="l"><span class="tag tag-gold">월 운영</span></td><td class="num-cell">850만원/월</td></tr>
+                <tr><td class="l">도시락 매출 수익 상쇄</td><td class="l"><span class="tag tag-green">월 수익</span></td><td class="num-cell" style="color:#166534;">−1,155만원/월</td></tr>
+                <tr class="total-row"><td class="l" colspan="2"><b>월 순 운영비</b></td><td class="num-cell" style="color:#D97706;">약 1,645만원</td></tr>
+                <tr class="total-row"><td class="l" colspan="2"><b>연간 순 운영 비용</b> <span style="font-size:9px;font-weight:400;color:var(--muted);">(보증금 제외)</span></td><td class="num-cell" style="color:#B91C1C;">약 3억 3,740만원</td></tr>
+              </tbody>
+            </table>
+            <!-- 용도 적합성 분석 -->
+            <div style="margin-top:10px;border-top:1px solid #FCA5A5;padding-top:8px;">
+              <div style="font-size:10.5px;font-weight:700;color:#7F1D1D;margin-bottom:6px;">📋 용도 적합성 분석</div>
+              <div style="display:grid;grid-template-columns:1fr;gap:5px;">
+                <div style="display:flex;align-items:flex-start;gap:6px;font-size:9.5px;line-height:1.55;">
+                  <span style="color:#16A34A;font-weight:700;flex-shrink:0;">✅</span>
+                  <span><b>배달 영업 가능</b> — 즉석판매제조가공업(구청 신고) 등록 시 배달의민족·쿠팡이츠 소비자 직접 배달 허용 (식품위생법 제36조)</span>
+                </div>
+                <div style="display:flex;align-items:flex-start;gap:6px;font-size:9.5px;line-height:1.55;">
+                  <span style="color:#D97706;font-weight:700;flex-shrink:0;">⚠️</span>
+                  <span><b>HACCP 의무</b> — 도시락 제조·포장 시 HACCP 인증 취득 후 영업 가능. 인증 컨설팅 약 500만원·3~6개월 소요</span>
+                </div>
+                <div style="display:flex;align-items:flex-start;gap:6px;font-size:9.5px;line-height:1.55;">
+                  <span style="color:#16A34A;font-weight:700;flex-shrink:0;">✅</span>
+                  <span><b>사내 직무교육 가능</b> — 자사 소속 직원 대상 훈련은 학원등록 불필요. 고용노동부 사업주 직업능력개발훈련으로 비용 지원 신청 가능</span>
+                </div>
+                <div style="display:flex;align-items:flex-start;gap:6px;font-size:9.5px;line-height:1.55;">
+                  <span style="color:#D97706;font-weight:700;flex-shrink:0;">⚠️</span>
+                  <span><b>구획 분리 필수</b> — 식품위생법상 조리구역(25평)과 교육구역(15평)을 물리적 벽·칸막이로 구획해야 함. 시설 설계 시 반영 필요</span>
+                </div>
+                <div style="display:flex;align-items:flex-start;gap:6px;font-size:9.5px;line-height:1.55;">
+                  <span style="color:#16A34A;font-weight:700;flex-shrink:0;">✅</span>
+                  <span><b>복합 용도 가능</b> — 50평(165㎡)은 제2종근린생활시설 기준 학원(500㎡ 미만)·식품제조업소 모두 허용. 사업자등록 복수 운영 가능</span>
+                </div>
+              </div>
+            </div>
+            <div class="alert alert-green" style="margin-top:8px;"><div>✅</div><div>일용직 연간 <b>16.5억원</b> 대비, 아카데미 연간 순 운영비 <b>~3.4억</b> → <b>약 13.1억 절감 가능</b> (안정화 후 기준)</div></div>
+          </div>
+        </div>
+
+        <!-- ④ 하단 와이드: 운영 인력 + 배치 정책 -->
+        <div class="sec-card c-green wide">
+          <div class="sec-card-head"><span>👨‍🍳 운영 인력 구성 및 매장 배치 정책</span></div>
+          <div class="sec-card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+            <div>
+              <div class="sub-h">핵심 운영 인력</div>
+              <div class="org-wrap" style="margin-bottom:0;">
+                <div class="org-box" style="background:linear-gradient(135deg,#065F46,#059669);">아카데미 총괄 (원장급)</div>
+                <div class="org-line"></div>
+                <div class="org-row"><div class="org-box sub" style="background:linear-gradient(135deg,#059669,#10B981);min-width:110px;">수석 훈련 강사</div><div class="org-box sub" style="background:linear-gradient(135deg,#059669,#10B981);min-width:110px;">행정 매니저</div></div>
+                <div class="org-line"></div>
+                <div class="org-row"><div class="org-box task">보조 강사 ×1</div><div class="org-box task">매장 운영 담당</div><div class="org-box task">인사·회계</div></div>
+              </div>
+            </div>
+            <div>
+              <div class="sub-h">매장 배치 정책</div>
+              <div class="row-item"><div class="ri-dot" style="background:#059669"></div><span class="ri-label"><b>배치 기준:</b> 수료 역량 등급 + 브랜드 수요 매칭</span></div>
+              <div class="row-item"><div class="ri-dot" style="background:#059669"></div><span class="ri-label"><b>배치 통보:</b> 수료 2주 전 영업팀에 사전 고지</span></div>
+              <div class="row-item"><div class="ri-dot" style="background:#059669"></div><span class="ri-label"><b>인건비 안분:</b> 배치 1~3개월 — 월 약 240만원 본사 부담</span></div>
+              <div class="row-item"><div class="ri-dot" style="background:#059669"></div><span class="ri-label"><b>정규 편입:</b> 3개월 평가 후 매장 정규 인력 전환</span></div>
+              <div class="alert alert-blue" style="margin-top:8px;font-size:11px;"><div>💡</div><div>수료 후 <b>3개월간</b> 해당 매장 인건비 미부과 → 본사 비용 처리</div></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===== 뷰3: 기존 아카데미 현황 (누계 자동집계 — data.js 기반) ===== -->
+    <section id="v3" class="view">
+      <div class="grid">
+
+        <!-- 현재 운영 실적 (v2에서 이동) -->
+        <div class="sec-card c-blue wide">
           <div class="sec-card-head"><span>📋 현재 아카데미 운영 실적 (2026년 누계)</span></div>
           <div class="sec-card-body">
             <table style="width:100%;border-collapse:collapse;font-size:11px;">
@@ -512,63 +676,6 @@
           </div>
         </div>
 
-        <!-- 우: 투자·운영 비용 -->
-        <div class="sec-card c-accent">
-          <div class="sec-card-head"><span>💰 아카데미 투자·운영 비용 (실제 시세 기준)</span></div>
-          <div class="sec-card-body">
-            <div style="font-size:10px;color:var(--muted);margin-bottom:6px;">※ 임대 조건: 방배역 3분 거리 서래마을 인근 50평, 제2종근생, 음식점 허가 가능 기준 (2026년 실매물 추산)</div>
-            <table class="budget-table">
-              <thead><tr><th class="l">항목</th><th class="l">구분</th><th>금액</th></tr></thead>
-              <tbody>
-                <tr><td class="l">인테리어·시설 공사</td><td class="l"><span class="tag tag-red">초기투자</span></td><td class="num-cell">7,000만원</td></tr>
-                <tr><td class="l">산업용 조리장비</td><td class="l"><span class="tag tag-red">초기투자</span></td><td class="num-cell">5,000만원</td></tr>
-                <tr><td class="l">보증금 (서래마을 50평 실시세)</td><td class="l"><span class="tag tag-red">초기투자</span></td><td class="num-cell">7,000만원</td></tr>
-                <tr><td class="l">집기·비품</td><td class="l"><span class="tag tag-red">초기투자</span></td><td class="num-cell">1,500만원</td></tr>
-                <tr class="total-row"><td class="l" colspan="2"><b>초기 투자 합계</b></td><td class="num-cell" style="color:#B91C1C;">2억 500만원</td></tr>
-                <tr><td class="l">인건비 (4명)</td><td class="l"><span class="tag tag-gold">월 운영</span></td><td class="num-cell">1,200만원/월</td></tr>
-                <tr><td class="l">월세 (서래마을 50평 실시세)</td><td class="l"><span class="tag tag-gold">월 운영</span></td><td class="num-cell">500만원/월</td></tr>
-                <tr><td class="l">관리비</td><td class="l"><span class="tag tag-gold">월 운영</span></td><td class="num-cell">60만원/월</td></tr>
-                <tr><td class="l">재료비·소모품</td><td class="l"><span class="tag tag-gold">월 운영</span></td><td class="num-cell">850만원/월</td></tr>
-                <tr><td class="l">매출 수익 상쇄</td><td class="l"><span class="tag tag-green">월 수익</span></td><td class="num-cell" style="color:#166534;">−1,155만원/월</td></tr>
-                <tr class="total-row"><td class="l" colspan="2"><b>월 순 운영비</b></td><td class="num-cell" style="color:#D97706;">약 1,455만원</td></tr>
-                <tr class="total-row"><td class="l" colspan="2"><b>연간 총 소요 비용</b></td><td class="num-cell" style="color:#B91C1C;">약 3억 7,460만원</td></tr>
-              </tbody>
-            </table>
-            <div class="alert alert-green" style="margin-top:8px;"><div>✅</div><div>일용직 연간 <b>16.5억원</b> 대비, 아카데미 연간 운영 <b>~3.7억</b> → <b>약 12.8억 절감 가능</b> (안정화 후 기준)</div></div>
-          </div>
-        </div>
-
-        <!-- 하단 와이드: 운영 인력 + 배치 정책 -->
-        <div class="sec-card c-green wide">
-          <div class="sec-card-head"><span>👨‍🍳 운영 인력 구성 및 매장 배치 정책</span></div>
-          <div class="sec-card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-            <div>
-              <div class="sub-h">핵심 운영 인력</div>
-              <div class="org-wrap" style="margin-bottom:0;">
-                <div class="org-box" style="background:linear-gradient(135deg,#065F46,#059669);">아카데미 총괄 (원장급)</div>
-                <div class="org-line"></div>
-                <div class="org-row"><div class="org-box sub" style="background:linear-gradient(135deg,#059669,#10B981);min-width:110px;">수석 훈련 강사</div><div class="org-box sub" style="background:linear-gradient(135deg,#059669,#10B981);min-width:110px;">행정 매니저</div></div>
-                <div class="org-line"></div>
-                <div class="org-row"><div class="org-box task">보조 강사 ×1</div><div class="org-box task">매장 운영 담당</div><div class="org-box task">인사·회계</div></div>
-              </div>
-            </div>
-            <div>
-              <div class="sub-h">매장 배치 정책</div>
-              <div class="row-item"><div class="ri-dot" style="background:#059669"></div><span class="ri-label"><b>배치 기준:</b> 수료 역량 등급 + 브랜드 수요 매칭</span></div>
-              <div class="row-item"><div class="ri-dot" style="background:#059669"></div><span class="ri-label"><b>배치 통보:</b> 수료 2주 전 영업팀에 사전 고지</span></div>
-              <div class="row-item"><div class="ri-dot" style="background:#059669"></div><span class="ri-label"><b>인건비 안분:</b> 배치 1~3개월 — 월 약 240만원 본사 부담</span></div>
-              <div class="row-item"><div class="ri-dot" style="background:#059669"></div><span class="ri-label"><b>정규 편입:</b> 3개월 평가 후 매장 정규 인력 전환</span></div>
-              <div class="alert alert-blue" style="margin-top:8px;font-size:11px;"><div>💡</div><div>수료 후 <b>3개월간</b> 해당 매장 인건비 미부과 → 본사 비용 처리</div></div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- ===== 뷰3: 기존 아카데미 현황 (누계 자동집계 — data.js 기반) ===== -->
-    <section id="v3" class="view">
-      <div class="grid">
         <div class="sec-card c-blue wide">
           <div class="sec-card-head"><span>🎯 연간 목표 대비 누계 진행률</span><span class="meta" id="prog-asof"></span></div>
           <div class="sec-card-body" id="progress"></div>
