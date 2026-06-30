@@ -276,27 +276,39 @@
                 </svg>
               </div>
               <!-- 범례 카드 (직급별) -->
-              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:8px;">
-                <div style="background:#EEF3FB;border-radius:7px;padding:5px 4px;text-align:center;border-top:3px solid #1A4FAB;">
-                  <div style="font-size:14px;font-weight:800;color:#1A4FAB;line-height:1.1;">83명</div>
-                  <div style="font-size:8px;font-weight:700;color:#1A4FAB;margin-top:1px;">실장급 일용직 · 30%</div>
-                  <div style="font-size:7px;color:var(--muted);">채용팀 직접</div>
+              <div style="font-size:9.5px;font-weight:700;color:var(--navy);text-align:center;margin-bottom:5px;">직급별 채용 담당 — 채용팀 직접 vs 아카데미 (인원)</div>
+              <div style="display:flex;align-items:flex-end;justify-content:space-around;gap:8px;height:150px;padding-top:4px;">
+                <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
+                  <div style="font-size:10px;font-weight:800;color:var(--navy);margin-bottom:3px;">83명</div>
+                  <div style="width:66%;max-width:44px;height:130px;display:flex;flex-direction:column;justify-content:flex-end;border-radius:5px 5px 0 0;overflow:hidden;">
+                    <div style="height:0px;background:#059669;"></div>
+                    <div style="height:65px;background:#94A3B8;"></div>
+                  </div>
+                  <div style="font-size:9.5px;font-weight:700;color:#1A4FAB;margin-top:5px;">실장급</div>
+                  <div style="font-size:8px;color:var(--muted);line-height:1.3;">직접 83</div>
                 </div>
-                <div style="background:#F5F3FF;border-radius:7px;padding:5px 4px;text-align:center;border-top:3px solid #7C3AED;">
-                  <div style="font-size:14px;font-weight:800;color:#7C3AED;line-height:1.1;">165명</div>
-                  <div style="font-size:8px;font-weight:700;color:#7C3AED;margin-top:1px;">조리장급 일용직 · 60%</div>
-                  <div style="font-size:7px;color:var(--muted);">직접 + 아카데미</div>
+                <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
+                  <div style="font-size:10px;font-weight:800;color:var(--navy);margin-bottom:3px;">165명</div>
+                  <div style="width:66%;max-width:44px;height:130px;display:flex;flex-direction:column;justify-content:flex-end;border-radius:5px 5px 0 0;overflow:hidden;">
+                    <div style="height:58px;background:#059669;"></div>
+                    <div style="height:72px;background:#94A3B8;"></div>
+                  </div>
+                  <div style="font-size:9.5px;font-weight:700;color:#7C3AED;margin-top:5px;">조리장급</div>
+                  <div style="font-size:8px;color:var(--muted);line-height:1.3;">직접 92 · 아카 73</div>
                 </div>
-                <div style="background:#ECFDF5;border-radius:7px;padding:5px 4px;text-align:center;border-top:3px solid #059669;">
-                  <div style="font-size:14px;font-weight:800;color:#059669;line-height:1.1;">27명</div>
-                  <div style="font-size:8px;font-weight:700;color:#059669;margin-top:1px;">사원급 일용직 · 10%</div>
-                  <div style="font-size:7px;color:var(--muted);">아카데미 채용</div>
+                <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
+                  <div style="font-size:10px;font-weight:800;color:var(--navy);margin-bottom:3px;">27명</div>
+                  <div style="width:66%;max-width:44px;height:130px;display:flex;flex-direction:column;justify-content:flex-end;border-radius:5px 5px 0 0;overflow:hidden;">
+                    <div style="height:21px;background:#059669;"></div>
+                    <div style="height:0px;background:#94A3B8;"></div>
+                  </div>
+                  <div style="font-size:9.5px;font-weight:700;color:#059669;margin-top:5px;">사원급</div>
+                  <div style="font-size:8px;color:var(--muted);line-height:1.3;">아카 27</div>
                 </div>
               </div>
-              <!-- 아카데미 채용 분담 막대 -->
-              <div style="display:flex;height:17px;border-radius:5px;overflow:hidden;margin-bottom:7px;">
-                <div style="width:36%;background:#059669;color:#fff;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;">아카데미 36%</div>
-                <div style="width:64%;background:#94A3B8;color:#fff;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;">채용팀 직접 64%</div>
+              <div style="display:flex;justify-content:center;gap:14px;margin:8px 0;">
+                <span style="font-size:9px;color:var(--text);display:flex;align-items:center;gap:4px;"><span style="width:9px;height:9px;border-radius:2px;background:#94A3B8;display:inline-block;"></span>채용팀 직접 (앞)</span>
+                <span style="font-size:9px;color:var(--text);display:flex;align-items:center;gap:4px;"><span style="width:9px;height:9px;border-radius:2px;background:#059669;display:inline-block;"></span>아카데미 채용 (뒤)</span>
               </div>
               <!-- 아카데미 채용 인사이트 -->
               <div style="background:#FFF7ED;border-radius:7px;padding:7px 9px;border-left:3px solid #D97706;">
@@ -733,24 +745,205 @@
     <!-- ===== 뷰4: 아카데미 상세 커리큘럼 ===== -->
     <section id="v4" class="view">
       <div class="grid">
-        <div class="sec-card c-gold wide">
-          <div class="sec-card-head"><span>📅 교육 커리큘럼 (3개월 과정)</span><span class="meta">이론 20% + 실무 80%</span></div>
+
+        <!-- ① 3단계 개요 -->
+        <div class="sec-card c-blue wide">
+          <div class="sec-card-head"><span>📚 아카데미 3개월 훈련 체계 — 단계별 커리큘럼 개요</span><span class="meta">이론 20% · OJT 실무 80%</span></div>
           <div class="sec-card-body">
-            <div class="timeline">
-              <div class="tl-item"><div class="tl-left"><div class="tl-dot" style="background:#D97706"></div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-title">1개월차 — 기초 위생·안전·조리 이론</div><div class="tl-desc">HACCP·식품위생법 이론, 칼·화기 안전, 기초 소스·육수 원리, 브랜드 메뉴 히스토리</div></div></div>
-              <div class="tl-item"><div class="tl-left"><div class="tl-dot" style="background:#F59E0B"></div><div class="tl-line"></div></div><div class="tl-content"><div class="tl-title">2개월차 — 실무 조리 훈련 (도시락 라인)</div><div class="tl-desc">도시락 라인 풀 운영 참여, 주문 대응·생산량 관리, 반복 숙련 훈련, 1차 역량 평가</div></div></div>
-              <div class="tl-item"><div class="tl-left"><div class="tl-dot" style="background:#EF4444"></div></div><div class="tl-content"><div class="tl-title">3개월차 — 브랜드 특화 실습 + 수료 평가</div><div class="tl-desc">배치 브랜드 특화 메뉴 집중 훈련, 피크타임 운영 참여, 최종 역량 평가 → 수료 판정</div></div></div>
+            <!-- KPI 4개 -->
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;">
+              <div style="background:#EFF6FF;border-radius:10px;padding:10px;text-align:center;border-top:3px solid #1A4FAB;">
+                <div style="font-size:20px;font-weight:900;color:#1A4FAB;">3개월</div>
+                <div style="font-size:9px;color:var(--muted);margin-top:2px;">총 교육 기간</div>
+              </div>
+              <div style="background:#FEF3C7;border-radius:10px;padding:10px;text-align:center;border-top:3px solid #D97706;">
+                <div style="font-size:20px;font-weight:900;color:#D97706;">12주</div>
+                <div style="font-size:9px;color:var(--muted);margin-top:2px;">총 훈련 주차</div>
+              </div>
+              <div style="background:#ECFDF5;border-radius:10px;padding:10px;text-align:center;border-top:3px solid #059669;">
+                <div style="font-size:20px;font-weight:900;color:#059669;">80%</div>
+                <div style="font-size:9px;color:var(--muted);margin-top:2px;">OJT 현장 실무 비율</div>
+              </div>
+              <div style="background:#EEF3FB;border-radius:10px;padding:10px;text-align:center;border-top:3px solid #0891B2;">
+                <div style="font-size:20px;font-weight:900;color:#0891B2;">10명</div>
+                <div style="font-size:9px;color:var(--muted);margin-top:2px;">기수당 정원</div>
+              </div>
+            </div>
+            <!-- 3단계 Phase 카드 -->
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+              <!-- Phase 1 -->
+              <div style="border:1.5px solid #BFDBFE;border-radius:12px;overflow:hidden;">
+                <div style="background:linear-gradient(90deg,#1E40AF,#1A4FAB);padding:10px 14px;">
+                  <div style="font-size:9.5px;color:#BFDBFE;font-weight:600;letter-spacing:.05em;">PHASE 1</div>
+                  <div style="font-size:15px;font-weight:800;color:#fff;margin-top:1px;">기초 역량</div>
+                  <div style="font-size:9.5px;color:#BFDBFE;margin-top:2px;">1~4주 · 1개월</div>
+                </div>
+                <div style="padding:12px 14px;">
+                  <div style="font-size:9.5px;font-weight:700;color:#1E40AF;margin-bottom:4px;">🎯 목표</div>
+                  <div style="font-size:9.5px;color:var(--muted);margin-bottom:10px;line-height:1.6;">위생·안전·기초 조리 원리 습득 → 현장 투입 기반 마련</div>
+                  <div style="font-size:9.5px;font-weight:700;color:#1E40AF;margin-bottom:5px;">📖 교육 비율</div>
+                  <div style="display:flex;border-radius:6px;overflow:hidden;height:18px;margin-bottom:10px;">
+                    <div style="flex:50;background:#1A4FAB;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:700;">이론 50%</div>
+                    <div style="flex:50;background:#93C5FD;display:flex;align-items:center;justify-content:center;font-size:9px;color:#1E3A8A;font-weight:700;">실습 50%</div>
+                  </div>
+                  <div style="font-size:9.5px;font-weight:700;color:#1E40AF;margin-bottom:5px;">📋 주요 내용</div>
+                  <div style="font-size:9.5px;color:#374151;line-height:1.75;">· HACCP·식품위생법 이론<br>· 칼·화기·전도 안전교육<br>· 기초 소스·육수·조리 원리<br>· 브랜드 메뉴 히스토리<br>· 식재료 검수·보관 실습</div>
+                  <div style="margin-top:10px;background:#EFF6FF;border-radius:7px;padding:8px 10px;border-left:3px solid #1A4FAB;">
+                    <div style="font-size:9px;font-weight:700;color:#1E40AF;">✅ 이수 기준</div>
+                    <div style="font-size:9px;color:#374151;margin-top:2px;line-height:1.5;">위생·안전 필기 <b>80점 이상</b></div>
+                  </div>
+                </div>
+              </div>
+              <!-- Phase 2 -->
+              <div style="border:1.5px solid #FDE68A;border-radius:12px;overflow:hidden;">
+                <div style="background:linear-gradient(90deg,#B45309,#D97706);padding:10px 14px;">
+                  <div style="font-size:9.5px;color:#FEF3C7;font-weight:600;letter-spacing:.05em;">PHASE 2</div>
+                  <div style="font-size:15px;font-weight:800;color:#fff;margin-top:1px;">실무 숙련</div>
+                  <div style="font-size:9.5px;color:#FEF3C7;margin-top:2px;">5~8주 · 2개월</div>
+                </div>
+                <div style="padding:12px 14px;">
+                  <div style="font-size:9.5px;font-weight:700;color:#B45309;margin-bottom:4px;">🎯 목표</div>
+                  <div style="font-size:9.5px;color:var(--muted);margin-bottom:10px;line-height:1.6;">도시락 생산 라인 실무 자립 — 속도·품질 기준 동시 달성</div>
+                  <div style="font-size:9.5px;font-weight:700;color:#B45309;margin-bottom:5px;">📖 교육 비율</div>
+                  <div style="display:flex;border-radius:6px;overflow:hidden;height:18px;margin-bottom:10px;">
+                    <div style="flex:10;background:#D97706;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:700;">이론<br>10%</div>
+                    <div style="flex:90;background:#FCD34D;display:flex;align-items:center;justify-content:center;font-size:9px;color:#78350F;font-weight:700;">OJT 실무 90%</div>
+                  </div>
+                  <div style="font-size:9.5px;font-weight:700;color:#B45309;margin-bottom:5px;">📋 주요 내용</div>
+                  <div style="font-size:9.5px;color:#374151;line-height:1.75;">· 도시락 라인 보조 투입<br>· 포장·라벨링·생산량 관리<br>· 주문 대응·재고 파악<br>· 품질 기준 반복 숙련<br>· 2차 실무 역량 평가</div>
+                  <div style="margin-top:10px;background:#FFFBEB;border-radius:7px;padding:8px 10px;border-left:3px solid #D97706;">
+                    <div style="font-size:9px;font-weight:700;color:#B45309;">✅ 이수 기준</div>
+                    <div style="font-size:9px;color:#374151;margin-top:2px;line-height:1.5;">생산 속도 기준 도달 · 불량률 <b>5% 미만</b></div>
+                  </div>
+                </div>
+              </div>
+              <!-- Phase 3 -->
+              <div style="border:1.5px solid #86EFAC;border-radius:12px;overflow:hidden;">
+                <div style="background:linear-gradient(90deg,#065F46,#059669);padding:10px 14px;">
+                  <div style="font-size:9.5px;color:#D1FAE5;font-weight:600;letter-spacing:.05em;">PHASE 3</div>
+                  <div style="font-size:15px;font-weight:800;color:#fff;margin-top:1px;">브랜드 특화</div>
+                  <div style="font-size:9.5px;color:#D1FAE5;margin-top:2px;">9~12주 · 3개월</div>
+                </div>
+                <div style="padding:12px 14px;">
+                  <div style="font-size:9.5px;font-weight:700;color:#065F46;margin-bottom:4px;">🎯 목표</div>
+                  <div style="font-size:9.5px;color:var(--muted);margin-bottom:10px;line-height:1.6;">배치 매장 즉시 투입 가능한 브랜드 특화 역량 완성</div>
+                  <div style="font-size:9.5px;font-weight:700;color:#065F46;margin-bottom:5px;">📖 교육 비율</div>
+                  <div style="display:flex;border-radius:6px;overflow:hidden;height:18px;margin-bottom:10px;">
+                    <div style="flex:100;background:linear-gradient(90deg,#059669,#10B981);display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:700;">브랜드 OJT 100%</div>
+                  </div>
+                  <div style="font-size:9.5px;font-weight:700;color:#065F46;margin-bottom:5px;">📋 주요 내용</div>
+                  <div style="font-size:9.5px;color:#374151;line-height:1.75;">· 배치 브랜드 메뉴 집중 훈련<br>· 피크타임 풀 투입 훈련<br>· 멀티 포지션 운영 적응<br>· 최종 수료 역량 평가<br>· 배치 매장 확정 및 발령</div>
+                  <div style="margin-top:10px;background:#ECFDF5;border-radius:7px;padding:8px 10px;border-left:3px solid #059669;">
+                    <div style="font-size:9px;font-weight:700;color:#065F46;">✅ 이수 기준</div>
+                    <div style="font-size:9px;color:#374151;margin-top:2px;line-height:1.5;">최종 역량 평가 <b>80점 이상</b> → 수료 판정</div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-        <div class="sec-card c-gold wide">
-          <div class="sec-card-head"><span>🧭 운영 원칙</span></div>
+
+        <!-- ② 12주 주차별 커리큘럼 -->
+        <div class="sec-card c-blue wide">
+          <div class="sec-card-head"><span>🗓 12주 주차별 세부 커리큘럼</span><span class="meta">📝 = 평가 주차</span></div>
           <div class="sec-card-body">
-            <div class="row-item"><div class="ri-dot" style="background:#D97706"></div><span class="ri-label">월 정원 <b>10명</b> · 실제 매장 영업 병행(OJT형 실무 훈련)</span></div>
-            <div class="row-item"><div class="ri-dot" style="background:#D97706"></div><span class="ri-label">단계별 역량 평가(1차→최종) 통과 시 수료 판정</span></div>
-            <div class="row-item"><div class="ri-dot" style="background:#D97706"></div><span class="ri-label">수료 후 배치 브랜드 특화 메뉴 사전 집중 훈련</span></div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+              <!-- Phase 1 (1~4주) -->
+              <div style="border-radius:9px;border:1.5px solid #BFDBFE;overflow:hidden;">
+                <div style="background:#1A4FAB;padding:7px 10px;font-size:9.5px;font-weight:700;color:#fff;">1주 · 입교·기초이론</div>
+                <div style="padding:9px 10px;font-size:9.5px;color:#374151;line-height:1.7;background:#F8FAFF;">· 입교 오리엔테이션<br>· HACCP·식품위생법<br>· 소방·산재 안전교육</div>
+              </div>
+              <div style="border-radius:9px;border:1.5px solid #BFDBFE;overflow:hidden;">
+                <div style="background:#1A4FAB;padding:7px 10px;font-size:9.5px;font-weight:700;color:#fff;">2주 · 칼·화기·식재료</div>
+                <div style="padding:9px 10px;font-size:9.5px;color:#374151;line-height:1.7;background:#F8FAFF;">· 칼 손질·안전 보관<br>· 화기·조리기기 사용<br>· 식재료 검수·보관 실습</div>
+              </div>
+              <div style="border-radius:9px;border:1.5px solid #BFDBFE;overflow:hidden;">
+                <div style="background:#1A4FAB;padding:7px 10px;font-size:9.5px;font-weight:700;color:#fff;">3주 · 조리 원리·브랜드</div>
+                <div style="padding:9px 10px;font-size:9.5px;color:#374151;line-height:1.7;background:#F8FAFF;">· 기초 소스·육수 원리<br>· 브랜드 메뉴 히스토리<br>· 표준 레시피 이해</div>
+              </div>
+              <div style="border-radius:9px;border:1.5px solid #EF4444;overflow:hidden;">
+                <div style="background:#B91C1C;padding:7px 10px;font-size:9.5px;font-weight:700;color:#fff;">4주 · 1차 평가 📝</div>
+                <div style="padding:9px 10px;font-size:9.5px;color:#374151;line-height:1.7;background:#FFF5F5;">· 위생·안전 필기 평가<br>· 기초 조리 실기 평가<br>· <b>80점 미만 → 재교육</b></div>
+              </div>
+              <!-- Phase 2 (5~8주) -->
+              <div style="border-radius:9px;border:1.5px solid #FDE68A;overflow:hidden;">
+                <div style="background:#D97706;padding:7px 10px;font-size:9.5px;font-weight:700;color:#fff;">5주 · 라인 보조 투입</div>
+                <div style="padding:9px 10px;font-size:9.5px;color:#374151;line-height:1.7;background:#FFFDF0;">· 도시락 라인 보조 역할<br>· 생산 흐름 파악<br>· 선임 작업 관찰·모사</div>
+              </div>
+              <div style="border-radius:9px;border:1.5px solid #FDE68A;overflow:hidden;">
+                <div style="background:#D97706;padding:7px 10px;font-size:9.5px;font-weight:700;color:#fff;">6주 · 포장·생산 관리</div>
+                <div style="padding:9px 10px;font-size:9.5px;color:#374151;line-height:1.7;background:#FFFDF0;">· 도시락 포장·라벨링<br>· 생산량·납기 관리<br>· 품질 기준 체크리스트</div>
+              </div>
+              <div style="border-radius:9px;border:1.5px solid #FDE68A;overflow:hidden;">
+                <div style="background:#D97706;padding:7px 10px;font-size:9.5px;font-weight:700;color:#fff;">7주 · 독립 운영 실습</div>
+                <div style="padding:9px 10px;font-size:9.5px;color:#374151;line-height:1.7;background:#FFFDF0;">· 주문 대응·재고 파악<br>· 독립 포지션 시범 운영<br>· 강사 밀착 피드백</div>
+              </div>
+              <div style="border-radius:9px;border:1.5px solid #EF4444;overflow:hidden;">
+                <div style="background:#B91C1C;padding:7px 10px;font-size:9.5px;font-weight:700;color:#fff;">8주 · 2차 평가 📝</div>
+                <div style="padding:9px 10px;font-size:9.5px;color:#374151;line-height:1.7;background:#FFF5F5;">· 생산 속도 평가<br>· 품질 불량률 측정<br>· <b>미달 시 2주 연장 훈련</b></div>
+              </div>
+              <!-- Phase 3 (9~12주) -->
+              <div style="border-radius:9px;border:1.5px solid #86EFAC;overflow:hidden;">
+                <div style="background:#059669;padding:7px 10px;font-size:9.5px;font-weight:700;color:#fff;">9주 · 브랜드 특화 ①</div>
+                <div style="padding:9px 10px;font-size:9.5px;color:#374151;line-height:1.7;background:#F0FDF4;">· 배치 브랜드 메뉴 집중<br>· 브랜드 SOP·표준 레시피<br>· 특화 식재료 이해</div>
+              </div>
+              <div style="border-radius:9px;border:1.5px solid #86EFAC;overflow:hidden;">
+                <div style="background:#059669;padding:7px 10px;font-size:9.5px;font-weight:700;color:#fff;">10주 · 브랜드 특화 ②</div>
+                <div style="padding:9px 10px;font-size:9.5px;color:#374151;line-height:1.7;background:#F0FDF4;">· 반복 숙련 훈련<br>· 속도·품질 동시 달성<br>· 브랜드 SOP 완전 체화</div>
+              </div>
+              <div style="border-radius:9px;border:1.5px solid #86EFAC;overflow:hidden;">
+                <div style="background:#059669;padding:7px 10px;font-size:9.5px;font-weight:700;color:#fff;">11주 · 피크타임 실전</div>
+                <div style="padding:9px 10px;font-size:9.5px;color:#374151;line-height:1.7;background:#F0FDF4;">· 피크타임 풀 투입<br>· 멀티 포지션 대응 훈련<br>· 최종 배치 매장 확정</div>
+              </div>
+              <div style="border-radius:9px;border:1.5px solid #EF4444;overflow:hidden;">
+                <div style="background:#B91C1C;padding:7px 10px;font-size:9.5px;font-weight:700;color:#fff;">12주 · 최종 수료 📝</div>
+                <div style="padding:9px 10px;font-size:9.5px;color:#374151;line-height:1.7;background:#FFF5F5;">· 종합 역량 최종 평가<br>· 80점 이상 수료 판정<br>· <b>배치 매장 발령 통보</b></div>
+              </div>
+            </div>
           </div>
         </div>
+
+        <!-- ③ 교육 운영 방식 -->
+        <div class="sec-card c-blue">
+          <div class="sec-card-head"><span>🎓 교육 운영 방식</span></div>
+          <div class="sec-card-body">
+            <div class="row-item"><div class="ri-dot" style="background:#1A4FAB"></div><span class="ri-label"><b>운영 장소:</b> 방배동 아카데미 매장 (50평) — 실제 도시락 배달 운영 병행</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#1A4FAB"></div><span class="ri-label"><b>정원:</b> 기수당 10명 · 연간 최대 4기 운영 가능</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#1A4FAB"></div><span class="ri-label"><b>강사 구성:</b> 수석 훈련 강사(김효중 실장) + 보조 강사 × 1</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#1A4FAB"></div><span class="ri-label"><b>OJT 방식:</b> 실제 도시락 주문·생산·배달을 훈련 교재로 활용 — 매출 수익 병행</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#1A4FAB"></div><span class="ri-label"><b>훈련생 처우:</b> 사업주 직업능력개발훈련 적용 · 고용노동부 훈련비 지원 신청</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#1A4FAB"></div><span class="ri-label"><b>채용 채널:</b> P-TECH · 대학연계 · 중장년 · 특성화고 4개 트랙 병행 입교</span></div>
+            <div class="alert alert-blue" style="margin-top:10px;"><div>💡</div><div>실제 영업 매출(약 <b>1,155만원/월</b>)이 운영비 일부를 상쇄 → 훈련 비용 실질 절감</div></div>
+          </div>
+        </div>
+
+        <!-- ④ 평가·수료 기준 -->
+        <div class="sec-card c-green">
+          <div class="sec-card-head"><span>📊 평가·수료 기준</span></div>
+          <div class="sec-card-body">
+            <div class="sub-h" style="margin-bottom:8px;">단계별 평가 체계</div>
+            <div style="display:grid;grid-template-columns:1fr;gap:7px;margin-bottom:14px;">
+              <div style="background:#EFF6FF;border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:10px;">
+                <div style="width:32px;height:32px;border-radius:50%;background:#1A4FAB;color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">4주</div>
+                <div><div style="font-size:10.5px;font-weight:700;color:#1E40AF;">1차 평가 — 기초 역량</div><div style="font-size:9.5px;color:var(--muted);">위생·안전 필기 + 기초 조리 실기 / 기준 미달 시 1주 재교육</div></div>
+              </div>
+              <div style="background:#FFFBEB;border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:10px;">
+                <div style="width:32px;height:32px;border-radius:50%;background:#D97706;color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">8주</div>
+                <div><div style="font-size:10.5px;font-weight:700;color:#B45309;">2차 평가 — 실무 숙련</div><div style="font-size:9.5px;color:var(--muted);">생산 속도 기준 도달 + 불량률 5% 미만 / 미달 시 2주 연장</div></div>
+              </div>
+              <div style="background:#ECFDF5;border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:10px;">
+                <div style="width:32px;height:32px;border-radius:50%;background:#059669;color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">12주</div>
+                <div><div style="font-size:10.5px;font-weight:700;color:#065F46;">최종 수료 — 종합 평가</div><div style="font-size:9.5px;color:var(--muted);">종합 역량 80점 이상 → 수료 판정 + 배치 발령</div></div>
+              </div>
+            </div>
+            <div class="sub-h" style="margin-bottom:8px;">수료 후 배치 기준</div>
+            <div class="row-item"><div class="ri-dot" style="background:#059669"></div><span class="ri-label"><b>배치 결정:</b> 수료 역량 등급 + 브랜드별 수요 매칭</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#059669"></div><span class="ri-label"><b>목표 수료율:</b> 80% (연간 수료 목표 80명)</span></div>
+            <div class="row-item"><div class="ri-dot" style="background:#059669"></div><span class="ri-label"><b>6개월 재직률 목표:</b> 75% (사후 관리 연계)</span></div>
+            <div class="alert alert-green" style="margin-top:10px;"><div>✅</div><div>수료 후 <b>3개월간</b> 배치 매장 인건비 본사 부담 → 매장장 부담 없이 적응 기간 확보</div></div>
+          </div>
+        </div>
+
       </div>
     </section>
 
