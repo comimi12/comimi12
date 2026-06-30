@@ -255,11 +255,11 @@
                   <div style="font-size:8px;color:var(--muted);margin-top:1px;">BOH 연간 채용 목표</div>
                 </div>
                 <div style="background:#FFF7ED;border-radius:7px;padding:5px 4px;text-align:center;border-bottom:3px solid #D97706;">
-                  <div style="font-size:18px;font-weight:800;color:#D97706;line-height:1.1;">30%</div>
+                  <div style="font-size:18px;font-weight:800;color:#D97706;line-height:1.1;">36%</div>
                   <div style="font-size:8px;color:var(--muted);margin-top:1px;">아카데미 채용 비중</div>
                 </div>
                 <div style="background:#ECFDF5;border-radius:7px;padding:5px 4px;text-align:center;border-bottom:3px solid #059669;">
-                  <div style="font-size:18px;font-weight:800;color:#059669;line-height:1.1;">약 82명</div>
+                  <div style="font-size:18px;font-weight:800;color:#059669;line-height:1.1;">100명</div>
                   <div style="font-size:8px;color:var(--muted);margin-top:1px;">아카데미 채용 인원</div>
                 </div>
               </div>
@@ -295,12 +295,12 @@
               </div>
               <!-- 아카데미 채용 분담 막대 -->
               <div style="display:flex;height:17px;border-radius:5px;overflow:hidden;margin-bottom:7px;">
-                <div style="width:30%;background:#059669;color:#fff;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;">아카데미 30%</div>
-                <div style="width:70%;background:#94A3B8;color:#fff;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;">채용팀 직접 70%</div>
+                <div style="width:36%;background:#059669;color:#fff;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;">아카데미 36%</div>
+                <div style="width:64%;background:#94A3B8;color:#fff;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;">채용팀 직접 64%</div>
               </div>
               <!-- 아카데미 채용 인사이트 -->
               <div style="background:#FFF7ED;border-radius:7px;padding:7px 9px;border-left:3px solid #D97706;">
-                <div style="font-size:9.5px;color:#92400E;line-height:1.6;">아카데미 채용 목표 <b>전체의 30% (약 82명)</b> = 사원급 <b>27명</b>(10% 전부) + 조리장급 <b>55명</b>(20%) · 나머지는 채용팀 직접 채용</div>
+                <div style="font-size:9.5px;color:#92400E;line-height:1.6;">아카데미 채용 목표 <b>전체의 36% (100명)</b> = 사원급 <b>27명</b>(10% 전부) + 조리장급 <b>73명</b> · 나머지는 채용팀 직접 채용</div>
               </div>
             </div>
           </div>
@@ -469,51 +469,70 @@
     <section id="v2" class="view">
       <div class="grid">
 
-        <!-- ① 상단 와이드: 6개 원형 카테고리 카드 -->
+        <!-- ① 상단 와이드: 공간 구성 도넛 차트 -->
         <div class="sec-card c-gold wide">
-          <div class="sec-card-head"><span>📍 방배동 아카데미 매장 시뮬레이션 — 차이797 서래마을점 인근 (50평)</span></div>
+          <div class="sec-card-head"><span>📍 방배동 아카데미 매장 공간 구성 — 서래마을 인근 (총 50평)</span></div>
           <div class="sec-card-body">
-            <!-- 위치 요약 한 줄 -->
-            <div style="text-align:center;font-size:11px;color:var(--muted);margin-bottom:16px;background:#FFFBEB;border-radius:8px;padding:7px 12px;border:1px solid #FDE68A;">
-              서초구 방배동 810-2 (동광로 78) 인근 &nbsp;·&nbsp; 방배역 도보 3분 &nbsp;·&nbsp; 제2종 근린생활시설 &nbsp;·&nbsp; 음식점 허가 가능 &nbsp;·&nbsp; 즉시 입주
+            <!-- 위치 한 줄 -->
+            <div style="text-align:center;font-size:11px;color:var(--muted);margin-bottom:18px;background:#FFFBEB;border-radius:8px;padding:7px 14px;border:1px solid #FDE68A;">
+              📍 서초구 방배동 810-2 (동광로 78) 인근 &nbsp;·&nbsp; 방배역 도보 3분 &nbsp;·&nbsp; 제2종 근린생활시설 &nbsp;·&nbsp; 음식점 허가 가능
             </div>
-            <!-- 6개 원형 카드 (1줄) -->
-            <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px;">
-              <!-- 위치 -->
-              <div style="text-align:center;">
-                <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#DBEAFE,#93C5FD);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 8px;box-shadow:0 4px 12px rgba(59,130,246,.2);">📍</div>
-                <div style="font-size:10.5px;font-weight:700;color:var(--navy);margin-bottom:3px;">위치</div>
-                <div style="font-size:9px;color:var(--muted);line-height:1.55;">서래마을 상권<br>차이797 인근</div>
+            <!-- 도넛 차트 + 구역 카드 -->
+            <div style="display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:center;">
+              <!-- 도넛 SVG -->
+              <div style="text-align:center;flex-shrink:0;">
+                <svg width="170" height="170" viewBox="0 0 36 36">
+                  <!-- 배경 원 -->
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#F3F4F6" stroke-width="4"/>
+                  <!-- 생산 구역 50% -->
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#D97706" stroke-width="4"
+                    stroke-dasharray="50 50" stroke-dashoffset="0"
+                    transform="rotate(-90 18 18)"/>
+                  <!-- 교육 구역 30% -->
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#059669" stroke-width="4"
+                    stroke-dasharray="30 70" stroke-dashoffset="-50"
+                    transform="rotate(-90 18 18)"/>
+                  <!-- 행정 구역 20% -->
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#7C3AED" stroke-width="4"
+                    stroke-dasharray="20 80" stroke-dashoffset="-80"
+                    transform="rotate(-90 18 18)"/>
+                  <!-- 중앙 텍스트 -->
+                  <text x="18" y="15.5" text-anchor="middle" font-size="6.5" font-weight="900" fill="#0F2147">50평</text>
+                  <text x="18" y="21" text-anchor="middle" font-size="2.8" fill="#64748B">총 면적</text>
+                </svg>
+                <!-- 범례 -->
+                <div style="display:flex;flex-direction:column;gap:5px;margin-top:6px;text-align:left;padding:0 8px;">
+                  <div style="display:flex;align-items:center;gap:6px;font-size:10px;"><span style="width:12px;height:12px;border-radius:3px;background:#D97706;flex-shrink:0;"></span>생산 구역 25평 (50%)</div>
+                  <div style="display:flex;align-items:center;gap:6px;font-size:10px;"><span style="width:12px;height:12px;border-radius:3px;background:#059669;flex-shrink:0;"></span>교육 구역 15평 (30%)</div>
+                  <div style="display:flex;align-items:center;gap:6px;font-size:10px;"><span style="width:12px;height:12px;border-radius:3px;background:#7C3AED;flex-shrink:0;"></span>행정 구역 10평 (20%)</div>
+                </div>
               </div>
-              <!-- 총 규모 -->
-              <div style="text-align:center;">
-                <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#FEF9C3,#FDE68A);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 8px;box-shadow:0 4px 12px rgba(217,119,6,.2);">🏠</div>
-                <div style="font-size:10.5px;font-weight:700;color:var(--navy);margin-bottom:3px;">총 규모</div>
-                <div style="font-size:9px;color:var(--muted);line-height:1.55;">50평<br>즉시 입주 가능</div>
-              </div>
-              <!-- 생산 구역 -->
-              <div style="text-align:center;">
-                <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#FEF3C7,#FCD34D);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 8px;box-shadow:0 4px 12px rgba(251,191,36,.2);">📦</div>
-                <div style="font-size:10.5px;font-weight:700;color:var(--navy);margin-bottom:3px;">생산 구역</div>
-                <div style="font-size:9px;color:var(--muted);line-height:1.55;">25평<br>일 300~500팩</div>
-              </div>
-              <!-- 교육 구역 -->
-              <div style="text-align:center;">
-                <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#DCFCE7,#86EFAC);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 8px;box-shadow:0 4px 12px rgba(5,150,105,.2);">🎓</div>
-                <div style="font-size:10.5px;font-weight:700;color:var(--navy);margin-bottom:3px;">교육 구역</div>
-                <div style="font-size:9px;color:var(--muted);line-height:1.55;">15평<br>20석 강의실</div>
-              </div>
-              <!-- 배달 운영 -->
-              <div style="text-align:center;">
-                <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#EFF6FF,#BFDBFE);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 8px;box-shadow:0 4px 12px rgba(37,99,235,.2);">🛵</div>
-                <div style="font-size:10.5px;font-weight:700;color:var(--navy);margin-bottom:3px;">배달 운영</div>
-                <div style="font-size:9px;color:var(--muted);line-height:1.55;">픽업·배달<br>실무 현장 실습</div>
-              </div>
-              <!-- 행정 구역 -->
-              <div style="text-align:center;">
-                <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#FAF5FF,#E9D5FF);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 8px;box-shadow:0 4px 12px rgba(124,58,237,.2);">🗂</div>
-                <div style="font-size:10.5px;font-weight:700;color:var(--navy);margin-bottom:3px;">행정 구역</div>
-                <div style="font-size:9px;color:var(--muted);line-height:1.55;">10평<br>담당자 2명</div>
+              <!-- 구역별 세부 카드 (세로 3개) -->
+              <div style="display:flex;flex-direction:column;gap:10px;">
+                <!-- 생산 -->
+                <div style="background:#FFFBEB;border-radius:10px;padding:11px 14px;border-left:4px solid #D97706;display:flex;align-items:flex-start;gap:12px;">
+                  <div style="font-size:26px;line-height:1;margin-top:2px;">📦</div>
+                  <div>
+                    <div style="font-size:12px;font-weight:800;color:#92400E;margin-bottom:3px;">생산 구역 — 25평 <span style="font-size:10px;font-weight:600;background:#FEF3C7;padding:1px 6px;border-radius:99px;">50%</span></div>
+                    <div style="font-size:10px;color:#78350F;line-height:1.65;">산업용 조리장비 설치 &nbsp;·&nbsp; 도시락 일 300~500팩 생산 &nbsp;·&nbsp; 배달 운영(배민·쿠팡이츠) 겸용 &nbsp;·&nbsp; 교육생 현장 실습</div>
+                  </div>
+                </div>
+                <!-- 교육 -->
+                <div style="background:#ECFDF5;border-radius:10px;padding:11px 14px;border-left:4px solid #059669;display:flex;align-items:flex-start;gap:12px;">
+                  <div style="font-size:26px;line-height:1;margin-top:2px;">🎓</div>
+                  <div>
+                    <div style="font-size:12px;font-weight:800;color:#065F46;margin-bottom:3px;">교육 구역 — 15평 <span style="font-size:10px;font-weight:600;background:#D1FAE5;padding:1px 6px;border-radius:99px;">30%</span></div>
+                    <div style="font-size:10px;color:#14532D;line-height:1.65;">20석 이론·실습 강의실 &nbsp;·&nbsp; 브랜드 매뉴얼 교육 전용 &nbsp;·&nbsp; 데모 조리 시연 공간</div>
+                  </div>
+                </div>
+                <!-- 행정 -->
+                <div style="background:#FAF5FF;border-radius:10px;padding:11px 14px;border-left:4px solid #7C3AED;display:flex;align-items:flex-start;gap:12px;">
+                  <div style="font-size:26px;line-height:1;margin-top:2px;">🗂</div>
+                  <div>
+                    <div style="font-size:12px;font-weight:800;color:#4C1D95;margin-bottom:3px;">행정 구역 — 10평 <span style="font-size:10px;font-weight:600;background:#EDE9FE;padding:1px 6px;border-radius:99px;">20%</span></div>
+                    <div style="font-size:10px;color:#5B21B6;line-height:1.65;">담당자 2명 &nbsp;·&nbsp; 인사·회계·보고 &nbsp;·&nbsp; 교육생 출결·평가 관리</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
