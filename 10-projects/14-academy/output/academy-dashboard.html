@@ -246,7 +246,7 @@
 
           <!-- ① 채용 -->
           <div class="flow-stage s1">
-            <div class="stage-head"><div class="stage-num">1</div><div><div class="stage-label">채용</div><div class="stage-sub" id="v1-total-sub">2025년 연간 일용직 사용 현황</div></div></div>
+            <div class="stage-head"><div class="stage-num">1</div><div><div class="stage-label">채용</div><div class="stage-sub" id="v1-total-sub" style="font-size:12px;font-weight:600;opacity:1;">2025년도 일용직 사용 기준 연간 채용 목표 설정</div></div></div>
             <div class="stage-body" style="padding:10px 12px;">
               <!-- KPI 3개 -->
               <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:7px;">
@@ -515,84 +515,93 @@
           </div>
         </div>
 
-        <!-- ② 좌: 예상 매출·운영 지표 -->
-        <div class="sec-card c-gold">
+        <!-- ② 예상 매출·운영 지표 (wide) -->
+        <div class="sec-card c-gold wide">
           <div class="sec-card-head"><span>📊 예상 매출·운영 지표 (월간)</span></div>
-          <div class="sec-card-body">
-            <!-- KPI 요약 3개 -->
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;">
-              <div style="background:#FFFBEB;border-radius:10px;padding:10px 6px;text-align:center;border-top:3px solid #D97706;">
-                <div style="font-size:17px;font-weight:800;color:#92400E;line-height:1.1;">2,310<span style="font-size:10px;">만원</span></div>
-                <div style="font-size:8.5px;color:var(--muted);margin-top:2px;">월 매출</div>
+          <div class="sec-card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+            <!-- 좌: KPI 3개 -->
+            <div>
+              <div class="sub-h" style="margin-bottom:10px;">월간 매출 요약</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+                <div style="background:#FFFBEB;border-radius:10px;padding:12px 6px;text-align:center;border-top:3px solid #D97706;">
+                  <div style="font-size:19px;font-weight:800;color:#92400E;line-height:1.1;">2,310<span style="font-size:10px;">만원</span></div>
+                  <div style="font-size:8.5px;color:var(--muted);margin-top:3px;">월 매출</div>
+                </div>
+                <div style="background:#FEF2F2;border-radius:10px;padding:12px 6px;text-align:center;border-top:3px solid #EF4444;">
+                  <div style="font-size:19px;font-weight:800;color:#B91C1C;line-height:1.1;">1,155<span style="font-size:10px;">만원</span></div>
+                  <div style="font-size:8.5px;color:var(--muted);margin-top:3px;">월 비용 차감</div>
+                </div>
+                <div style="background:#ECFDF5;border-radius:10px;padding:12px 6px;text-align:center;border-top:3px solid #059669;">
+                  <div style="font-size:19px;font-weight:800;color:#059669;line-height:1.1;">1,155<span style="font-size:10px;">만원</span></div>
+                  <div style="font-size:8.5px;color:var(--muted);margin-top:3px;">순 기여/월</div>
+                </div>
               </div>
-              <div style="background:#FEF2F2;border-radius:10px;padding:10px 6px;text-align:center;border-top:3px solid #EF4444;">
-                <div style="font-size:17px;font-weight:800;color:#B91C1C;line-height:1.1;">1,155<span style="font-size:10px;">만원</span></div>
-                <div style="font-size:8.5px;color:var(--muted);margin-top:2px;">월 비용 차감</div>
-              </div>
-              <div style="background:#ECFDF5;border-radius:10px;padding:10px 6px;text-align:center;border-top:3px solid #059669;">
-                <div style="font-size:17px;font-weight:800;color:#059669;line-height:1.1;">1,155<span style="font-size:10px;">만원</span></div>
-                <div style="font-size:8.5px;color:var(--muted);margin-top:2px;">순 기여/월</div>
-              </div>
+              <div class="alert alert-blue" style="font-size:10.5px;"><div>💡</div><div>도시락 매출 수익이 <b>월 운영비의 약 70%</b>를 상쇄 → 실질 아카데미 비용 부담 경감</div></div>
             </div>
-            <!-- 항목별 상세 -->
-            <div class="sub-h" style="margin-bottom:8px;">항목별 내역</div>
-            <div class="row-item"><div class="ri-dot" style="background:#D97706"></div><span class="ri-label">도시락 매출 (300팩×22일×3,500원)</span><span class="ri-val" style="color:#92400E;">약 2,310만원</span></div>
-            <div class="row-item"><div class="ri-dot" style="background:#EF4444"></div><span class="ri-label">배달 플랫폼 수수료 (약 15%)</span><span class="ri-val" style="color:#EF4444;">−347만원</span></div>
-            <div class="row-item"><div class="ri-dot" style="background:#EF4444"></div><span class="ri-label">재료비 (매출의 35%)</span><span class="ri-val" style="color:#EF4444;">−808만원</span></div>
-            <div class="row-item" style="background:#FFFBEB;border-radius:6px;padding:6px;margin-top:4px;"><div class="ri-dot" style="background:#F59E0B"></div><span class="ri-label" style="font-weight:700;">순 기여 (운영비 일부 상쇄)</span><span class="ri-val" style="color:#D97706;font-size:13px;">약 1,155만원/월</span></div>
+            <!-- 우: 항목별 내역 -->
+            <div>
+              <div class="sub-h" style="margin-bottom:10px;">항목별 내역</div>
+              <div class="row-item"><div class="ri-dot" style="background:#D97706"></div><span class="ri-label">도시락 매출 (300팩×22일×3,500원)</span><span class="ri-val" style="color:#92400E;">약 2,310만원</span></div>
+              <div class="row-item"><div class="ri-dot" style="background:#EF4444"></div><span class="ri-label">배달 플랫폼 수수료 (약 15%)</span><span class="ri-val" style="color:#EF4444;">−347만원</span></div>
+              <div class="row-item"><div class="ri-dot" style="background:#EF4444"></div><span class="ri-label">재료비 (매출의 35%)</span><span class="ri-val" style="color:#EF4444;">−808만원</span></div>
+              <div class="row-item" style="background:#FFFBEB;border-radius:6px;padding:8px;margin-top:6px;"><div class="ri-dot" style="background:#F59E0B"></div><span class="ri-label" style="font-weight:700;">순 기여 (운영비 일부 상쇄)</span><span class="ri-val" style="color:#D97706;font-size:13px;">약 1,155만원/월</span></div>
+            </div>
           </div>
         </div>
 
-        <!-- ③ 우: 투자·운영 비용 -->
-        <div class="sec-card c-accent">
+        <!-- ③ 투자·운영 비용 (wide) -->
+        <div class="sec-card c-accent wide">
           <div class="sec-card-head"><span>💰 아카데미 투자·운영 비용 (서래마을 실시세 기준)</span></div>
-          <div class="sec-card-body">
-            <div style="font-size:10px;color:var(--muted);margin-bottom:8px;">※ 서초구 방배동 서래마을 인근 50평(165㎡) 1층 상가 · 2025~2026년 실매물 시세 기준 · 중개사 실거래가 확인 필요</div>
-            <table class="budget-table">
-              <thead><tr><th class="l">항목</th><th class="l">구분</th><th>금액</th></tr></thead>
-              <tbody>
-                <tr><td class="l">인테리어·시설 공사 (주방+교육구획)</td><td class="l"><span class="tag tag-red">초기투자</span></td><td class="num-cell">7,000만원</td></tr>
-                <tr><td class="l">산업용 조리장비</td><td class="l"><span class="tag tag-red">초기투자</span></td><td class="num-cell">5,000만원</td></tr>
-                <tr><td class="l">보증금 (서래마을 50평 실시세)</td><td class="l"><span class="tag tag-red">초기투자</span></td><td class="num-cell" style="font-weight:700;">1억원 <span style="font-size:9px;color:var(--muted);">*회수 가능</span></td></tr>
-                <tr><td class="l">HACCP 인증·컨설팅</td><td class="l"><span class="tag tag-red">초기투자</span></td><td class="num-cell">500만원</td></tr>
-                <tr><td class="l">집기·비품</td><td class="l"><span class="tag tag-red">초기투자</span></td><td class="num-cell">1,500만원</td></tr>
-                <tr class="total-row"><td class="l" colspan="2"><b>초기 투자 합계</b> <span style="font-size:9px;font-weight:400;color:var(--muted);">(보증금 포함)</span></td><td class="num-cell" style="color:#B91C1C;">2억 4,000만원</td></tr>
-                <tr><td class="l">인건비 (총괄·강사·운영·행정 4명)</td><td class="l"><span class="tag tag-gold">월 운영</span></td><td class="num-cell">1,200만원/월</td></tr>
-                <tr><td class="l">월세 (서래마을 50평 · 실시세)</td><td class="l"><span class="tag tag-gold">월 운영</span></td><td class="num-cell" style="font-weight:700;">650만원/월</td></tr>
-                <tr><td class="l">관리비</td><td class="l"><span class="tag tag-gold">월 운영</span></td><td class="num-cell">100만원/월</td></tr>
-                <tr><td class="l">재료비·소모품</td><td class="l"><span class="tag tag-gold">월 운영</span></td><td class="num-cell">850만원/월</td></tr>
-                <tr><td class="l">도시락 매출 수익 상쇄</td><td class="l"><span class="tag tag-green">월 수익</span></td><td class="num-cell" style="color:#166534;">−1,155만원/월</td></tr>
-                <tr class="total-row"><td class="l" colspan="2"><b>월 순 운영비</b></td><td class="num-cell" style="color:#D97706;">약 1,645만원</td></tr>
-                <tr class="total-row"><td class="l" colspan="2"><b>연간 순 운영 비용</b> <span style="font-size:9px;font-weight:400;color:var(--muted);">(보증금 제외)</span></td><td class="num-cell" style="color:#B91C1C;">약 3억 3,740만원</td></tr>
-              </tbody>
-            </table>
-            <!-- 용도 적합성 분석 -->
-            <div style="margin-top:10px;border-top:1px solid #FCA5A5;padding-top:8px;">
-              <div style="font-size:10.5px;font-weight:700;color:#7F1D1D;margin-bottom:6px;">📋 용도 적합성 분석</div>
-              <div style="display:grid;grid-template-columns:1fr;gap:5px;">
-                <div style="display:flex;align-items:flex-start;gap:6px;font-size:9.5px;line-height:1.55;">
+          <div class="sec-card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+            <!-- 좌: 비용 테이블 -->
+            <div>
+              <div style="font-size:10px;color:var(--muted);margin-bottom:8px;">※ 서초구 방배동 서래마을 인근 50평(165㎡) 1층 상가 · 2025~2026년 실매물 시세 기준</div>
+              <table class="budget-table">
+                <thead><tr><th class="l">항목</th><th class="l">구분</th><th>금액</th></tr></thead>
+                <tbody>
+                  <tr><td class="l">인테리어·시설 공사 (주방+교육구획)</td><td class="l"><span class="tag tag-red">초기투자</span></td><td class="num-cell">7,000만원</td></tr>
+                  <tr><td class="l">산업용 조리장비</td><td class="l"><span class="tag tag-red">초기투자</span></td><td class="num-cell">5,000만원</td></tr>
+                  <tr><td class="l">보증금 (서래마을 50평 실시세)</td><td class="l"><span class="tag tag-red">초기투자</span></td><td class="num-cell" style="font-weight:700;">1억원 <span style="font-size:9px;color:var(--muted);">*회수</span></td></tr>
+                  <tr><td class="l">HACCP 인증·컨설팅</td><td class="l"><span class="tag tag-red">초기투자</span></td><td class="num-cell">500만원</td></tr>
+                  <tr><td class="l">집기·비품</td><td class="l"><span class="tag tag-red">초기투자</span></td><td class="num-cell">1,500만원</td></tr>
+                  <tr class="total-row"><td class="l" colspan="2"><b>초기 합계</b> <span style="font-size:9px;font-weight:400;color:var(--muted);">(보증금 포함)</span></td><td class="num-cell" style="color:#B91C1C;">2억 4,000만원</td></tr>
+                  <tr><td class="l">인건비 (총괄·강사·운영·행정 4명)</td><td class="l"><span class="tag tag-gold">월 운영</span></td><td class="num-cell">1,200만원/월</td></tr>
+                  <tr><td class="l">월세 (서래마을 50평 · 실시세)</td><td class="l"><span class="tag tag-gold">월 운영</span></td><td class="num-cell" style="font-weight:700;">650만원/월</td></tr>
+                  <tr><td class="l">관리비</td><td class="l"><span class="tag tag-gold">월 운영</span></td><td class="num-cell">100만원/월</td></tr>
+                  <tr><td class="l">재료비·소모품</td><td class="l"><span class="tag tag-gold">월 운영</span></td><td class="num-cell">850만원/월</td></tr>
+                  <tr><td class="l">도시락 매출 수익 상쇄</td><td class="l"><span class="tag tag-green">월 수익</span></td><td class="num-cell" style="color:#166534;">−1,155만원/월</td></tr>
+                  <tr class="total-row"><td class="l" colspan="2"><b>월 순 운영비</b></td><td class="num-cell" style="color:#D97706;">약 1,645만원</td></tr>
+                  <tr class="total-row"><td class="l" colspan="2"><b>연간 순 운영비</b> <span style="font-size:9px;font-weight:400;color:var(--muted);">(보증금 제외)</span></td><td class="num-cell" style="color:#B91C1C;">약 3억 3,740만원</td></tr>
+                </tbody>
+              </table>
+              <div class="alert alert-green" style="margin-top:8px;"><div>✅</div><div>일용직 연간 <b>16.5억원</b> 대비 연간 순 운영비 <b>~3.4억</b> → <b>약 13.1억 절감</b> (안정화 후)</div></div>
+            </div>
+            <!-- 우: 용도 적합성 분석 -->
+            <div>
+              <div class="sub-h" style="margin-bottom:10px;">📋 용도 적합성 분석</div>
+              <div style="display:grid;grid-template-columns:1fr;gap:7px;">
+                <div style="display:flex;align-items:flex-start;gap:7px;font-size:10px;line-height:1.6;background:#F0FDF4;border-radius:7px;padding:8px 10px;">
                   <span style="color:#16A34A;font-weight:700;flex-shrink:0;">✅</span>
                   <span><b>배달 영업 가능</b> — 즉석판매제조가공업(구청 신고) 등록 시 배달의민족·쿠팡이츠 소비자 직접 배달 허용 (식품위생법 제36조)</span>
                 </div>
-                <div style="display:flex;align-items:flex-start;gap:6px;font-size:9.5px;line-height:1.55;">
+                <div style="display:flex;align-items:flex-start;gap:7px;font-size:10px;line-height:1.6;background:#FFFBEB;border-radius:7px;padding:8px 10px;">
                   <span style="color:#D97706;font-weight:700;flex-shrink:0;">⚠️</span>
                   <span><b>HACCP 의무</b> — 도시락 제조·포장 시 HACCP 인증 취득 후 영업 가능. 인증 컨설팅 약 500만원·3~6개월 소요</span>
                 </div>
-                <div style="display:flex;align-items:flex-start;gap:6px;font-size:9.5px;line-height:1.55;">
+                <div style="display:flex;align-items:flex-start;gap:7px;font-size:10px;line-height:1.6;background:#F0FDF4;border-radius:7px;padding:8px 10px;">
                   <span style="color:#16A34A;font-weight:700;flex-shrink:0;">✅</span>
                   <span><b>사내 직무교육 가능</b> — 자사 소속 직원 대상 훈련은 학원등록 불필요. 고용노동부 사업주 직업능력개발훈련으로 비용 지원 신청 가능</span>
                 </div>
-                <div style="display:flex;align-items:flex-start;gap:6px;font-size:9.5px;line-height:1.55;">
+                <div style="display:flex;align-items:flex-start;gap:7px;font-size:10px;line-height:1.6;background:#FFFBEB;border-radius:7px;padding:8px 10px;">
                   <span style="color:#D97706;font-weight:700;flex-shrink:0;">⚠️</span>
                   <span><b>구획 분리 필수</b> — 식품위생법상 조리구역(25평)과 교육구역(15평)을 물리적 벽·칸막이로 구획해야 함. 시설 설계 시 반영 필요</span>
                 </div>
-                <div style="display:flex;align-items:flex-start;gap:6px;font-size:9.5px;line-height:1.55;">
+                <div style="display:flex;align-items:flex-start;gap:7px;font-size:10px;line-height:1.6;background:#F0FDF4;border-radius:7px;padding:8px 10px;">
                   <span style="color:#16A34A;font-weight:700;flex-shrink:0;">✅</span>
                   <span><b>복합 용도 가능</b> — 50평(165㎡)은 제2종근린생활시설 기준 학원(500㎡ 미만)·식품제조업소 모두 허용. 사업자등록 복수 운영 가능</span>
                 </div>
               </div>
             </div>
-            <div class="alert alert-green" style="margin-top:8px;"><div>✅</div><div>일용직 연간 <b>16.5억원</b> 대비, 아카데미 연간 순 운영비 <b>~3.4억</b> → <b>약 13.1억 절감 가능</b> (안정화 후 기준)</div></div>
           </div>
         </div>
 
@@ -1404,7 +1413,7 @@
   var pJung = Math.round(tgt.중급  / tgt.total * 100);
   var pGi   = 100 - pGo - pJung;
   function setEl(id, txt){ var el=document.getElementById(id); if(el) el.textContent=txt; }
-  setEl('v1-total-sub',  '연간 '+tgt.total+'명 · 3-트랙 파이프라인');
+  setEl('v1-total-sub',  '2025년도 일용직 사용 기준 연간 채용 목표 설정');
   setEl('v1-go-val',     pGo+'% / '+tgt.고급+'명');
   setEl('v1-jung-val',   pJung+'% / '+tgt.중급+'명');
   setEl('v1-gi-val',     pGi+'% / '+tgt.기초+'명');
