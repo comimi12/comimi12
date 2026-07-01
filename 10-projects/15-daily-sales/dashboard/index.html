@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>일자별 매출 대시보드</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:#0f1117; --sur:#1a1d27; --sur2:#22263a;
+  --bdr:#2d3148; --txt:#e8eaf6; --muted:#8c93c0;
+  --g:#6BAF7D; --r:#E05C5C; --o:#F5A623;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font-family:'Pretendard','Apple SD Gothic Neo',sans-serif;font-size:14px}
+header{background:var(--sur);border-bottom:1px solid var(--bdr);padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+header h1{font-size:18px;font-weight:700}
+.tag{background:var(--sur2);color:var(--muted);padding:3px 12px;border-radius:20px;font-size:12px}
+.mode-tag{padding:3px 12px;border-radius:20px;font-size:12px;font-weight:600;
+  background:#F5A62322;
+  color:#F5A623;
+  border:1px solid #F5A62355}
+.container{max-width:1600px;margin:0 auto;padding:20px 24px}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.kpi{background:var(--sur);border:1px solid var(--bdr);border-radius:12px;padding:20px}
+.kpi label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.kpi .val{font-size:26px;font-weight:700;margin:8px 0 4px;line-height:1}
+.kpi .sub{font-size:12px;color:var(--muted)}
+.pb{background:var(--sur2);border-radius:4px;height:5px;margin-top:8px}
+.pf{height:5px;border-radius:4px;transition:width .4s}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:12px;padding:20px}
+.card h2{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:16px;text-transform:uppercase;letter-spacing:.5px}
+.chart-wrap{position:relative;height:280px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--sur2);color:var(--muted);font-weight:500;padding:9px 12px;text-align:left;border-bottom:1px solid var(--bdr);position:sticky;top:0;z-index:1}
+td{padding:8px 12px;border-bottom:1px solid var(--bdr)}
+tr:hover td{background:var(--sur2)}
+td.n{text-align:right;font-variant-numeric:tabular-nums}
+.g{color:var(--g);font-weight:600}
+.o{color:var(--o);font-weight:600}
+.r{color:var(--r);font-weight:600}
+.badge{display:inline-block;padding:2px 7px;border-radius:10px;color:#fff;font-size:11px;margin-right:4px}
+.tw{max-height:560px;overflow-y:auto;border-radius:8px}
+.brand-item{border-bottom:1px solid var(--bdr);padding:14px 0}
+.brand-item:last-child{border-bottom:none}
+.bi-head{display:flex;align-items:center;margin-bottom:8px}
+.bi-row{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.bi-label{width:46px;font-size:11px;color:var(--muted);flex-shrink:0}
+.bar-bg{flex:1;background:var(--sur2);border-radius:4px;height:8px}
+.bar-fill{height:8px;border-radius:4px;transition:width .4s}
+.bi-val{width:80px;text-align:right;font-size:13px;font-variant-numeric:tabular-nums}
+.notice{background:#F5A62311;border:1px solid #F5A62344;border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:var(--o)}
+@media(max-width:1024px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <h1>📊 일자별 매출 대시보드</h1>
+  <span class="tag">기준일: 2026-07-01</span>
+  <span class="mode-tag">⏳ 계획/전년 기준 (실적 미집계)</span>
+  <span class="tag" style="margin-left:auto">생성: 2026. 7. 1. 오후 5:03:42</span>
+</header>
+
+<div class="container">
+
+
+<div class="notice">
+  ⚠️ <strong>오늘(2026-07-01) 실적 아직 미집계</strong> — 순매출이 0원입니다. POS 집계 후 재다운로드하면 실적이 반영됩니다.
+  현재는 <strong>계획</strong> 및 <strong>전년 실적</strong>을 기준으로 표시합니다.
+</div>
+
+<!-- KPI -->
+<div class="kpi-grid">
+  <div class="kpi">
+    <label>오늘 계획 매출</label>
+    <div class="val">25,537<small style="font-size:15px"> 만원</small></div>
+    <div class="sub">전년 동일일: 22,947만원</div>
+  </div>
+  <div class="kpi">
+    <label>전년 대비 계획</label>
+    <div class="val" style="color:var(--g)">
+      111.3%
+    </div>
+    <div class="pb"><div class="pf" style="width:100%;background:var(--g)"></div></div>
+  </div>
+  <div class="kpi">
+    <label>월간 계획 합계 (7월 전체)</label>
+    <div class="val">105<small style="font-size:15px"> 억원</small></div>
+    <div class="sub">전년 동월: 94억원</div>
+  </div>
+  <div class="kpi">
+    <label>집계 매장 수</label>
+    <div class="val">87<small style="font-size:16px"> 개</small></div>
+    <div class="sub">6개 브랜드</div>
+  </div>
+</div>
+
+<!-- 차트 -->
+<div class="grid2">
+  <div class="card">
+    <h2>브랜드별 계획 vs 전년 (만원)</h2>
+    <div class="chart-wrap"><canvas id="brandChart"></canvas></div>
+  </div>
+  <div class="card">
+    <h2>7월 일별 계획 vs 전년 추이 (만원)</h2>
+    <div class="chart-wrap"><canvas id="dailyChart"></canvas></div>
+  </div>
+</div>
+
+<!-- 브랜드 상세 -->
+<div class="card" style="margin-bottom:24px">
+  <h2>브랜드 상세</h2>
+  
+  <div class="brand-item">
+    <div class="bi-head">
+      <span class="badge" style="background:#8B6F5A;font-size:12px;padding:3px 10px">CHAI797</span>
+      <span style="margin-left:8px;font-size:12px;color:var(--muted)">41개 매장</span>
+      
+    </div>
+    <div class="bi-row">
+      <span class="bi-label">계획</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:100%;background:#8B6F5A"></div></div>
+      <span class="bi-val">10,501만</span>
+    </div>
+    <div class="bi-row">
+      <span class="bi-label">전년</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:99%;background:#8B6F5A55"></div></div>
+      <span class="bi-val">10,432만</span>
+    </div>
+  </div>
+  <div class="brand-item">
+    <div class="bi-head">
+      <span class="badge" style="background:#5A8FAD;font-size:12px;padding:3px 10px">호우섬</span>
+      <span style="margin-left:8px;font-size:12px;color:var(--muted)">23개 매장</span>
+      
+    </div>
+    <div class="bi-row">
+      <span class="bi-label">계획</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:71%;background:#5A8FAD"></div></div>
+      <span class="bi-val">7,485만</span>
+    </div>
+    <div class="bi-row">
+      <span class="bi-label">전년</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:52%;background:#5A8FAD55"></div></div>
+      <span class="bi-val">5,480만</span>
+    </div>
+  </div>
+  <div class="brand-item">
+    <div class="bi-head">
+      <span class="badge" style="background:#6B8C4A;font-size:12px;padding:3px 10px">서리재</span>
+      <span style="margin-left:8px;font-size:12px;color:var(--muted)">12개 매장</span>
+      
+    </div>
+    <div class="bi-row">
+      <span class="bi-label">계획</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:34%;background:#6B8C4A"></div></div>
+      <span class="bi-val">3,531만</span>
+    </div>
+    <div class="bi-row">
+      <span class="bi-label">전년</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:24%;background:#6B8C4A55"></div></div>
+      <span class="bi-val">2,514만</span>
+    </div>
+  </div>
+  <div class="brand-item">
+    <div class="bi-head">
+      <span class="badge" style="background:#C4854A;font-size:12px;padding:3px 10px">이타마에</span>
+      <span style="margin-left:8px;font-size:12px;color:var(--muted)">4개 매장</span>
+      
+    </div>
+    <div class="bi-row">
+      <span class="bi-label">계획</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:11%;background:#C4854A"></div></div>
+      <span class="bi-val">1,140만</span>
+    </div>
+    <div class="bi-row">
+      <span class="bi-label">전년</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:16%;background:#C4854A55"></div></div>
+      <span class="bi-val">1,700만</span>
+    </div>
+  </div>
+  <div class="brand-item">
+    <div class="bi-head">
+      <span class="badge" style="background:#A05050;font-size:12px;padding:3px 10px">정육점</span>
+      <span style="margin-left:8px;font-size:12px;color:var(--muted)">5개 매장</span>
+      
+    </div>
+    <div class="bi-row">
+      <span class="bi-label">계획</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:20%;background:#A05050"></div></div>
+      <span class="bi-val">2,100만</span>
+    </div>
+    <div class="bi-row">
+      <span class="bi-label">전년</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:27%;background:#A0505055"></div></div>
+      <span class="bi-val">2,822만</span>
+    </div>
+  </div>
+  <div class="brand-item">
+    <div class="bi-head">
+      <span class="badge" style="background:#9C8A5A;font-size:12px;padding:3px 10px">CHAI</span>
+      <span style="margin-left:8px;font-size:12px;color:var(--muted)">2개 매장</span>
+      
+    </div>
+    <div class="bi-row">
+      <span class="bi-label">계획</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:7%;background:#9C8A5A"></div></div>
+      <span class="bi-val">780만</span>
+    </div>
+    <div class="bi-row">
+      <span class="bi-label">전년</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:0%;background:#9C8A5A55"></div></div>
+      <span class="bi-val">0만</span>
+    </div>
+  </div>
+</div>
+
+<!-- 매장 테이블 -->
+<div class="card">
+  <h2>매장별 현황 (상위 40개) — 계획 vs 전년</h2>
+  <div class="tw">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th><th>매장</th>
+          <th style="text-align:right">계획(만)</th>
+          <th style="text-align:right">전년(만)</th>
+          <th style="text-align:right">전년계획(만)</th>
+          <th style="text-align:right">계획/전년</th>
+          <th style="text-align:right">객수</th>
+          <th style="text-align:right">객단가</th>
+        </tr>
+      </thead>
+      <tbody><tr>
+    <td>1</td>
+    <td><span class="badge" style="background:#5A8FAD">호우섬</span>호우섬 더현대서울점</td>
+    <td class="n">1,100만</td>
+    <td class="n">869만</td>
+    <td class="n">1,100만</td>
+    <td class="n g">126.6%</td>
+    <td class="n">478</td>
+    <td class="n">22,998</td>
+  </tr><tr>
+    <td>2</td>
+    <td><span class="badge" style="background:#8B6F5A">CHAI797</span>CHAI797 잠실롯데월드몰점</td>
+    <td class="n">800만</td>
+    <td class="n">528만</td>
+    <td class="n">800만</td>
+    <td class="n g">151.5%</td>
+    <td class="n">377</td>
+    <td class="n">21,242</td>
+  </tr><tr>
+    <td>3</td>
+    <td><span class="badge" style="background:#6B8C4A">서리재</span>서리재 서울역점</td>
+    <td class="n">730만</td>
+    <td class="n">641만</td>
+    <td class="n">730만</td>
+    <td class="n g">113.9%</td>
+    <td class="n">369</td>
+    <td class="n">19,759</td>
+  </tr><tr>
+    <td>4</td>
+    <td><span class="badge" style="background:#A05050">정육점</span>정육점 SFC점</td>
+    <td class="n">700만</td>
+    <td class="n">695만</td>
+    <td class="n">700만</td>
+    <td class="n g">100.8%</td>
+    <td class="n">132</td>
+    <td class="n">53,000</td>
+  </tr><tr>
+    <td>5</td>
+    <td><span class="badge" style="background:#8B6F5A">CHAI797</span>CHAI797 Black점(서래)</td>
+    <td class="n">650만</td>
+    <td class="n">754만</td>
+    <td class="n">650만</td>
+    <td class="n o">86.2%</td>
+    <td class="n">118</td>
+    <td class="n">55,000</td>
+  </tr><tr>
+    <td>6</td>
+    <td><span class="badge" style="background:#8B6F5A">CHAI797</span>CHAI797 SFC점</td>
+    <td class="n">650만</td>
+    <td class="n">519만</td>
+    <td class="n">650만</td>
+    <td class="n g">125.1%</td>
+    <td class="n">167</td>
+    <td class="n">39,000</td>
+  </tr><tr>
+    <td>7</td>
+    <td><span class="badge" style="background:#5A8FAD">호우섬</span>살롱드호우섬 신세계강남점</td>
+    <td class="n">640만</td>
+    <td class="n">399만</td>
+    <td class="n">640만</td>
+    <td class="n g">160.4%</td>
+    <td class="n">270</td>
+    <td class="n">23,740</td>
+  </tr><tr>
+    <td>8</td>
+    <td><span class="badge" style="background:#8B6F5A">CHAI797</span>CHAI797 시청점</td>
+    <td class="n">600만</td>
+    <td class="n">649만</td>
+    <td class="n">600만</td>
+    <td class="n o">92.5%</td>
+    <td class="n">191</td>
+    <td class="n">31,332</td>
+  </tr><tr>
+    <td>9</td>
+    <td><span class="badge" style="background:#5A8FAD">호우섬</span>살롱드호우섬 도곡점</td>
+    <td class="n">600만</td>
+    <td class="n">0만</td>
+    <td class="n">600만</td>
+    <td class="n r">-</td>
+    <td class="n">200</td>
+    <td class="n">30,000</td>
+  </tr><tr>
+    <td>10</td>
+    <td><span class="badge" style="background:#5A8FAD">호우섬</span>호우섬 서울역점</td>
+    <td class="n">571만</td>
+    <td class="n">607만</td>
+    <td class="n">571만</td>
+    <td class="n o">94.1%</td>
+    <td class="n">288</td>
+    <td class="n">19,800</td>
+  </tr><tr>
+    <td>11</td>
+    <td><span class="badge" style="background:#A05050">정육점</span>정육점 서래마을점</td>
+    <td class="n">550만</td>
+    <td class="n">552만</td>
+    <td class="n">550만</td>
+    <td class="n o">99.7%</td>
+    <td class="n">116</td>
+    <td class="n">47,524</td>
+  </tr><tr>
+    <td>12</td>
+    <td><span class="badge" style="background:#8B6F5A">CHAI797</span>CHAI797 김포롯데몰점</td>
+    <td class="n">500만</td>
+    <td class="n">455만</td>
+    <td class="n">500만</td>
+    <td class="n g">109.8%</td>
+    <td class="n">256</td>
+    <td class="n">19,500</td>
+  </tr><tr>
+    <td>13</td>
+    <td><span class="badge" style="background:#9C8A5A">CHAI</span>CHAI 올림픽공원점</td>
+    <td class="n">500만</td>
+    <td class="n">0만</td>
+    <td class="n">500만</td>
+    <td class="n r">-</td>
+    <td class="n">227</td>
+    <td class="n">22,000</td>
+  </tr><tr>
+    <td>14</td>
+    <td><span class="badge" style="background:#5A8FAD">호우섬</span>호우섬 아트&사이언스점</td>
+    <td class="n">500만</td>
+    <td class="n">372만</td>
+    <td class="n">500만</td>
+    <td class="n g">134.2%</td>
+    <td class="n">222</td>
+    <td class="n">22,500</td>
+  </tr><tr>
+    <td>15</td>
+    <td><span class="badge" style="background:#C4854A">이타마에</span>이타마에 잠실롯데월드몰점</td>
+    <td class="n">500만</td>
+    <td class="n">491만</td>
+    <td class="n">500만</td>
+    <td class="n g">101.9%</td>
+    <td class="n">139</td>
+    <td class="n">36,000</td>
+  </tr><tr>
+    <td>16</td>
+    <td><span class="badge" style="background:#5A8FAD">호우섬</span>호우섬 현대판교점</td>
+    <td class="n">497만</td>
+    <td class="n">397만</td>
+    <td class="n">497만</td>
+    <td class="n g">125.2%</td>
+    <td class="n">211</td>
+    <td class="n">23,519</td>
+  </tr><tr>
+    <td>17</td>
+    <td><span class="badge" style="background:#8B6F5A">CHAI797</span>CHAI797 청계천점</td>
+    <td class="n">480만</td>
+    <td class="n">391만</td>
+    <td class="n">480만</td>
+    <td class="n g">122.8%</td>
+    <td class="n">143</td>
+    <td class="n">33,500</td>
+  </tr><tr>
+    <td>18</td>
+    <td><span class="badge" style="background:#5A8FAD">호우섬</span>호우섬 코엑스점</td>
+    <td class="n">480만</td>
+    <td class="n">315만</td>
+    <td class="n">480만</td>
+    <td class="n g">152.5%</td>
+    <td class="n">219</td>
+    <td class="n">21,933</td>
+  </tr><tr>
+    <td>19</td>
+    <td><span class="badge" style="background:#A05050">정육점</span>정육점 강남점</td>
+    <td class="n">450만</td>
+    <td class="n">773만</td>
+    <td class="n">450만</td>
+    <td class="n r">58.2%</td>
+    <td class="n">102</td>
+    <td class="n">44,000</td>
+  </tr><tr>
+    <td>20</td>
+    <td><span class="badge" style="background:#6B8C4A">서리재</span>서리재 부산본점</td>
+    <td class="n">450만</td>
+    <td class="n">444만</td>
+    <td class="n">450만</td>
+    <td class="n g">101.3%</td>
+    <td class="n">192</td>
+    <td class="n">23,400</td>
+  </tr><tr>
+    <td>21</td>
+    <td><span class="badge" style="background:#8B6F5A">CHAI797</span>CHAI797 스타필드수원점</td>
+    <td class="n">430만</td>
+    <td class="n">477만</td>
+    <td class="n">430만</td>
+    <td class="n o">90.2%</td>
+    <td class="n">212</td>
+    <td class="n">20,302</td>
+  </tr><tr>
+    <td>22</td>
+    <td><span class="badge" style="background:#8B6F5A">CHAI797</span>CHAI797 파르나스</td>
+    <td class="n">430만</td>
+    <td class="n">380만</td>
+    <td class="n">430만</td>
+    <td class="n g">113.3%</td>
+    <td class="n">211</td>
+    <td class="n">20,419</td>
+  </tr><tr>
+    <td>23</td>
+    <td><span class="badge" style="background:#8B6F5A">CHAI797</span>CHAI797 잠실롯데캐슬점</td>
+    <td class="n">400만</td>
+    <td class="n">547만</td>
+    <td class="n">400만</td>
+    <td class="n r">73.1%</td>
+    <td class="n">148</td>
+    <td class="n">27,000</td>
+  </tr><tr>
+    <td>24</td>
+    <td><span class="badge" style="background:#A05050">정육점</span>정육점 을지로점</td>
+    <td class="n">400만</td>
+    <td class="n">365만</td>
+    <td class="n">400만</td>
+    <td class="n g">109.6%</td>
+    <td class="n">118</td>
+    <td class="n">34,000</td>
+  </tr><tr>
+    <td>25</td>
+    <td><span class="badge" style="background:#8B6F5A">CHAI797</span>CHAI797 역삼GFC점</td>
+    <td class="n">381만</td>
+    <td class="n">371만</td>
+    <td class="n">381만</td>
+    <td class="n g">102.6%</td>
+    <td class="n">134</td>
+    <td class="n">28,500</td>
+  </tr><tr>
+    <td>26</td>
+    <td><span class="badge" style="background:#8B6F5A">CHAI797</span>CHAI797 파미에스테이션점</td>
+    <td class="n">360만</td>
+    <td class="n">347만</td>
+    <td class="n">360만</td>
+    <td class="n g">103.9%</td>
+    <td class="n">147</td>
+    <td class="n">24,500</td>
+  </tr><tr>
+    <td>27</td>
+    <td><span class="badge" style="background:#8B6F5A">CHAI797</span>CHAI797 롯데부산본점</td>
+    <td class="n">350만</td>
+    <td class="n">399만</td>
+    <td class="n">350만</td>
+    <td class="n o">87.8%</td>
+    <td class="n">174</td>
+    <td class="n">20,100</td>
+  </tr><tr>
+    <td>28</td>
+    <td><span class="badge" style="background:#8B6F5A">CHAI797</span>CHAI797 여의도점</td>
+    <td class="n">350만</td>
+    <td class="n">237만</td>
+    <td class="n">350만</td>
+    <td class="n g">147.7%</td>
+    <td class="n">117</td>
+    <td class="n">30,000</td>
+  </tr><tr>
+    <td>29</td>
+    <td><span class="badge" style="background:#6B8C4A">서리재</span>서리재 신세계센텀시티점</td>
+    <td class="n">350만</td>
+    <td class="n">392만</td>
+    <td class="n">350만</td>
+    <td class="n o">89.3%</td>
+    <td class="n">146</td>
+    <td class="n">24,000</td>
+  </tr><tr>
+    <td>30</td>
+    <td><span class="badge" style="background:#5A8FAD">호우섬</span>호우섬 용산아이파크몰점</td>
+    <td class="n">350만</td>
+    <td class="n">264만</td>
+    <td class="n">350만</td>
+    <td class="n g">132.5%</td>
+    <td class="n">159</td>
+    <td class="n">22,000</td>
+  </tr><tr>
+    <td>31</td>
+    <td><span class="badge" style="background:#C4854A">이타마에</span>이타마에 도곡점</td>
+    <td class="n">340만</td>
+    <td class="n">617만</td>
+    <td class="n">340만</td>
+    <td class="n r">55.1%</td>
+    <td class="n">94</td>
+    <td class="n">36,000</td>
+  </tr><tr>
+    <td>32</td>
+    <td><span class="badge" style="background:#5A8FAD">호우섬</span>호우섬 왕십리역점</td>
+    <td class="n">320만</td>
+    <td class="n">0만</td>
+    <td class="n">320만</td>
+    <td class="n r">-</td>
+    <td class="n">145</td>
+    <td class="n">22,000</td>
+  </tr><tr>
+    <td>33</td>
+    <td><span class="badge" style="background:#6B8C4A">서리재</span>서리재 아트&사이언스점</td>
+    <td class="n">300만</td>
+    <td class="n">246만</td>
+    <td class="n">300만</td>
+    <td class="n g">122.0%</td>
+    <td class="n">120</td>
+    <td class="n">25,000</td>
+  </tr><tr>
+    <td>34</td>
+    <td><span class="badge" style="background:#6B8C4A">서리재</span>서리재 용산아이파크점</td>
+    <td class="n">300만</td>
+    <td class="n">332만</td>
+    <td class="n">300만</td>
+    <td class="n o">90.3%</td>
+    <td class="n">145</td>
+    <td class="n">20,700</td>
+  </tr><tr>
+    <td>35</td>
+    <td><span class="badge" style="background:#6B8C4A">서리재</span>서리재 신세계시흥점</td>
+    <td class="n">300만</td>
+    <td class="n">0만</td>
+    <td class="n">300만</td>
+    <td class="n r">-</td>
+    <td class="n">135</td>
+    <td class="n">22,143</td>
+  </tr><tr>
+    <td>36</td>
+    <td><span class="badge" style="background:#6B8C4A">서리재</span>서리재 왕십리역점</td>
+    <td class="n">300만</td>
+    <td class="n">0만</td>
+    <td class="n">300만</td>
+    <td class="n r">-</td>
+    <td class="n">138</td>
+    <td class="n">21,800</td>
+  </tr><tr>
+    <td>37</td>
+    <td><span class="badge" style="background:#5A8FAD">호우섬</span>호우섬 롯데명동점</td>
+    <td class="n">300만</td>
+    <td class="n">252만</td>
+    <td class="n">300만</td>
+    <td class="n g">119.2%</td>
+    <td class="n">136</td>
+    <td class="n">22,000</td>
+  </tr><tr>
+    <td>38</td>
+    <td><span class="badge" style="background:#C4854A">이타마에</span>이타마에 현대판교점</td>
+    <td class="n">300만</td>
+    <td class="n">255만</td>
+    <td class="n">300만</td>
+    <td class="n g">117.7%</td>
+    <td class="n">91</td>
+    <td class="n">33,061</td>
+  </tr><tr>
+    <td>39</td>
+    <td><span class="badge" style="background:#9C8A5A">CHAI</span>CHAI 신세계센텀점</td>
+    <td class="n">280만</td>
+    <td class="n">0만</td>
+    <td class="n">280만</td>
+    <td class="n r">-</td>
+    <td class="n">147</td>
+    <td class="n">19,000</td>
+  </tr><tr>
+    <td>40</td>
+    <td><span class="badge" style="background:#8B6F5A">CHAI797</span>CHAI797 현대미아점</td>
+    <td class="n">270만</td>
+    <td class="n">201만</td>
+    <td class="n">270만</td>
+    <td class="n g">134.4%</td>
+    <td class="n">110</td>
+    <td class="n">24,486</td>
+  </tr></tbody>
+    </table>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<script>
+const CHARTJS = true;
+const opts = {
+  responsive:true, maintainAspectRatio:false,
+  plugins:{ legend:{ labels:{ color:'#8c93c0', font:{size:11} } } },
+  scales:{
+    x:{ ticks:{color:'#8c93c0',font:{size:11}}, grid:{color:'#2d3148'} },
+    y:{ ticks:{color:'#8c93c0',font:{size:11}}, grid:{color:'#2d3148'} }
+  }
+};
+new Chart(document.getElementById('brandChart'), {
+  type:'bar', data:{"labels":["CHAI797","호우섬","서리재","이타마에","정육점","CHAI"],"datasets":[{"label":"계획(만)","data":[10501,7485,3531,1140,2100,780],"backgroundColor":["#8B6F5A","#5A8FAD","#6B8C4A","#C4854A","#A05050","#9C8A5A"]},{"label":"전년(만)","data":[10432,5480,2514,1700,2822,0],"backgroundColor":["#8B6F5A55","#5A8FAD55","#6B8C4A55","#C4854A55","#A0505055","#9C8A5A55"]}]}, options:opts
+});
+new Chart(document.getElementById('dailyChart'), {
+  type:'bar', data:{"labels":["07-01","07-02","07-03","07-04","07-05","07-06","07-07","07-08","07-09","07-10","07-11","07-12","07-13","07-14","07-15","07-16","07-17","07-18","07-19","07-20","07-21","07-22","07-23","07-24","07-25","07-26","07-27","07-28","07-29","07-30","07-31"],"datasets":[{"label":"계획","type":"line","data":[25537,27060,30355,43899,43041,25454,26899,27826,28371,31344,44814,44167,22836,27432,28275,30980,39919,46244,44718,25064,28263,31021,32482,35923,47549,46084,29559,32500,36363,33070,37851],"borderColor":"#5A8FAD","borderWidth":2,"borderDash":[4,4],"fill":false,"tension":0.3,"pointRadius":2},{"label":"전년","type":"line","data":[22947,24088,25145,28033,40196,38678,22028,26907,27244,27771,31406,42134,39287,19102,25698,26716,26424,28881,39979,36847,21904,25000,25912,27333,30241,42115,41093,31279,30191,32143,34505],"borderColor":"#9C9C9C","borderWidth":1.5,"borderDash":[2,2],"fill":false,"tension":0.3,"pointRadius":2}]},
+  options:{...opts, scales:{...opts.scales, x:{...opts.scales.x, ticks:{...opts.scales.x.ticks,maxRotation:45}}}}
+});
+</script>
+</body>
+</html>
