@@ -1354,30 +1354,18 @@ function vocByStore(qMonths){
     else x['기타']++; });   // 단순 문의·칭찬 키워드 없는 건, 시스템·멤버십 문의 등은 기타로
   return {by:Object.values(by),total:recs.length};
 }
-// 포상 경비 (매장당 균일 — 간식비 지원, 필요 시 금액만 수정)
+// 포상 (매장당 균일 — 간식비 지원 + 표창 + 그룹웨어 우수사례 공유, 필요 시 금액만 수정)
 const REWARD_PER_STORE=100000;                 // 매장당 포상 경비 (원)
-const REWARD_DETAIL='간식비 지원 (매장당 10만원)';
+const REWARD_ITEMS='매장당 간식비 10만원 지원 · 분기 우수매장 표창장 · 그룹웨어 우수사례 전사 공유';
 const rewardCostTotal=praise=>praise.length*REWARD_PER_STORE;
-// 징계 조치 (불만 건수 기준 — 임계 3건, 필요 시 조정)
+// 징계(개선) — 서비스 교육팀 권고안. 실제 시행은 운영팀·HR팀 결정. 불만 건수 3단계 (임계 3·5건, 조정 가능)
 function penMeasure(n){
-  return n>=3
-    ? {kind:'인사조치 검토', detail:'운영팀·HR팀 협의 → 점포 관리자(점장) 매장 이동 요청 검토'}
-    : {kind:'사후 교육',     detail:'점장 면담 + 직원 서비스 재교육 · 개선계획 제출 후 1개월 재점검'};
+  if(n>=5) return {stage:'3단계', kind:'인사 검토 권고', detail:'운영팀·HR팀에 점포 관리자(점장) 재배치 검토 요청', col:'var(--bad)'};
+  if(n>=3) return {stage:'2단계', kind:'집중 관리 권고', detail:'운영팀에 모니터링 강화·개선계획 수립 요청',       col:'#e06c00'};
+  return          {stage:'1단계', kind:'서비스 재교육 권고', detail:'점장 면담·직원 서비스 재교육 진행 요청',        col:'#c98a00'};
 }
 const wonKR=n=>'₩'+(n||0).toLocaleString('ko-KR');
-function rewardMemo(y,q,qMonths,praise,penalty,total){
-  const costSum=rewardCostTotal(praise);
-  let t=`[${y}년 ${q}분기 고객의 소리 기반 매장 상벌 보고]  (수신: 경영진 / 처리: 운영팀·HR팀)\n\n`;
-  t+=`■ 포상 매장 (고객 칭찬 우수) — ${praise.length}개 · 포상 경비 ${wonKR(costSum)}\n`;
-  praise.forEach((s,i)=>{t+=`${i+1}. ${s.store} — 칭찬 ${s['칭찬']}건 · ${REWARD_DETAIL} (${wonKR(REWARD_PER_STORE)})\n`;});
-  t+=`▶ 포상 경비 합계: ${wonKR(costSum)} (매장당 ${wonKR(REWARD_PER_STORE)} 간식비 지원)\n\n`;
-  t+=`■ 징계 매장 (고객 불만 다발) — ${penalty.length}개\n`;
-  penalty.forEach((s,i)=>{const pm=penMeasure(s['불만']);t+=`${i+1}. ${s.store} — 불만 ${s['불만']}건 · [${pm.kind}] ${pm.detail}\n`;});
-  t+=`▶ 조치 원칙: 1차 사후교육(점장 면담·직원 재교육·개선계획), 반복·심각(불만 3건+) 시 운영팀·HR팀 통한 점장 매장 이동 요청 검토\n\n`;
-  t+=`※ 근거: ${y}년 ${q}분기(${qMonths[0]}~${qMonths[qMonths.length-1]}) SL&C 고객의 소리(VOC) ${total}건 분석.`;
-  return t;
-}
-// 분기 데이터 계산 (상벌 매장·건의문 공용)
+// 분기 데이터 계산 (상벌 매장·결과 보고서 공용)
 function rewardData(qkey){
   const Q=quartersOf((V&&V.months)||R.months), qMonths=Q[qkey]||[];
   if(!qMonths.length) return null;
@@ -1422,44 +1410,35 @@ function renderReport(qkey){
   document.getElementById('vreport-meta').textContent=`${y}년 ${q}분기 (${qMonths[0]}~${qMonths[qMonths.length-1]}) · VOC ${total}건`;
   const esc=s=>(s||'').replace(/</g,'&lt;');
   const badge=(txt,col)=>`<span class="rep-badge" style="color:${col};border:1px solid ${col}">${txt}</span>`;
-  const kindCol={'인사조치 검토':'var(--bad)','사후 교육':'#c98a00'};
   const costSum=rewardCostTotal(praise);
+  const period=`${y}년 ${q}분기 (${qMonths[0]}~${qMonths[qMonths.length-1]})`;
   let h='';
-  // KPI 요약 (경영진 한눈 요약)
-  h+=`<div class="rep-sec"><div class="rep-kpi">`
+  // 표지 요약 (경영진 한눈)
+  h+=`<div class="rep-sec"><div style="font-size:14px;font-weight:800;margin-bottom:10px">${y}년 ${q}분기 고객의 소리(VOC) 기반 매장 상벌 보고 <span class="note" style="font-weight:400">· 수신: 경영진 · 작성: 서비스 교육팀</span></div><div class="rep-kpi">`
     +`<div class="b"><div class="l">보고 분기</div><div class="n">${y}·${q}분기</div></div>`
     +`<div class="b"><div class="l">VOC 분석</div><div class="n">${total}건</div></div>`
     +`<div class="b"><div class="l">포상 매장</div><div class="n" style="color:var(--good)">${praise.length}개</div></div>`
-    +`<div class="b"><div class="l">징계 매장</div><div class="n" style="color:var(--bad)">${penalty.length}개</div></div>`
+    +`<div class="b"><div class="l">개선 권고</div><div class="n" style="color:var(--bad)">${penalty.length}개</div></div>`
     +`<div class="b"><div class="l">포상 경비</div><div class="n">${wonKR(costSum)}</div></div>`
     +`</div></div>`;
-  // 포상 매장 (리스트업·내역·경비)
-  h+=`<div class="rep-sec"><h3>🏅 포상 매장 <span class="note">고객 칭찬 우수</span></h3>`;
+  // 포상 매장
+  h+=`<div class="rep-sec"><h3>🏅 포상 매장 <span class="note">고객 칭찬 우수 · 매장 전체</span></h3>`;
   if(praise.length){
-    h+=`<table class="rep-tbl"><thead><tr><th class="num">순위</th><th>매장</th><th class="num">칭찬</th><th>포상 내역</th><th class="num">경비</th></tr></thead><tbody>`
-      +praise.map((s,i)=>`<tr><td class="num">${i+1}</td><td class="st">${esc(s.store)}</td><td class="num">${s['칭찬']}건</td><td>${REWARD_DETAIL}</td><td class="num">${wonKR(REWARD_PER_STORE)}</td></tr>`).join('')
-      +`</tbody><tfoot><tr><td colspan="4">포상 경비 합계 (${praise.length}개 매장 · 매장당 ${wonKR(REWARD_PER_STORE)})</td><td class="num">${wonKR(costSum)}</td></tr></tfoot></table>`;
+    h+=`<table class="rep-tbl"><thead><tr><th class="num">순위</th><th>매장</th><th class="num">칭찬</th><th class="num">포상 경비</th></tr></thead><tbody>`
+      +praise.map((s,i)=>`<tr><td class="num">${i+1}</td><td class="st">${esc(s.store)}</td><td class="num">${s['칭찬']}건</td><td class="num">${wonKR(REWARD_PER_STORE)}</td></tr>`).join('')
+      +`</tbody><tfoot><tr><td colspan="3">합계 · ${praise.length}개 매장 × ${wonKR(REWARD_PER_STORE)}</td><td class="num">${wonKR(costSum)}</td></tr></tfoot></table>`;
   } else { h+=`<div class="rep-row" style="color:var(--muted)">해당 분기 VOC 칭찬 매장 없음</div>`; }
-  h+=`</div>`;
-  // 징계 매장 (리스트업·조치 방안)
-  h+=`<div class="rep-sec"><h3>⛔ 징계 매장 <span class="note">고객 불만 다발</span></h3>`;
+  h+=`<p class="rep-lead" style="margin-top:10px">▶ 포상 내역(공통): ${REWARD_ITEMS}</p></div>`;
+  // 개선 권고 매장 (부드러운 톤 — 권고만, 실제 조치는 운영팀·HR팀 결정)
+  h+=`<div class="rep-sec"><h3>⚠️ 개선 권고 매장 <span class="note">고객 불만 다발 상위 2개</span></h3>`;
   if(penalty.length){
-    h+=`<table class="rep-tbl"><thead><tr><th>매장</th><th class="num">불만</th><th>조치 구분</th><th>세부 조치 방안</th></tr></thead><tbody>`
-      +penalty.map(s=>{const pm=penMeasure(s['불만']);return `<tr><td class="st">${esc(s.store)}</td><td class="num">${s['불만']}건</td><td>${badge(pm.kind,kindCol[pm.kind]||'var(--muted)')}</td><td>${pm.detail}</td></tr>`;}).join('')
+    h+=`<table class="rep-tbl"><thead><tr><th>매장</th><th class="num">불만</th><th>권고 단계</th><th>권고 조치 (운영팀·HR팀 대상)</th></tr></thead><tbody>`
+      +penalty.map(s=>{const pm=penMeasure(s['불만']);return `<tr><td class="st">${esc(s.store)}</td><td class="num">${s['불만']}건</td><td>${badge(pm.stage+' '+pm.kind,pm.col)}</td><td>${pm.detail}</td></tr>`;}).join('')
       +`</tbody></table>`;
   } else { h+=`<div class="rep-row" style="color:var(--muted)">해당 분기 VOC 불만 매장 없음</div>`; }
-  h+=`<p class="rep-lead" style="margin-top:10px">▶ 조치 원칙: 1차 <b>사후 교육</b>(점장 면담·직원 재교육·개선계획 제출 후 1개월 재점검), 반복·심각(불만 3건+) 시 <b>운영팀·HR팀 협의로 점포 관리자(점장) 매장 이동 요청</b> 검토</p></div>`;
-  // 수정 가능 보고 문안 (텍스트본·자동 저장)
-  const mk=`reward-memo|${qkey}`; let saved=''; try{saved=localStorage.getItem(mk)||'';}catch(e){}
-  const memo=saved||rewardMemo(y,q,qMonths,praise,penalty,total);
-  h+=`<div class="rep-sec"><h3>📝 보고 문안 <span class="note">이메일·문서 붙여넣기용 · 수정 가능 · 자동 저장</span></h3>`
-    +`<textarea id="vreport-ta" style="width:100%;min-height:300px;border:1px solid var(--line);border-radius:8px;padding:12px;font-size:13px;line-height:1.6;font-family:inherit;box-sizing:border-box;color:var(--ink)">${esc(memo)}</textarea>`
-    +`<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center"><button id="vreport-copy">📋 문안 복사</button><button id="vreport-regen" class="ghost">↻ 다시 생성</button><span id="vreport-copied" style="color:var(--good);font-size:12px"></span></div></div>`;
+  h+=`<p class="rep-lead" style="margin-top:10px">▶ 권고 단계: <b>1단계</b> 서비스 재교육(불만 1~2건) · <b>2단계</b> 집중 관리(3~4건) · <b>3단계</b> 인사 검토 권고(5건+). 고객 안전·위생 등 중대 사안은 건수와 무관하게 최우선 검토 권고.</p>`;
+  h+=`<p class="rep-lead" style="font-size:11.5px;margin-top:6px">※ 본 보고서는 <b>서비스 교육팀의 포상·개선 권고안</b>이며, 실제 포상 집행 및 인사 조치는 <b>운영팀·HR팀의 검토·결정</b>에 따릅니다. 근거: ${period} SL&C 고객의 소리(VOC) ${total}건 분석.</p></div>`;
   box.innerHTML=h;
-  const ta=document.getElementById('vreport-ta');
-  ta.addEventListener('input',()=>{try{localStorage.setItem(mk,ta.value);}catch(e){}});
-  document.getElementById('vreport-copy').addEventListener('click',()=>{ta.select();let ok=false;try{ok=document.execCommand('copy');}catch(e){}if(navigator.clipboard)navigator.clipboard.writeText(ta.value).catch(()=>{});const c=document.getElementById('vreport-copied');c.textContent=ok?'복사됨 ✓':'Ctrl+C 로 복사';setTimeout(()=>{if(c)c.textContent='';},1800);});
-  document.getElementById('vreport-regen').addEventListener('click',()=>{const v=rewardMemo(y,q,qMonths,praise,penalty,total);ta.value=v;try{localStorage.setItem(mk,v);}catch(e){}});
 }
 (function initRewards(){
   const Q=quartersOf((V&&V.months)||R.months), keys=Object.keys(Q).sort();
