@@ -260,6 +260,7 @@ window.__BUILD__='__BUILD_TOKEN__';
   .rep-tbl th{background:var(--bg);color:var(--muted);font-weight:600;font-size:11.5px;white-space:nowrap}
   .rep-tbl td.num,.rep-tbl th.num{text-align:right;white-space:nowrap}
   .rep-tbl tfoot td{font-weight:800;border-top:2px solid var(--line);border-bottom:0;background:var(--bg)}
+  .rep-tbl tr.grp td{font-weight:700;font-size:12.5px;padding:8px 10px;color:#fff}
   .rep-tbl .st{font-weight:700}
   .rep-badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:700;white-space:nowrap}
   .rep-lead{color:var(--muted);font-size:12px;margin:0 0 4px}
@@ -1357,6 +1358,7 @@ function vocByStore(qMonths){
 // 포상 (매장당 균일 — 간식비 지원 + 표창 + 그룹웨어 우수사례 공유, 필요 시 금액만 수정)
 const REWARD_PER_STORE=100000;                 // 매장당 포상 경비 (원)
 const REWARD_ITEMS='매장당 간식비 10만원 지원 · 분기 우수매장 표창장 · 그룹웨어 우수사례 전사 공유';
+const REWARD_SHORT='간식비 10만 · 표창장 · 그룹웨어 공유';
 const rewardCostTotal=praise=>praise.length*REWARD_PER_STORE;
 // 징계(개선) — 서비스 교육팀 권고안. 실제 시행은 운영팀·HR팀 결정. 불만 건수 3단계 (임계 3·5건, 조정 가능)
 function penMeasure(n){
@@ -1412,32 +1414,26 @@ function renderReport(qkey){
   const badge=(txt,col)=>`<span class="rep-badge" style="color:${col};border:1px solid ${col}">${txt}</span>`;
   const costSum=rewardCostTotal(praise);
   const period=`${y}년 ${q}분기 (${qMonths[0]}~${qMonths[qMonths.length-1]})`;
-  let h='';
-  // 표지 요약 (경영진 한눈)
-  h+=`<div class="rep-sec"><div style="font-size:14px;font-weight:800;margin-bottom:10px">${y}년 ${q}분기 고객의 소리(VOC) 기반 매장 상벌 보고 <span class="note" style="font-weight:400">· 수신: 경영진 · 작성: 서비스 교육팀</span></div><div class="rep-kpi">`
-    +`<div class="b"><div class="l">보고 분기</div><div class="n">${y}·${q}분기</div></div>`
-    +`<div class="b"><div class="l">VOC 분석</div><div class="n">${total}건</div></div>`
-    +`<div class="b"><div class="l">포상 매장</div><div class="n" style="color:var(--good)">${praise.length}개</div></div>`
-    +`<div class="b"><div class="l">개선 권고</div><div class="n" style="color:var(--bad)">${penalty.length}개</div></div>`
-    +`<div class="b"><div class="l">포상 경비</div><div class="n">${wonKR(costSum)}</div></div>`
-    +`</div></div>`;
-  // 포상 매장
-  h+=`<div class="rep-sec"><h3>🏅 포상 매장 <span class="note">고객 칭찬 우수 · 매장 전체</span></h3>`;
-  if(praise.length){
-    h+=`<table class="rep-tbl"><thead><tr><th class="num">순위</th><th>매장</th><th class="num">칭찬</th><th class="num">포상 경비</th></tr></thead><tbody>`
-      +praise.map((s,i)=>`<tr><td class="num">${i+1}</td><td class="st">${esc(s.store)}</td><td class="num">${s['칭찬']}건</td><td class="num">${wonKR(REWARD_PER_STORE)}</td></tr>`).join('')
-      +`</tbody><tfoot><tr><td colspan="3">합계 · ${praise.length}개 매장 × ${wonKR(REWARD_PER_STORE)}</td><td class="num">${wonKR(costSum)}</td></tr></tfoot></table>`;
-  } else { h+=`<div class="rep-row" style="color:var(--muted)">해당 분기 VOC 칭찬 매장 없음</div>`; }
-  h+=`<p class="rep-lead" style="margin-top:10px">▶ 포상 내역(공통): ${REWARD_ITEMS}</p></div>`;
-  // 개선 권고 매장 (부드러운 톤 — 권고만, 실제 조치는 운영팀·HR팀 결정)
-  h+=`<div class="rep-sec"><h3>⚠️ 개선 권고 매장 <span class="note">고객 불만 다발 상위 2개</span></h3>`;
-  if(penalty.length){
-    h+=`<table class="rep-tbl"><thead><tr><th>매장</th><th class="num">불만</th><th>권고 단계</th><th>권고 조치 (운영팀·HR팀 대상)</th></tr></thead><tbody>`
-      +penalty.map(s=>{const pm=penMeasure(s['불만']);return `<tr><td class="st">${esc(s.store)}</td><td class="num">${s['불만']}건</td><td>${badge(pm.stage+' '+pm.kind,pm.col)}</td><td>${pm.detail}</td></tr>`;}).join('')
-      +`</tbody></table>`;
-  } else { h+=`<div class="rep-row" style="color:var(--muted)">해당 분기 VOC 불만 매장 없음</div>`; }
-  h+=`<p class="rep-lead" style="margin-top:10px">▶ 권고 단계: <b>1단계</b> 서비스 재교육(불만 1~2건) · <b>2단계</b> 집중 관리(3~4건) · <b>3단계</b> 인사 검토 권고(5건+). 고객 안전·위생 등 중대 사안은 건수와 무관하게 최우선 검토 권고.</p>`;
-  h+=`<p class="rep-lead" style="font-size:11.5px;margin-top:6px">※ 본 보고서는 <b>서비스 교육팀의 포상·개선 권고안</b>이며, 실제 포상 집행 및 인사 조치는 <b>운영팀·HR팀의 검토·결정</b>에 따릅니다. 근거: ${period} SL&C 고객의 소리(VOC) ${total}건 분석.</p></div>`;
+  // 보고 서머리 + 포상 + 개선 권고 = 단일 표 (경영진 한눈)
+  let h=`<div class="rep-sec">`;
+  h+=`<div style="font-size:14px;font-weight:800;margin-bottom:4px">${y}년 ${q}분기 고객의 소리(VOC) 기반 매장 상벌 보고</div>`;
+  h+=`<p class="rep-lead" style="margin-bottom:12px">수신: 경영진 · 작성: 서비스 교육팀 · 근거: ${period} VOC ${total}건 · 포상 <b style="color:var(--good)">${praise.length}개</b>(경비 ${wonKR(costSum)}) · 개선 권고 <b style="color:var(--bad)">${penalty.length}개</b></p>`;
+  h+=`<table class="rep-tbl"><thead><tr><th style="width:118px">순위 / 단계</th><th>매장</th><th class="num">실적</th><th>조치 · 포상 내역</th><th class="num">경비</th></tr></thead><tbody>`;
+  // 🏅 포상 그룹
+  h+=`<tr class="grp"><td colspan="5" style="background:var(--good)">🏅 포상 매장 — 고객 칭찬 우수 · 매장 전체 (${praise.length}개)</td></tr>`;
+  h+= praise.length
+    ? praise.map((s,i)=>`<tr><td class="num">${i+1}</td><td class="st">${esc(s.store)}</td><td class="num" style="color:var(--good);font-weight:700">칭찬 ${s['칭찬']}건</td><td>${REWARD_SHORT}</td><td class="num">${wonKR(REWARD_PER_STORE)}</td></tr>`).join('')
+    : `<tr><td colspan="5" style="color:var(--muted)">해당 분기 VOC 칭찬 매장 없음</td></tr>`;
+  // ⚠️ 개선 권고 그룹
+  h+=`<tr class="grp"><td colspan="5" style="background:var(--bad)">⚠️ 개선 권고 매장 — 고객 불만 다발 상위 2개 (${penalty.length}개) · 운영팀·HR팀 대상 권고</td></tr>`;
+  h+= penalty.length
+    ? penalty.map(s=>{const pm=penMeasure(s['불만']);return `<tr><td>${badge(pm.stage,pm.col)}</td><td class="st">${esc(s.store)}</td><td class="num" style="color:var(--bad);font-weight:700">불만 ${s['불만']}건</td><td><b>${pm.kind}</b> — ${pm.detail}</td><td class="num">—</td></tr>`;}).join('')
+    : `<tr><td colspan="5" style="color:var(--muted)">해당 분기 VOC 불만 매장 없음</td></tr>`;
+  h+=`</tbody><tfoot><tr><td colspan="4">포상 경비 합계 (${praise.length}개 매장 × ${wonKR(REWARD_PER_STORE)})</td><td class="num">${wonKR(costSum)}</td></tr></tfoot></table>`;
+  // 각주
+  h+=`<p class="rep-lead" style="font-size:11.5px;margin-top:10px">▶ 포상 내역(공통): ${REWARD_ITEMS}. &nbsp;▶ 권고 단계: 1단계 재교육(불만 1~2건)·2단계 집중관리(3~4건)·3단계 인사 검토(5건+), 중대 사안은 최우선.</p>`;
+  h+=`<p class="rep-lead" style="font-size:11.5px;margin-top:4px">※ 본 보고서는 <b>서비스 교육팀의 포상·개선 권고안</b>이며, 실제 포상 집행 및 인사 조치는 <b>운영팀·HR팀의 검토·결정</b>에 따릅니다.</p>`;
+  h+=`</div>`;
   box.innerHTML=h;
 }
 (function initRewards(){
