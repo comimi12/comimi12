@@ -945,14 +945,27 @@ function v3charts(){
       markArea:ci===0?{silent:true,itemStyle:{color:'rgba(20,85,155,0.08)'},data:[[{xAxis:fM},{xAxis:tM}]]}:undefined}))});
 }
 
-/* ---------- AI insight blocks ---------- */
-function aiBlock(id,title,arr){
-  document.getElementById(id).innerHTML =
-    `<h3><span class="bulb">AI 인사이트</span> ${title}</h3><ul>${(arr||[]).map(x=>`<li>${x}</li>`).join('')||'<li>—</li>'}</ul>`;
+/* ---------- AI insight blocks (월별 조회) ---------- */
+const AI_INS = AI.insights || {};
+// 월별 구조(키가 YYYY-MM) 감지 — 아니면 과거 flat 구조로 취급
+const AI_INS_MONTHS = Object.keys(AI_INS).filter(k=>/^\d{4}-\d{2}$/.test(k)).sort();
+function insightsFor(m){ return AI_INS_MONTHS.length ? (AI_INS[m]||{}) : AI_INS; }
+let aiMonth = AI_INS_MONTHS.length ? AI_INS_MONTHS[AI_INS_MONTHS.length-1] : (AI.month||'');
+const AI_BLOCKS=[['ai-v1','경영 모니터링 제안','view1'],['ai-v2','시사점 분석','view2'],['ai-v3','리스크 대응 제안','view3']];
+function renderAIBlocks(){
+  const src=insightsFor(aiMonth);
+  const sel = AI_INS_MONTHS.length
+    ? `<select class="ai-mon" style="margin-left:8px;font-size:12px;padding:2px 6px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink)">`
+      +AI_INS_MONTHS.map(m=>`<option value="${m}"${m===aiMonth?' selected':''}>${m}</option>`).join('')+`</select>`
+    : '';
+  AI_BLOCKS.forEach(([id,title,key])=>{
+    const el=document.getElementById(id); if(!el) return;
+    const arr=(src&&src[key])||[];
+    el.innerHTML=`<h3><span class="bulb">AI 인사이트</span> ${title}${sel}</h3><ul>${arr.map(x=>`<li>${x}</li>`).join('')||'<li>—</li>'}</ul>`;
+  });
+  document.querySelectorAll('.ai-mon').forEach(s=>s.addEventListener('change',e=>{aiMonth=e.target.value;renderAIBlocks();}));
 }
-aiBlock('ai-v1','경영 모니터링 제안', (AI.insights||{}).view1);
-aiBlock('ai-v2','시사점 분석', (AI.insights||{}).view2);
-aiBlock('ai-v3','리스크 대응 제안', (AI.insights||{}).view3);
+renderAIBlocks();
 
 /* ---------- VIEW 5/6: ECK 연동 (CS 체크리스트 / QSCS 교육일지) — 월별·기간 조회 ---------- */
 const ECK = window.ECK_DATA || null;
