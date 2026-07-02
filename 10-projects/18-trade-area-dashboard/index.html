@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SL&C 상권 개발 분석 대시보드</title>
+<style>
+  :root{
+    --bg:#0b0e14; --panel:#141925; --panel2:#1b2233; --line:#27304a;
+    --txt:#e8edf7; --muted:#8a96b0; --dim:#5c6a85;
+    --exist:#4f7cff; --cand:#23c48a; --warn:#f5a623; --bad:#ef5b6b;
+    --grid:#222b42;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--txt);font-family:"Pretendard","Segoe UI","Malgun Gothic",system-ui,sans-serif;
+       font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1280px;margin:0 auto;padding:28px 24px 80px}
+  header.top{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;margin-bottom:6px}
+  h1{font-size:24px;font-weight:800;letter-spacing:-.4px}
+  h1 .accent{color:var(--cand)}
+  .sub{color:var(--muted);font-size:13px;margin-top:4px}
+  .stamp{color:var(--dim);font-size:12px;text-align:right}
+  section{margin-top:34px}
+  .sec-h{display:flex;align-items:baseline;gap:10px;margin-bottom:14px}
+  .sec-h h2{font-size:16px;font-weight:700}
+  .sec-h .desc{color:var(--muted);font-size:12.5px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+  /* KPI */
+  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;position:relative;overflow:hidden}
+  .kpi .lab{color:var(--muted);font-size:12px;font-weight:600}
+  .kpi .val{font-size:30px;font-weight:800;margin-top:6px;letter-spacing:-1px}
+  .kpi .val small{font-size:14px;font-weight:600;color:var(--muted);margin-left:3px}
+  .kpi .sub{font-size:11.5px;margin-top:3px}
+  .kpi .bar{position:absolute;left:0;top:0;height:3px;width:100%}
+  .kpi.k1 .bar{background:var(--exist)} .kpi.k2 .bar{background:var(--cand)}
+  .kpi.k3 .bar{background:var(--warn)} .kpi.k4 .bar{background:#9a6bff} .kpi.k5 .bar{background:#37c7d4}
+  /* layout */
+  .grid2{display:grid;grid-template-columns:1.15fr .85fr;gap:20px}
+  .grid2b{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media(max-width:960px){.kpis{grid-template-columns:repeat(2,1fr)}.grid2,.grid2b{grid-template-columns:1fr}}
+  /* ranking bars */
+  .rank-row{display:grid;grid-template-columns:26px 64px 1fr 48px;align-items:center;gap:10px;padding:5px 0}
+  .rank-row .rk{color:var(--dim);font-size:12px;text-align:right;font-variant-numeric:tabular-nums}
+  .rank-row .nm{font-weight:600;font-size:13px;display:flex;align-items:center;gap:6px}
+  .tag{font-size:10px;font-weight:700;padding:1px 6px;border-radius:5px;letter-spacing:.3px}
+  .tag.exist{background:rgba(79,124,255,.16);color:#8fb0ff}
+  .tag.cand{background:rgba(35,196,138,.16);color:#5fe0b0}
+  .track{background:var(--grid);border-radius:6px;height:18px;position:relative;overflow:hidden}
+  .fill{height:100%;border-radius:6px;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;font-size:10px;font-weight:700;color:#0b0e14}
+  .sc{font-weight:800;font-size:13px;text-align:right;font-variant-numeric:tabular-nums}
+  /* scatter */
+  .scatter-wrap{position:relative}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--muted)}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle}
+  .quad-note{font-size:11px;fill:var(--dim)}
+  /* candidate cards */
+  .cards{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+  @media(max-width:820px){.cards{grid-template-columns:1fr}}
+  .card{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:16px;position:relative}
+  .card .crk{position:absolute;top:14px;right:16px;font-size:11px;color:var(--cand);font-weight:700}
+  .card h3{font-size:17px;font-weight:800;display:flex;align-items:center;gap:8px}
+  .card .score-pill{background:var(--cand);color:#06251a;font-size:12px;font-weight:800;padding:2px 8px;border-radius:7px}
+  .card .note{color:var(--muted);font-size:12px;margin:8px 0 12px}
+  .mini{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+  .mini div{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:7px 9px}
+  .mini .ml{font-size:10px;color:var(--muted)}
+  .mini .mv{font-size:15px;font-weight:700;margin-top:2px}
+  .fit{font-size:11.5px;color:var(--txt)}
+  .fit b{color:var(--cand)}
+  /* table */
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th,td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+  th:nth-child(2),td:nth-child(2){text-align:left}
+  th{color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;user-select:none;position:sticky;top:0;background:var(--panel)}
+  th.sortable:hover{color:var(--txt)}
+  tbody tr:hover{background:rgba(255,255,255,.03)}
+  td.score-cell{font-weight:800}
+  .controls{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+  .btn{background:var(--panel2);border:1px solid var(--line);color:var(--muted);font-size:12px;
+       padding:6px 13px;border-radius:8px;cursor:pointer;font-weight:600}
+  .btn.on{background:var(--cand);color:#06251a;border-color:var(--cand)}
+  .corr-badge{display:inline-flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--line);
+       border-radius:8px;padding:4px 10px;font-size:12px;color:var(--muted)}
+  .corr-badge b{color:var(--cand);font-size:14px}
+  .foot{margin-top:40px;color:var(--dim);font-size:11.5px;border-top:1px solid var(--line);padding-top:16px;line-height:1.7}
+  .bratio{display:inline-block;min-width:38px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div>
+      <h1>SL&amp;C <span class="accent">상권 개발 분석</span> 대시보드</h1>
+      <div class="sub">기존 상권 성과로 모델을 검증하고, 후보 상권의 신규 출점 우선순위를 산출합니다.</div>
+    </div>
+    <div class="stamp">데이터: trade_area.csv · 운영점포 실적<br>외식사업부 · 데모 스냅샷</div>
+  </header>
+
+  <!-- KPI -->
+  <section style="margin-top:20px">
+    <div class="kpis" id="kpis"></div>
+  </section>
+
+  <!-- 매력도 랭킹 + 포지셔닝 맵 -->
+  <section>
+    <div class="grid2">
+      <div class="panel">
+        <div class="sec-h"><h2>상권 매력도 랭킹</h2><span class="desc">유동·배후·접근·경쟁·임대 복합점수 (0–100)</span></div>
+        <div id="ranking"></div>
+      </div>
+      <div class="panel scatter-wrap">
+        <div class="sec-h"><h2>포지셔닝 맵</h2><span class="desc">배후수요 × 수익여건</span></div>
+        <div id="scatter"></div>
+        <div class="legend">
+          <span><i style="background:var(--exist)"></i>기존 상권</span>
+          <span><i style="background:var(--cand)"></i>후보 상권</span>
+          <span>버블 크기 = 접근성</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 후보 상권 추천 -->
+  <section>
+    <div class="sec-h"><h2>신규 출점 추천 후보 상권</h2><span class="desc">매력도 상위 · 브랜드 적합도 포함</span></div>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <!-- 모델 검증 -->
+  <section>
+    <div class="grid2b">
+      <div class="panel">
+        <div class="sec-h"><h2>모델 검증</h2><span class="desc">기존 상권 매력도 vs 실제 점포 실적</span></div>
+        <div id="validate"></div>
+      </div>
+      <div class="panel">
+        <div class="sec-h"><h2>매력도 구성요소</h2><span class="desc">상위 5개 상권 — 5개 지표 기여</span></div>
+        <div id="stacked"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 상세 테이블 -->
+  <section>
+    <div class="panel">
+      <div class="sec-h"><h2>상권 상세 데이터</h2><span class="desc">헤더 클릭 정렬</span></div>
+      <div class="controls">
+        <button class="btn on" data-f="all">전체</button>
+        <button class="btn" data-f="기존">기존</button>
+        <button class="btn" data-f="후보">후보</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table id="tbl">
+          <thead><tr>
+            <th class="sortable" data-k="rank">순위</th>
+            <th class="sortable" data-k="name">상권</th>
+            <th class="sortable" data-k="type">구분</th>
+            <th class="sortable" data-k="traffic">유동(천)</th>
+            <th class="sortable" data-k="office">오피스(천)</th>
+            <th class="sortable" data-k="rent">임대지수</th>
+            <th class="sortable" data-k="comp">경쟁밀도</th>
+            <th class="sortable" data-k="access">접근성</th>
+            <th class="sortable" data-k="stores">운영점포</th>
+            <th class="sortable" data-k="achieve">평균달성</th>
+            <th class="sortable" data-k="score">매력도</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <div class="foot">
+    <b>분석 모델</b> · 매력도 = 유동인구 25% · 오피스배후 25% · 접근성 15% · 경쟁여유 20% · 임대효율 15% (각 지표 0–100 정규화, 경쟁·임대는 역방향)<br>
+    <b>모델 검증</b> · 기존 상권 매력도와 실제 점포 평균 BEP달성률의 상관계수로 모델 신뢰도를 확인합니다.<br>
+    <b>한계</b> · 후보 상권은 출점 전 추정 지표 기반이며, 실제 임차 조건·브랜드 카니발라이제이션·배후 디테일은 현장 실사로 보완 필요.
+  </div>
+</div>
+
+<script>
+const DATA = {"kpi": {"areas_total": 20, "existing": 12, "cand": 8, "stores": 24, "top_cand": "마곡", "top_cand_score": 69.9, "top_cand_rank": 1, "corr": 0.34}, "areas": [{"name": "마곡", "type": "후보", "note": "신흥 오피스, 경쟁 희박·임대료 낮음", "traffic": 72.0, "office": 90.0, "rent": 0.78, "comp": 6.0, "access": 8.0, "s_traffic": 20, "s_office": 100, "s_access": 50, "s_comp": 96, "s_rent": 89, "demand": 60, "profit": 92, "score": 69.9, "stores": 0, "margin": null, "achieve": null, "rank": 1, "fit": ["Chai797·서리재(오피스 점심)", "바른고기 정육점(임대·경쟁 여유)"]}, {"name": "여의도", "type": "기존", "note": "오피스 핵심, 점심 수요 강세", "traffic": 95.0, "office": 82.0, "rent": 1.0, "comp": 14.0, "access": 9.0, "s_traffic": 41, "s_office": 87, "s_access": 75, "s_comp": 61, "s_rent": 57, "demand": 64, "profit": 59, "score": 63.9, "stores": 5, "margin": 51.8, "achieve": 321, "rank": 2}, {"name": "판교", "type": "기존", "note": "IT 오피스, 객단가 여력 높음", "traffic": 78.0, "office": 88.0, "rent": 0.95, "comp": 11.0, "access": 8.0, "s_traffic": 25, "s_office": 97, "s_access": 50, "s_comp": 74, "s_rent": 64, "demand": 61, "profit": 69, "score": 62.5, "stores": 4, "margin": 48.3, "achieve": 304, "rank": 3}, {"name": "강남역", "type": "기존", "note": "유동 최다, 임대료·경쟁 동반 최고", "traffic": 140.0, "office": 70.0, "rent": 1.3, "comp": 22.0, "access": 10.0, "s_traffic": 82, "s_office": 67, "s_access": 100, "s_comp": 26, "s_rent": 14, "demand": 74, "profit": 20, "score": 59.5, "stores": 2, "margin": 57.1, "achieve": 312, "rank": 4}, {"name": "광화문", "type": "기존", "note": "오피스+관광 혼합", "traffic": 88.0, "office": 76.0, "rent": 1.05, "comp": 16.0, "access": 9.0, "s_traffic": 35, "s_office": 77, "s_access": 75, "s_comp": 52, "s_rent": 50, "demand": 56, "profit": 51, "score": 57.0, "stores": 2, "margin": 54.0, "achieve": 356, "rank": 5}, {"name": "용산", "type": "후보", "note": "신규 개발+관광, 균형형", "traffic": 105.0, "office": 62.0, "rent": 1.1, "comp": 13.0, "access": 9.0, "s_traffic": 50, "s_office": 53, "s_access": 75, "s_comp": 65, "s_rent": 43, "demand": 52, "profit": 54, "score": 56.6, "stores": 0, "margin": null, "achieve": null, "rank": 6, "fit": ["호우섬(몰·집객형)"]}, {"name": "광교", "type": "후보", "note": "수원권 오피스, 판교 대안", "traffic": 64.0, "office": 70.0, "rent": 0.82, "comp": 7.0, "access": 7.0, "s_traffic": 13, "s_office": 67, "s_access": 25, "s_comp": 91, "s_rent": 83, "demand": 40, "profit": 87, "score": 54.3, "stores": 0, "margin": null, "achieve": null, "rank": 7, "fit": ["Chai797·서리재(오피스 점심)"]}, {"name": "삼성", "type": "기존", "note": "코엑스 연계, 주중·주말 고른 수요", "traffic": 92.0, "office": 80.0, "rent": 1.15, "comp": 17.0, "access": 8.0, "s_traffic": 38, "s_office": 83, "s_access": 50, "s_comp": 48, "s_rent": 36, "demand": 60, "profit": 42, "score": 52.8, "stores": 2, "margin": 48.9, "achieve": 313, "rank": 8}, {"name": "동탄", "type": "후보", "note": "신도시 가족, 쇼핑몰 입점형", "traffic": 80.0, "office": 52.0, "rent": 0.74, "comp": 8.0, "access": 7.0, "s_traffic": 27, "s_office": 37, "s_access": 25, "s_comp": 87, "s_rent": 94, "demand": 32, "profit": 90, "score": 51.3, "stores": 0, "margin": null, "achieve": null, "rank": 9, "fit": ["바른고기 정육점(임대·경쟁 여유)"]}, {"name": "잠실", "type": "기존", "note": "쇼핑몰 집객, 가족 단위", "traffic": 130.0, "office": 45.0, "rent": 1.2, "comp": 20.0, "access": 9.0, "s_traffic": 73, "s_office": 25, "s_access": 75, "s_comp": 35, "s_rent": 29, "demand": 49, "profit": 32, "score": 46.9, "stores": 2, "margin": 40.0, "achieve": 364, "rank": 10}, {"name": "송도", "type": "후보", "note": "국제업무지구, 외국인 수요", "traffic": 58.0, "office": 55.0, "rent": 0.75, "comp": 6.0, "access": 6.0, "s_traffic": 7, "s_office": 42, "s_access": 0, "s_comp": 96, "s_rent": 93, "demand": 24, "profit": 94, "score": 45.3, "stores": 0, "margin": null, "achieve": null, "rank": 11, "fit": ["바른고기 정육점(임대·경쟁 여유)"]}, {"name": "부산", "type": "기존", "note": "해운대 관광 수요, 계절 편차", "traffic": 110.0, "office": 38.0, "rent": 0.8, "comp": 15.0, "access": 7.0, "s_traffic": 55, "s_office": 13, "s_access": 25, "s_comp": 57, "s_rent": 86, "demand": 34, "profit": 72, "score": 44.9, "stores": 1, "margin": 36.6, "achieve": 83, "rank": 12}, {"name": "수원", "type": "기존", "note": "스타필드 의존, 평일 약세", "traffic": 85.0, "office": 40.0, "rent": 0.85, "comp": 12.0, "access": 7.0, "s_traffic": 32, "s_office": 17, "s_access": 25, "s_comp": 70, "s_rent": 79, "demand": 24, "profit": 74, "score": 41.6, "stores": 1, "margin": 44.7, "achieve": 274, "rank": 13}, {"name": "을지로", "type": "기존", "note": "노후 상권, 야간 수요 약함", "traffic": 70.0, "office": 58.0, "rent": 0.9, "comp": 19.0, "access": 7.0, "s_traffic": 18, "s_office": 47, "s_access": 25, "s_comp": 39, "s_rent": 71, "demand": 32, "profit": 55, "score": 38.5, "stores": 2, "margin": 50.9, "achieve": 188, "rank": 14}, {"name": "성수", "type": "후보", "note": "트렌드 상권, 경쟁 과밀", "traffic": 98.0, "office": 48.0, "rent": 1.05, "comp": 24.0, "access": 8.0, "s_traffic": 44, "s_office": 30, "s_access": 50, "s_comp": 17, "s_rent": 50, "demand": 37, "profit": 34, "score": 36.9, "stores": 0, "margin": null, "achieve": null, "rank": 15, "fit": ["호우섬(몰·집객형)"]}, {"name": "위례", "type": "후보", "note": "주거 신도시, 디너 가능성", "traffic": 50.0, "office": 35.0, "rent": 0.72, "comp": 5.0, "access": 6.0, "s_traffic": 0, "s_office": 8, "s_access": 0, "s_comp": 100, "s_rent": 97, "demand": 4, "profit": 98, "score": 36.7, "stores": 0, "margin": null, "achieve": null, "rank": 16, "fit": ["바른고기 정육점(임대·경쟁 여유)"]}, {"name": "대전", "type": "기존", "note": "지방 백화점, 집객 한계", "traffic": 60.0, "office": 35.0, "rent": 0.7, "comp": 9.0, "access": 6.0, "s_traffic": 9, "s_office": 8, "s_access": 0, "s_comp": 83, "s_rent": 100, "demand": 8, "profit": 92, "score": 35.9, "stores": 1, "margin": 10.6, "achieve": 84, "rank": 17}, {"name": "도곡", "type": "기존", "note": "고소득 주거, 디너 수요", "traffic": 55.0, "office": 42.0, "rent": 1.1, "comp": 8.0, "access": 7.0, "s_traffic": 5, "s_office": 20, "s_access": 25, "s_comp": 87, "s_rent": 43, "demand": 12, "profit": 65, "score": 33.7, "stores": 1, "margin": 53.7, "achieve": 417, "rank": 18}, {"name": "명동", "type": "기존", "note": "관광 의존, 임대료 최고권", "traffic": 160.0, "office": 30.0, "rent": 1.4, "comp": 28.0, "access": 8.0, "s_traffic": 100, "s_office": 0, "s_access": 50, "s_comp": 0, "s_rent": 0, "demand": 50, "profit": 0, "score": 32.5, "stores": 1, "margin": 39.6, "achieve": 247, "rank": 19}, {"name": "청담", "type": "후보", "note": "프리미엄 다이닝, 파인다이닝 적합", "traffic": 70.0, "office": 40.0, "rent": 1.35, "comp": 18.0, "access": 8.0, "s_traffic": 18, "s_office": 17, "s_access": 50, "s_comp": 43, "s_rent": 7, "demand": 18, "profit": 25, "score": 26.0, "stores": 0, "margin": null, "achieve": null, "rank": 20, "fit": ["이타마에 스시(프리미엄 다이닝)"]}], "existing": [{"name": "여의도", "type": "기존", "note": "오피스 핵심, 점심 수요 강세", "traffic": 95.0, "office": 82.0, "rent": 1.0, "comp": 14.0, "access": 9.0, "s_traffic": 41, "s_office": 87, "s_access": 75, "s_comp": 61, "s_rent": 57, "demand": 64, "profit": 59, "score": 63.9, "stores": 5, "margin": 51.8, "achieve": 321, "rank": 2}, {"name": "판교", "type": "기존", "note": "IT 오피스, 객단가 여력 높음", "traffic": 78.0, "office": 88.0, "rent": 0.95, "comp": 11.0, "access": 8.0, "s_traffic": 25, "s_office": 97, "s_access": 50, "s_comp": 74, "s_rent": 64, "demand": 61, "profit": 69, "score": 62.5, "stores": 4, "margin": 48.3, "achieve": 304, "rank": 3}, {"name": "강남역", "type": "기존", "note": "유동 최다, 임대료·경쟁 동반 최고", "traffic": 140.0, "office": 70.0, "rent": 1.3, "comp": 22.0, "access": 10.0, "s_traffic": 82, "s_office": 67, "s_access": 100, "s_comp": 26, "s_rent": 14, "demand": 74, "profit": 20, "score": 59.5, "stores": 2, "margin": 57.1, "achieve": 312, "rank": 4}, {"name": "광화문", "type": "기존", "note": "오피스+관광 혼합", "traffic": 88.0, "office": 76.0, "rent": 1.05, "comp": 16.0, "access": 9.0, "s_traffic": 35, "s_office": 77, "s_access": 75, "s_comp": 52, "s_rent": 50, "demand": 56, "profit": 51, "score": 57.0, "stores": 2, "margin": 54.0, "achieve": 356, "rank": 5}, {"name": "삼성", "type": "기존", "note": "코엑스 연계, 주중·주말 고른 수요", "traffic": 92.0, "office": 80.0, "rent": 1.15, "comp": 17.0, "access": 8.0, "s_traffic": 38, "s_office": 83, "s_access": 50, "s_comp": 48, "s_rent": 36, "demand": 60, "profit": 42, "score": 52.8, "stores": 2, "margin": 48.9, "achieve": 313, "rank": 8}, {"name": "잠실", "type": "기존", "note": "쇼핑몰 집객, 가족 단위", "traffic": 130.0, "office": 45.0, "rent": 1.2, "comp": 20.0, "access": 9.0, "s_traffic": 73, "s_office": 25, "s_access": 75, "s_comp": 35, "s_rent": 29, "demand": 49, "profit": 32, "score": 46.9, "stores": 2, "margin": 40.0, "achieve": 364, "rank": 10}, {"name": "부산", "type": "기존", "note": "해운대 관광 수요, 계절 편차", "traffic": 110.0, "office": 38.0, "rent": 0.8, "comp": 15.0, "access": 7.0, "s_traffic": 55, "s_office": 13, "s_access": 25, "s_comp": 57, "s_rent": 86, "demand": 34, "profit": 72, "score": 44.9, "stores": 1, "margin": 36.6, "achieve": 83, "rank": 12}, {"name": "수원", "type": "기존", "note": "스타필드 의존, 평일 약세", "traffic": 85.0, "office": 40.0, "rent": 0.85, "comp": 12.0, "access": 7.0, "s_traffic": 32, "s_office": 17, "s_access": 25, "s_comp": 70, "s_rent": 79, "demand": 24, "profit": 74, "score": 41.6, "stores": 1, "margin": 44.7, "achieve": 274, "rank": 13}, {"name": "을지로", "type": "기존", "note": "노후 상권, 야간 수요 약함", "traffic": 70.0, "office": 58.0, "rent": 0.9, "comp": 19.0, "access": 7.0, "s_traffic": 18, "s_office": 47, "s_access": 25, "s_comp": 39, "s_rent": 71, "demand": 32, "profit": 55, "score": 38.5, "stores": 2, "margin": 50.9, "achieve": 188, "rank": 14}, {"name": "대전", "type": "기존", "note": "지방 백화점, 집객 한계", "traffic": 60.0, "office": 35.0, "rent": 0.7, "comp": 9.0, "access": 6.0, "s_traffic": 9, "s_office": 8, "s_access": 0, "s_comp": 83, "s_rent": 100, "demand": 8, "profit": 92, "score": 35.9, "stores": 1, "margin": 10.6, "achieve": 84, "rank": 17}, {"name": "도곡", "type": "기존", "note": "고소득 주거, 디너 수요", "traffic": 55.0, "office": 42.0, "rent": 1.1, "comp": 8.0, "access": 7.0, "s_traffic": 5, "s_office": 20, "s_access": 25, "s_comp": 87, "s_rent": 43, "demand": 12, "profit": 65, "score": 33.7, "stores": 1, "margin": 53.7, "achieve": 417, "rank": 18}, {"name": "명동", "type": "기존", "note": "관광 의존, 임대료 최고권", "traffic": 160.0, "office": 30.0, "rent": 1.4, "comp": 28.0, "access": 8.0, "s_traffic": 100, "s_office": 0, "s_access": 50, "s_comp": 0, "s_rent": 0, "demand": 50, "profit": 0, "score": 32.5, "stores": 1, "margin": 39.6, "achieve": 247, "rank": 19}], "cand": [{"name": "마곡", "type": "후보", "note": "신흥 오피스, 경쟁 희박·임대료 낮음", "traffic": 72.0, "office": 90.0, "rent": 0.78, "comp": 6.0, "access": 8.0, "s_traffic": 20, "s_office": 100, "s_access": 50, "s_comp": 96, "s_rent": 89, "demand": 60, "profit": 92, "score": 69.9, "stores": 0, "margin": null, "achieve": null, "rank": 1, "fit": ["Chai797·서리재(오피스 점심)", "바른고기 정육점(임대·경쟁 여유)"]}, {"name": "용산", "type": "후보", "note": "신규 개발+관광, 균형형", "traffic": 105.0, "office": 62.0, "rent": 1.1, "comp": 13.0, "access": 9.0, "s_traffic": 50, "s_office": 53, "s_access": 75, "s_comp": 65, "s_rent": 43, "demand": 52, "profit": 54, "score": 56.6, "stores": 0, "margin": null, "achieve": null, "rank": 6, "fit": ["호우섬(몰·집객형)"]}, {"name": "광교", "type": "후보", "note": "수원권 오피스, 판교 대안", "traffic": 64.0, "office": 70.0, "rent": 0.82, "comp": 7.0, "access": 7.0, "s_traffic": 13, "s_office": 67, "s_access": 25, "s_comp": 91, "s_rent": 83, "demand": 40, "profit": 87, "score": 54.3, "stores": 0, "margin": null, "achieve": null, "rank": 7, "fit": ["Chai797·서리재(오피스 점심)"]}, {"name": "동탄", "type": "후보", "note": "신도시 가족, 쇼핑몰 입점형", "traffic": 80.0, "office": 52.0, "rent": 0.74, "comp": 8.0, "access": 7.0, "s_traffic": 27, "s_office": 37, "s_access": 25, "s_comp": 87, "s_rent": 94, "demand": 32, "profit": 90, "score": 51.3, "stores": 0, "margin": null, "achieve": null, "rank": 9, "fit": ["바른고기 정육점(임대·경쟁 여유)"]}, {"name": "송도", "type": "후보", "note": "국제업무지구, 외국인 수요", "traffic": 58.0, "office": 55.0, "rent": 0.75, "comp": 6.0, "access": 6.0, "s_traffic": 7, "s_office": 42, "s_access": 0, "s_comp": 96, "s_rent": 93, "demand": 24, "profit": 94, "score": 45.3, "stores": 0, "margin": null, "achieve": null, "rank": 11, "fit": ["바른고기 정육점(임대·경쟁 여유)"]}, {"name": "성수", "type": "후보", "note": "트렌드 상권, 경쟁 과밀", "traffic": 98.0, "office": 48.0, "rent": 1.05, "comp": 24.0, "access": 8.0, "s_traffic": 44, "s_office": 30, "s_access": 50, "s_comp": 17, "s_rent": 50, "demand": 37, "profit": 34, "score": 36.9, "stores": 0, "margin": null, "achieve": null, "rank": 15, "fit": ["호우섬(몰·집객형)"]}, {"name": "위례", "type": "후보", "note": "주거 신도시, 디너 가능성", "traffic": 50.0, "office": 35.0, "rent": 0.72, "comp": 5.0, "access": 6.0, "s_traffic": 0, "s_office": 8, "s_access": 0, "s_comp": 100, "s_rent": 97, "demand": 4, "profit": 98, "score": 36.7, "stores": 0, "margin": null, "achieve": null, "rank": 16, "fit": ["바른고기 정육점(임대·경쟁 여유)"]}, {"name": "청담", "type": "후보", "note": "프리미엄 다이닝, 파인다이닝 적합", "traffic": 70.0, "office": 40.0, "rent": 1.35, "comp": 18.0, "access": 8.0, "s_traffic": 18, "s_office": 17, "s_access": 50, "s_comp": 43, "s_rent": 7, "demand": 18, "profit": 25, "score": 26.0, "stores": 0, "margin": null, "achieve": null, "rank": 20, "fit": ["이타마에 스시(프리미엄 다이닝)"]}]};
+const C={exist:'#4f7cff',cand:'#23c48a',warn:'#f5a623',bad:'#ef5b6b',muted:'#8a96b0',line:'#27304a',grid:'#222b42'};
+const $=(s,p=document)=>p.querySelector(s);
+const el=(t,a={},h='')=>{const e=document.createElement(t);for(const k in a)e.setAttribute(k,a[k]);if(h)e.innerHTML=h;return e};
+function scoreColor(s){ if(s>=70)return C.cand; if(s>=55)return '#7bd88a'; if(s>=42)return C.warn; return C.bad; }
+
+/* ---------- KPI ---------- */
+function renderKPI(){
+  const k=DATA.kpi;
+  const items=[
+    {c:'k1',lab:'분석 상권',val:k.areas_total,unit:'개',sub:`기존 ${k.existing} · 후보 ${k.cand}`,sc:C.exist},
+    {c:'k2',lab:'운영 점포',val:k.stores,unit:'개',sub:'5개 브랜드 실적 연계',sc:C.cand},
+    {c:'k3',lab:'1순위 후보',val:k.top_cand,unit:'',sub:`매력도 ${k.top_cand_score} · 전체 ${k.top_cand_rank}위`,sc:C.warn},
+    {c:'k4',lab:'후보 진입 점수폭',val:DATA.cand[0].score+'~'+DATA.cand[DATA.cand.length-1].score,unit:'',sub:'후보 8개 매력도 범위',sc:'#9a6bff'},
+    {c:'k5',lab:'모델 신뢰도',val:'r='+k.corr,unit:'',sub:'매력도↔실적 상관',sc:'#37c7d4'},
+  ];
+  const box=$('#kpis');
+  items.forEach(it=>{
+    box.appendChild(el('div',{class:'kpi '+it.c},
+      `<div class="bar"></div><div class="lab">${it.lab}</div>
+       <div class="val" style="font-size:${String(it.val).length>6?'20px':'30px'}">${it.val}<small>${it.unit}</small></div>
+       <div class="sub" style="color:${it.sc}">${it.sub}</div>`));
+  });
+}
+
+/* ---------- 랭킹 바 ---------- */
+function renderRanking(){
+  const box=$('#ranking');
+  DATA.areas.forEach(a=>{
+    const col=scoreColor(a.score);
+    const tag=a.type==='기존'?'<span class="tag exist">기존</span>':'<span class="tag cand">후보</span>';
+    const row=el('div',{class:'rank-row'},
+      `<div class="rk">${a.rank}</div>
+       <div class="nm">${a.name}</div>
+       <div class="track"><div class="fill" style="width:${a.score}%;background:${col}"></div></div>
+       <div class="sc" style="color:${col}">${a.score}</div>`);
+    row.children[1].insertAdjacentHTML('beforeend',tag);
+    box.appendChild(row);
+  });
+}
+
+/* ---------- 포지셔닝 산점도 ---------- */
+function renderScatter(){
+  const W=560,H=380,pad=46;
+  const x=v=>pad+(v/100)*(W-pad-14);
+  const y=v=>H-pad-(v/100)*(H-pad-14);
+  let s=`<svg viewBox="0 0 ${W} ${H}" width="100%" style="overflow:visible">`;
+  // quadrant fill
+  s+=`<rect x="${x(50)}" y="${y(100)}" width="${x(100)-x(50)}" height="${y(50)-y(100)}" fill="rgba(35,196,138,.05)"/>`;
+  // grid
+  for(let g=0;g<=100;g+=25){
+    s+=`<line x1="${x(g)}" y1="${y(0)}" x2="${x(g)}" y2="${y(100)}" stroke="${C.grid}" stroke-width="1"/>`;
+    s+=`<line x1="${x(0)}" y1="${y(g)}" x2="${x(100)}" y2="${y(g)}" stroke="${C.grid}" stroke-width="1"/>`;
+  }
+  // mid lines
+  s+=`<line x1="${x(50)}" y1="${y(0)}" x2="${x(50)}" y2="${y(100)}" stroke="${C.line}" stroke-dasharray="4 4"/>`;
+  s+=`<line x1="${x(0)}" y1="${y(50)}" x2="${x(100)}" y2="${y(50)}" stroke="${C.line}" stroke-dasharray="4 4"/>`;
+  // axis labels
+  s+=`<text x="${W/2}" y="${H-8}" text-anchor="middle" fill="${C.muted}" font-size="12">배후수요 (유동+오피스) →</text>`;
+  s+=`<text x="14" y="${H/2}" text-anchor="middle" fill="${C.muted}" font-size="12" transform="rotate(-90 14 ${H/2})">수익여건 (저경쟁+저임대) →</text>`;
+  s+=`<text x="${x(75)}" y="${y(96)}" text-anchor="middle" class="quad-note" font-size="11">★ 핵심 출점존</text>`;
+  // points
+  DATA.areas.forEach(a=>{
+    const r=5+(a.access-6)*1.6;
+    const fill=a.type==='기존'?C.exist:C.cand;
+    const op=a.type==='기존'?0.85:0.95;
+    s+=`<circle cx="${x(a.demand)}" cy="${y(a.profit)}" r="${r}" fill="${fill}" fill-opacity="${a.type==='기존'?op:.18}" stroke="${fill}" stroke-width="${a.type==='기존'?1:2}"/>`;
+    s+=`<text x="${x(a.demand)}" y="${y(a.profit)-r-3}" text-anchor="middle" fill="${C.muted}" font-size="10">${a.name}</text>`;
+  });
+  s+='</svg>';
+  $('#scatter').innerHTML=s;
+}
+
+/* ---------- 후보 카드 ---------- */
+function renderCards(){
+  const box=$('#cards');
+  DATA.cand.slice(0,4).forEach(a=>{
+    const fit=a.fit.map(f=>`<div>· ${f}</div>`).join('');
+    box.appendChild(el('div',{class:'card'},
+      `<div class="crk">전체 ${a.rank}위</div>
+       <h3>${a.name} <span class="score-pill">${a.score}</span></h3>
+       <div class="note">${a.note}</div>
+       <div class="mini">
+         <div><div class="ml">유동인구</div><div class="mv">${a.traffic}<span style="font-size:10px;color:${C.muted}">천</span></div></div>
+         <div><div class="ml">오피스배후</div><div class="mv">${a.office}<span style="font-size:10px;color:${C.muted}">천</span></div></div>
+         <div><div class="ml">임대/경쟁</div><div class="mv" style="font-size:13px">${a.rent} / ${a.comp}</div></div>
+       </div>
+       <div class="fit"><b>브랜드 적합</b><br>${fit}</div>`));
+  });
+}
+
+/* ---------- 모델 검증 (산점 + 추세) ---------- */
+function renderValidate(){
+  const ex=DATA.existing.filter(a=>a.achieve!=null);
+  const W=520,H=300,pad=44;
+  const xs=ex.map(a=>a.score), ys=ex.map(a=>a.achieve);
+  const xmin=Math.min(...xs)-3,xmax=Math.max(...xs)+3,ymin=Math.min(...ys)-15,ymax=Math.max(...ys)+15;
+  const X=v=>pad+(v-xmin)/(xmax-xmin)*(W-pad-12);
+  const Y=v=>H-pad-(v-ymin)/(ymax-ymin)*(H-pad-22);
+  // linear fit
+  const n=ex.length,sx=xs.reduce((a,b)=>a+b,0),sy=ys.reduce((a,b)=>a+b,0);
+  const sxx=xs.reduce((a,b)=>a+b*b,0),sxy=ex.reduce((a,b)=>a+b.score*b.achieve,0);
+  const slope=(n*sxy-sx*sy)/(n*sxx-sx*sx), icpt=(sy-slope*sx)/n;
+  let s=`<svg viewBox="0 0 ${W} ${H}" width="100%">`;
+  for(let g=0;g<=4;g++){const yy=ymin+(ymax-ymin)*g/4;
+    s+=`<line x1="${X(xmin)}" y1="${Y(yy)}" x2="${X(xmax)}" y2="${Y(yy)}" stroke="${C.grid}"/>`;
+    s+=`<text x="${X(xmin)-6}" y="${Y(yy)+3}" text-anchor="end" fill="${C.muted}" font-size="10">${Math.round(yy)}%</text>`;}
+  // trend line
+  s+=`<line x1="${X(xmin)}" y1="${Y(slope*xmin+icpt)}" x2="${X(xmax)}" y2="${Y(slope*xmax+icpt)}" stroke="${C.warn}" stroke-width="2" stroke-dasharray="5 4"/>`;
+  ex.forEach(a=>{
+    s+=`<circle cx="${X(a.score)}" cy="${Y(a.achieve)}" r="5" fill="${C.exist}" fill-opacity=".85"/>`;
+    s+=`<text x="${X(a.score)}" y="${Y(a.achieve)-8}" text-anchor="middle" fill="${C.muted}" font-size="9">${a.name}</text>`;
+  });
+  s+=`<text x="${W/2}" y="${H-6}" text-anchor="middle" fill="${C.muted}" font-size="11">상권 매력도 점수 →</text>`;
+  s+='</svg>';
+  s+=`<div style="margin-top:6px"><span class="corr-badge">상관계수 <b>r = ${DATA.kpi.corr}</b> · ${DATA.kpi.corr>=0.5?'양(+)의 상관 — 모델 유효':'추가 검증 필요'}</span></div>`;
+  $('#validate').innerHTML=s;
+}
+
+/* ---------- 매력도 구성요소 스택 ---------- */
+function renderStacked(){
+  const top=DATA.areas.slice(0,5);
+  const comps=[['s_traffic','유동',C.exist],['s_office','오피스','#23c48a'],['s_access','접근','#f5a623'],['s_comp','경쟁여유','#9a6bff'],['s_rent','임대효율','#37c7d4']];
+  const Wt={s_traffic:.25,s_office:.25,s_access:.15,s_comp:.20,s_rent:.15};
+  let s='<div style="display:flex;flex-direction:column;gap:12px">';
+  top.forEach(a=>{
+    s+=`<div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><b>${a.name}</b><span style="color:${scoreColor(a.score)};font-weight:700">${a.score}</span></div>`;
+    s+='<div style="display:flex;height:16px;border-radius:5px;overflow:hidden;background:'+C.grid+'">';
+    comps.forEach(([k,lab,col])=>{const w=a[k]*Wt[k];s+=`<div title="${lab} ${a[k]}" style="width:${w}%;background:${col}"></div>`;});
+    s+='</div></div>';
+  });
+  s+='</div><div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:14px;font-size:11px;color:'+C.muted+'">';
+  comps.forEach(([k,lab,col])=>{s+=`<span><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${col};margin-right:4px"></i>${lab}</span>`;});
+  s+='</div>';
+  $('#stacked').innerHTML=s;
+}
+
+/* ---------- 테이블 ---------- */
+let sortK='rank',sortDir=1,filterT='all';
+function renderTable(){
+  let rows=DATA.areas.slice();
+  if(filterT!=='all')rows=rows.filter(r=>r.type===filterT);
+  rows.sort((a,b)=>{let va=a[sortK],vb=b[sortK];
+    if(va==null)va=-1; if(vb==null)vb=-1;
+    if(typeof va==='string')return va.localeCompare(vb)*sortDir;
+    return (va-vb)*sortDir;});
+  const tb=$('#tbl tbody');tb.innerHTML='';
+  rows.forEach(a=>{
+    const col=scoreColor(a.score);
+    const tag=a.type==='기존'?'<span class="tag exist">기존</span>':'<span class="tag cand">후보</span>';
+    tb.appendChild(el('tr',{},
+      `<td>${a.rank}</td><td>${a.name}</td><td style="text-align:left">${tag}</td>
+       <td>${a.traffic}</td><td>${a.office}</td><td>${a.rent}</td><td>${a.comp}</td><td>${a.access}</td>
+       <td>${a.stores||'–'}</td><td>${a.achieve!=null?a.achieve+'%':'–'}</td>
+       <td class="score-cell" style="color:${col}">${a.score}</td>`));
+  });
+}
+function initTable(){
+  document.querySelectorAll('#tbl th.sortable').forEach(th=>{
+    th.addEventListener('click',()=>{const k=th.dataset.k;if(sortK===k)sortDir*=-1;else{sortK=k;sortDir=(k==='name'||k==='type')?1:-1;}renderTable();});
+  });
+  document.querySelectorAll('.controls .btn').forEach(b=>{
+    b.addEventListener('click',()=>{document.querySelectorAll('.controls .btn').forEach(x=>x.classList.remove('on'));b.classList.add('on');filterT=b.dataset.f;renderTable();});
+  });
+}
+
+renderKPI();renderRanking();renderScatter();renderCards();renderValidate();renderStacked();renderTable();initTable();
+</script>
+</body>
+</html>
