@@ -1340,9 +1340,9 @@ const SYS_INQUIRY=['답변이 보이','답변을 확인','답변 확인','이메
 function isSysInquiry(r){ if(r.critical) return false; const t=((r.title||'')+' '+(r.content||'')); return SYS_INQUIRY.some(w=>t.indexOf(w)>=0); }
 function vocByStore(qMonths){
   const recs=(V&&V.records?V.records:[]).filter(r=>qMonths.includes(r.month)); const by={};
-  recs.forEach(r=>{ const x=by[r.store]=by[r.store]||{store:r.store,brand:r.brand||'',칭찬:0,불만:0,기타:0,praiseEx:'',badEx:''};
+  recs.forEach(r=>{ const x=by[r.store]=by[r.store]||{store:r.store,brand:r.brand||'',칭찬:0,불만:0,기타:0,praiseEx:'',badEx:'',badExs:[]};
     if(r.category==='칭찬' && isGenuinePraise(r)){ x['칭찬']++; if(!x.praiseEx)x.praiseEx=r.content; }   // 실제 칭찬만
-    else if(r.category==='불만' && !isSysInquiry(r)){ x['불만']++; if(!x.badEx)x.badEx=r.content; }   // 매장 불만만
+    else if(r.category==='불만' && !isSysInquiry(r)){ x['불만']++; if(!x.badEx)x.badEx=r.content; x.badExs.push(r.content||'(내용 없음)'); }   // 매장 불만만 — 요약을 건수만큼 모음(badExs.length === 불만)
     else x['기타']++; });   // 단순 문의·칭찬 키워드 없는 건, 시스템·멤버십 문의 등은 기타로
   return {by:Object.values(by),total:recs.length};
 }
@@ -1378,12 +1378,19 @@ function renderRewards(qkey){
   const sumz=s=>{ s=(s||'').replace(/</g,'&lt;').replace(/\s+/g,' ').trim(); const f=(s.split(/[.!?]/)[0]||s); return f.length>48?f.slice(0,48)+'…':f; };
   const sumLong=s=>{ s=(s||'').replace(/</g,'&lt;').replace(/\s+/g,' ').trim(); const parts=s.split(/[.!?]/).map(x=>x.trim()).filter(Boolean); let r=parts[0]||s; if(parts[1]&&r.length<80) r+='. '+parts[1]; return r.length>130?r.slice(0,130)+'…':r; };
   const row=(s,i,col,lbl,n,ex,detail)=>`<div class="rep-row"><b style="min-width:160px">${i+1}. ${s.store}</b><span><span style="color:${col};font-weight:700">${lbl} ${n}건</span>${ex?` · ${detail?sumLong(ex):sumz(ex)}`:''}</span></div>`;
+  // 징계 매장: 불만 건수만큼 요약을 나열 (요약 개수 === 불만 건수)
+  const penRow=(s,i)=>{
+    const exs=(s.badExs&&s.badExs.length?s.badExs:(s.badEx?[s.badEx]:[]));
+    const head=`<div class="rep-row"><b style="min-width:160px">${i+1}. ${s.store}</b><span style="color:var(--bad);font-weight:700">불만 ${s['불만']}건</span></div>`;
+    const list=exs.map((t,j)=>`<div class="rep-row" style="padding:4px 0 4px 24px;border:0;align-items:baseline;color:var(--muted);font-size:12px"><span style="min-width:26px;color:var(--bad);font-weight:600">${j+1}.</span><span>${sumz(t)}</span></div>`).join('');
+    return head+list;
+  };
   let h='';
   h+=`<div class="rep-sec"><h3>🏅 포상 추천 매장 — 고객 칭찬 매장 전체 (${praise.length}개)</h3>`
     +(praise.length?praise.map((s,i)=>row(s,i,'var(--good)','칭찬',s['칭찬'],s.praiseEx,true)).join(''):'<div class="rep-row" style="color:var(--muted)">해당 분기 VOC 칭찬 매장 없음</div>')
     +`<div class="rep-row" style="color:var(--muted);font-size:12px">▶ 포상안: 분기 우수매장 표창 · 직원 인센티브(상품권·포상휴가) · 우수사례 전사 공유</div></div>`;
   h+=`<div class="rep-sec"><h3>⛔ 징계 필요 매장 — 고객 불만 다발 2개</h3>`
-    +(penalty.length?penalty.map((s,i)=>row(s,i,'var(--bad)','불만',s['불만'],s.badEx)).join(''):'<div class="rep-row" style="color:var(--muted)">해당 분기 VOC 불만 매장 없음</div>')
+    +(penalty.length?penalty.map((s,i)=>penRow(s,i)).join(''):'<div class="rep-row" style="color:var(--muted)">해당 분기 VOC 불만 매장 없음</div>')
     +`<div class="rep-row" style="color:var(--muted);font-size:12px">▶ 징계기준: 점장 면담·원인 분석 · 직원 재교육 · 개선계획 제출 후 1개월 재점검(미개선 시 인사평가 반영·징계 검토)</div></div>`;
   box.innerHTML=h;
 }
