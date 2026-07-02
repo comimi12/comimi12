@@ -311,7 +311,7 @@ window.__BUILD__='__BUILD_TOKEN__';
 
   <!-- 결과 보고서 (운영팀·HR팀 건의문) -->
   <section class="view" id="vreport">
-    <div class="vhead"><h2>결과 보고서 <span class="note">운영팀·HR팀 건의문 · 분기별 상벌 기반</span></h2></div>
+    <div class="vhead"><h2>VOC 결과 보고서</h2></div>
     <div class="ctrl">
       <span>분기</span><select id="vreport-q"></select>
       <button id="vreport-go">조회</button>
@@ -875,20 +875,31 @@ function renderV3(fromM,toM){
   document.getElementById('v3-cmpln').textContent = `${comps.length}건 · 요약·개선 방안`;
   document.getElementById('v3-complaints').innerHTML = comps.map(vocComplaintCard).join('')
     || '<p style="color:var(--muted);font-size:13px;margin:4px 0">해당 기간에 불만 리뷰가 없습니다.</p>';
+  // 불만 상세 토글 (뷰3)
+  document.querySelectorAll('#v3-complaints .v3-det-btn').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const box=document.getElementById(b.dataset.det); if(!box) return;
+      const show=box.style.display==='none';
+      box.style.display=show?'block':'none';
+      b.textContent=show?'🔽 상세 닫기':'🔍 불만 상세';
+    });
+  });
 }
 // 리뷰 내용 → 토픽 자동 분류 → 개선 방안(FIX_BY_CAT)
 function vocFixes(text){
   const cat={}; topicsOf(text||'').forEach(h=>cat[h]=(cat[h]||0)+1);
   return [...new Set(Object.keys(cat).map(k=>FIX_BY_CAT[k]).filter(Boolean))].slice(0,3);
 }
-function vocComplaintCard(it){
+function vocComplaintCard(it,i){
   const esc=s=>(s||'').replace(/</g,'&lt;');
+  const detId=`v3-det-${i}`;
   const head=`<div class="vtop"><span class="pill bad">불만</span><span class="pill gray">${it.inquiry_type||''}</span> <b>${it.store||''}</b> <span>${it.author||''}</span> ${it.reg?'· '+it.reg:''}${it.critical?' <span class="pill warn">고위험</span>':''}</div>`;
-  const sumy=`<div class="field"><div class="k"><span class="tag">요약</span>리뷰 요약</div><div class="v"><ul class="sum"><li>${hilite(esc(gistDetail(it.content)))}</li></ul></div></div>`;
-  const detail=`<details class="vdet"><summary>상세 내용 펼치기</summary><div class="ct">${hilite(esc(it.content))}</div></details>`;
+  const detBtn=`<button class="ghost v3-det-btn" data-det="${detId}" style="margin-left:6px;font-size:11.5px;padding:2px 9px">🔍 불만 상세</button>`;
+  const detBox=`<div id="${detId}" class="v3-detail" style="display:none;margin-top:6px;border-top:1px dashed var(--line);padding-top:6px"><div class="ct">${hilite(esc(it.content))}</div></div>`;
+  const sumy=`<div class="field"><div class="k"><span class="tag">요약</span>리뷰 요약${detBtn}</div><div class="v"><ul class="sum"><li>${hilite(esc(gistDetail(it.content)))}</li></ul>${detBox}</div></div>`;
   const fixes=vocFixes(it.content);
   const fixHtml=fixes.length?`<div class="field"><div class="k"><span class="tag">방안</span>개선 방안 <span style="color:var(--muted);font-weight:400">(토픽 자동)</span></div><div class="v"><ul class="sum">${fixes.map(f=>`<li>${f}</li>`).join('')}</ul></div></div>`:'';
-  return `<div class="voc">${head}${sumy}${detail}${fixHtml}</div>`;
+  return `<div class="voc">${head}${sumy}${fixHtml}</div>`;
 }
 (function initV3(){
   if(!V){document.getElementById('v3').innerHTML='<div class="panel">SL&C 데이터가 없습니다.</div>';return;}
@@ -1443,25 +1454,18 @@ function renderReport(qkey){
     ? penalty.map(s=>{const pm=penMeasure(s['불만']);return `<tr><td class="st">${esc(s.store)}</td><td class="num" style="color:var(--bad);font-weight:700">불만 ${s['불만']}건</td><td>${badge(pm.stage,pm.col)} <b>${pm.kind}</b> — ${pm.detail}</td></tr>`;}).join('')
     : `<tr><td colspan="3" style="color:var(--muted)">해당 분기 VOC 불만 매장 없음</td></tr>`;
   h+=`</tbody></table>`;
-  // 하단 참고 — 포상 기준 · 징계 기준 좌우 비교 (단일 표)
-  const rewardRows=[['간식비 지원',`매장당 ${wonKR(REWARD_PER_STORE)}`],['우수사례 공유','그룹웨어 전사 공유']];
+  // 하단 참고 — 포상 기준 / 징계 기준 (분리·스택 배치)
+  h+=`<div style="font-weight:700;font-size:12.5px;margin:18px 0 6px">📌 포상 기준</div>`;
+  h+=`<table class="rep-tbl"><thead><tr><th style="width:130px">구분</th><th>내용</th></tr></thead><tbody>`
+    +`<tr><td class="st">간식비 지원</td><td>매장당 ${wonKR(REWARD_PER_STORE)}</td></tr>`
+    +`<tr><td class="st">우수사례 공유</td><td>그룹웨어 전사 공유</td></tr>`
+    +`</tbody></table>`;
   const stg=[['1~2건',1],['3~4건',3],['5건 이상',5]];
-  const penRows=stg.map(([lbl,n])=>{const pm=penMeasure(n);return [`${badge(pm.stage,pm.col)} <b>${pm.kind}</b> <span style="color:var(--muted);font-weight:400">(${lbl})</span>`, pm.detail];});
-  const rowN=Math.max(rewardRows.length,penRows.length);
-  h+=`<div style="font-weight:700;font-size:12.5px;margin:16px 0 6px">📌 포상 기준 · 징계 기준</div>`;
-  h+=`<table class="rep-tbl"><thead>`
-    +`<tr><th colspan="2" style="background:var(--good);color:#fff;text-align:center">🏅 포상 기준</th><th colspan="2" style="background:var(--bad);color:#fff;text-align:center">⚠️ 징계 기준 <span style="font-weight:400">· 운영팀·HR팀 대상 권고</span></th></tr>`
-    +`<tr><th style="width:96px">구분</th><th>내용</th><th style="width:200px">단계 (불만 건수)</th><th>권고 조치</th></tr>`
-    +`</thead><tbody>`;
-  for(let r=0;r<rowN;r++){
-    const rw=rewardRows[r], pn=penRows[r];
-    h+=`<tr>`
-      +(rw?`<td class="st">${rw[0]}</td><td>${rw[1]}</td>`:`<td></td><td></td>`)
-      +(pn?`<td>${pn[0]}</td><td>${pn[1]}</td>`:`<td></td><td></td>`)
-      +`</tr>`;
-  }
-  h+=`</tbody></table>`;
-  h+=`<p class="rep-lead" style="font-size:11.5px;margin-top:6px">고객 안전·위생 등 중대 사안은 건수와 무관하게 최우선 검토 권고.</p>`;
+  h+=`<div style="font-weight:700;font-size:12.5px;margin:18px 0 6px">📌 징계 기준 <span class="note" style="font-weight:400">고객 불만 건수 기준 · 운영팀·HR팀 대상 권고</span></div>`;
+  h+=`<table class="rep-tbl"><thead><tr><th style="width:190px">단계</th><th class="num" style="width:90px">불만 건수</th><th>권고 조치</th></tr></thead><tbody>`
+    +stg.map(([lbl,n])=>{const pm=penMeasure(n);return `<tr><td>${badge(pm.stage,pm.col)} <b>${pm.kind}</b></td><td class="num">${lbl}</td><td>${pm.detail}</td></tr>`;}).join('')
+    +`<tr><td colspan="3" style="color:var(--muted);font-size:12px">고객 안전·위생 등 중대 사안은 건수와 무관하게 최우선 검토 권고</td></tr>`
+    +`</tbody></table>`;
   h+=`<p class="rep-lead" style="font-size:11.5px;margin-top:12px">※ 본 보고서는 <b>서비스 교육팀의 포상·개선 권고안</b>이며, 실제 포상 집행 및 인사 조치는 <b>운영팀·HR팀의 검토·결정</b>에 따릅니다.</p>`;
   h+=`</div>`;
   box.innerHTML=h;
