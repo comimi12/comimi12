@@ -708,7 +708,12 @@ function renderTop3(fromM,toM){
     const samp=R.complaints.filter(c=>c.store===s.store&&c.month>=fromM&&c.month<=toM);
     const sumItems=samp.map(c=>`<li>${hilite(gistDetail(c.text).replace(/</g,'&lt;'))}</li>`).join('');
     const cntLbl=samp.length?` <span style="color:var(--muted);font-weight:400">(${samp.length}건)</span>`:'';
-    let body=`<div class="field"><div class="k"><span class="tag">요약</span>불만 요약${cntLbl}</div><div class="v"><ul class="sum">${sumItems||'<li>불만 리뷰가 없습니다.</li>'}</ul></div></div>`;
+    // 불만 상세(전문) — 버튼 클릭 시 토글
+    const detId=`v2-det-${i}`;
+    const detItems=samp.map(c=>`<li>${c.month?`<span style="color:var(--muted)">[${c.month}]</span> `:''}${hilite(String(c.text||'(내용 없음)').replace(/</g,'&lt;'))}</li>`).join('');
+    const detBtn=samp.length?`<button class="ghost v2-det-btn" data-det="${detId}" style="margin-left:8px;font-size:11.5px;padding:2px 9px">🔍 불만 상세</button>`:'';
+    const detBox=samp.length?`<div id="${detId}" class="v2-detail" style="display:none;margin-top:8px;border-top:1px dashed var(--line);padding-top:8px"><div style="font-size:11.5px;color:var(--muted);margin-bottom:5px">불만 리뷰 전문 (${samp.length}건)</div><ul class="sum">${detItems}</ul></div>`:'';
+    let body=`<div class="field"><div class="k"><span class="tag">요약</span>불만 요약${cntLbl}${detBtn}</div><div class="v"><ul class="sum">${sumItems||'<li>불만 리뷰가 없습니다.</li>'}</ul>${detBox}</div></div>`;
     // AI 개선방안·실행계획: 수기 노트(1~5월) 있으면 사용, 없으면(6월·기간 등) 토픽 기반 자동 생성 — 항상 AI 의견 표시
     const hasNote = n && ((n['개선방안']&&n['개선방안'].length) || (n['완료방법']&&n['완료방법'].length));
     const plan = hasNote ? {개선방안:n['개선방안']||[], 완료방법:n['완료방법']||[], auto:false} : autoPlan(samp);
@@ -730,6 +735,15 @@ function renderTop3(fromM,toM){
       <div><div class="nm">${s.store}</div><div style="font-size:12px;color:var(--muted)">${s.brand} · 불만 ${s['불만']}건${basis}</div></div></div>
       <div class="body">${body}</div></div>`;
   }).join('') || '<div class="panel">해당 기간에 표본 10건 이상 매장이 없습니다.</div>';
+  // 불만 상세 토글
+  document.querySelectorAll('#v2-cards .v2-det-btn').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const box=document.getElementById(b.dataset.det); if(!box) return;
+      const show=box.style.display==='none';
+      box.style.display=show?'block':'none';
+      b.textContent=show?'🔽 상세 닫기':'🔍 불만 상세';
+    });
+  });
   // 저장된 내 의견 불러오기 + 입력 시 자동 저장
   document.querySelectorAll('#v2-cards .memo').forEach(t=>{
     try{ t.value = localStorage.getItem(t.dataset.key) || (window.MEMOS && window.MEMOS[t.dataset.key]) || ''; }catch(e){}
