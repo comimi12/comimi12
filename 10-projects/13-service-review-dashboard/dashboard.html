@@ -1364,7 +1364,7 @@ const rewardCostTotal=praise=>praise.length*REWARD_PER_STORE;
 function penMeasure(n){
   if(n>=5) return {stage:'3단계', kind:'인사 검토 권고', detail:'운영팀·HR팀에 점포 관리자(점장) 재배치 검토 요청', col:'var(--bad)'};
   if(n>=3) return {stage:'2단계', kind:'집중 관리 권고', detail:'운영팀에 모니터링 강화·개선계획 수립 요청',       col:'#e06c00'};
-  return          {stage:'1단계', kind:'서비스 재교육 권고', detail:'점장 면담·직원 서비스 재교육 진행 요청',        col:'#c98a00'};
+  return          {stage:'1단계', kind:'서비스 재교육 권고', detail:'서비스 교육팀 현장 모니터링 · 점장 면담 · 직원 서비스 교육', col:'#c98a00'};
 }
 const wonKR=n=>'₩'+(n||0).toLocaleString('ko-KR');
 // 분기 데이터 계산 (상벌 매장·결과 보고서 공용)
