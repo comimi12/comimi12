@@ -1416,8 +1416,7 @@ function renderReport(qkey){
   const period=`${y}년 ${q}분기 (${qMonths[0]}~${qMonths[qMonths.length-1]})`;
   // 보고 서머리 + 포상 + 개선 권고 = 단일 표 (경영진 한눈)
   let h=`<div class="rep-sec">`;
-  h+=`<div style="font-size:14px;font-weight:800;margin-bottom:4px">${y}년 ${q}분기 고객의 소리(VOC) 기반 매장 상벌 보고</div>`;
-  h+=`<p class="rep-lead" style="margin-bottom:12px">수신: 경영진 · 작성: 서비스 교육팀 · 근거: ${period} VOC ${total}건 · 포상 <b style="color:var(--good)">${praise.length}개</b>(경비 ${wonKR(costSum)}) · 개선 권고 <b style="color:var(--bad)">${penalty.length}개</b></p>`;
+  h+=`<div style="font-size:14px;font-weight:800;margin-bottom:12px">${y}년 ${q}분기 고객의 소리(VOC) 기반 매장 상벌 보고</div>`;
   h+=`<table class="rep-tbl"><thead><tr><th style="width:118px">순위 / 단계</th><th>매장</th><th class="num">실적</th><th>조치 · 포상 내역</th><th class="num">경비</th></tr></thead><tbody>`;
   // 🏅 포상 그룹
   h+=`<tr class="grp"><td colspan="5" style="background:var(--good)">🏅 포상 매장 — 고객 칭찬 우수 · 매장 전체 (${praise.length}개)</td></tr>`;
