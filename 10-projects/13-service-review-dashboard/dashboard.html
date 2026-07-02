@@ -1354,12 +1354,10 @@ function vocByStore(qMonths){
     else x['기타']++; });   // 단순 문의·칭찬 키워드 없는 건, 시스템·멤버십 문의 등은 기타로
   return {by:Object.values(by),total:recs.length};
 }
-// 포상 등급·경비 (순위 기반, 정책 상수 — 필요 시 금액만 수정)
-function rewardTier(rank){
-  if(rank<=1) return {grade:'최우수', detail:'우수매장 표창 + 상품권 50만원 + 포상휴가 1일', cost:500000};
-  if(rank<=3) return {grade:'우수',   detail:'우수매장 표창 + 상품권 30만원',            cost:300000};
-  return          {grade:'장려',   detail:'우수사례 전사 공유 + 표창장',              cost:0};
-}
+// 포상 경비 (매장당 균일 — 간식비 지원, 필요 시 금액만 수정)
+const REWARD_PER_STORE=100000;                 // 매장당 포상 경비 (원)
+const REWARD_DETAIL='간식비 지원 (매장당 10만원)';
+const rewardCostTotal=praise=>praise.length*REWARD_PER_STORE;
 // 징계 조치 (불만 건수 기준 — 임계 3건, 필요 시 조정)
 function penMeasure(n){
   return n>=3
@@ -1367,13 +1365,12 @@ function penMeasure(n){
     : {kind:'사후 교육',     detail:'점장 면담 + 직원 서비스 재교육 · 개선계획 제출 후 1개월 재점검'};
 }
 const wonKR=n=>'₩'+(n||0).toLocaleString('ko-KR');
-const rewardCostTotal=praise=>praise.reduce((a,_,i)=>a+rewardTier(i+1).cost,0);
 function rewardMemo(y,q,qMonths,praise,penalty,total){
   const costSum=rewardCostTotal(praise);
   let t=`[${y}년 ${q}분기 고객의 소리 기반 매장 상벌 보고]  (수신: 경영진 / 처리: 운영팀·HR팀)\n\n`;
   t+=`■ 포상 매장 (고객 칭찬 우수) — ${praise.length}개 · 포상 경비 ${wonKR(costSum)}\n`;
-  praise.forEach((s,i)=>{const tr=rewardTier(i+1);t+=`${i+1}. ${s.store} — 칭찬 ${s['칭찬']}건 · [${tr.grade}] ${tr.detail}${tr.cost?` (${wonKR(tr.cost)})`:''}\n`;});
-  t+=`▶ 포상 경비 합계: ${wonKR(costSum)}\n\n`;
+  praise.forEach((s,i)=>{t+=`${i+1}. ${s.store} — 칭찬 ${s['칭찬']}건 · ${REWARD_DETAIL} (${wonKR(REWARD_PER_STORE)})\n`;});
+  t+=`▶ 포상 경비 합계: ${wonKR(costSum)} (매장당 ${wonKR(REWARD_PER_STORE)} 간식비 지원)\n\n`;
   t+=`■ 징계 매장 (고객 불만 다발) — ${penalty.length}개\n`;
   penalty.forEach((s,i)=>{const pm=penMeasure(s['불만']);t+=`${i+1}. ${s.store} — 불만 ${s['불만']}건 · [${pm.kind}] ${pm.detail}\n`;});
   t+=`▶ 조치 원칙: 1차 사후교육(점장 면담·직원 재교육·개선계획), 반복·심각(불만 3건+) 시 운영팀·HR팀 통한 점장 매장 이동 요청 검토\n\n`;
@@ -1425,7 +1422,6 @@ function renderReport(qkey){
   document.getElementById('vreport-meta').textContent=`${y}년 ${q}분기 (${qMonths[0]}~${qMonths[qMonths.length-1]}) · VOC ${total}건`;
   const esc=s=>(s||'').replace(/</g,'&lt;');
   const badge=(txt,col)=>`<span class="rep-badge" style="color:${col};border:1px solid ${col}">${txt}</span>`;
-  const gradeCol={최우수:'var(--good)',우수:'var(--brand)',장려:'var(--muted)'};
   const kindCol={'인사조치 검토':'var(--bad)','사후 교육':'#c98a00'};
   const costSum=rewardCostTotal(praise);
   let h='';
@@ -1440,9 +1436,9 @@ function renderReport(qkey){
   // 포상 매장 (리스트업·내역·경비)
   h+=`<div class="rep-sec"><h3>🏅 포상 매장 <span class="note">고객 칭찬 우수</span></h3>`;
   if(praise.length){
-    h+=`<table class="rep-tbl"><thead><tr><th class="num">순위</th><th>매장</th><th class="num">칭찬</th><th>등급</th><th>포상 내역</th><th class="num">경비</th></tr></thead><tbody>`
-      +praise.map((s,i)=>{const tr=rewardTier(i+1);return `<tr><td class="num">${i+1}</td><td class="st">${esc(s.store)}</td><td class="num">${s['칭찬']}건</td><td>${badge(tr.grade,gradeCol[tr.grade]||'var(--muted)')}</td><td>${tr.detail}</td><td class="num">${tr.cost?wonKR(tr.cost):'—'}</td></tr>`;}).join('')
-      +`</tbody><tfoot><tr><td colspan="5">포상 경비 합계 (${praise.length}개 매장)</td><td class="num">${wonKR(costSum)}</td></tr></tfoot></table>`;
+    h+=`<table class="rep-tbl"><thead><tr><th class="num">순위</th><th>매장</th><th class="num">칭찬</th><th>포상 내역</th><th class="num">경비</th></tr></thead><tbody>`
+      +praise.map((s,i)=>`<tr><td class="num">${i+1}</td><td class="st">${esc(s.store)}</td><td class="num">${s['칭찬']}건</td><td>${REWARD_DETAIL}</td><td class="num">${wonKR(REWARD_PER_STORE)}</td></tr>`).join('')
+      +`</tbody><tfoot><tr><td colspan="4">포상 경비 합계 (${praise.length}개 매장 · 매장당 ${wonKR(REWARD_PER_STORE)})</td><td class="num">${wonKR(costSum)}</td></tr></tfoot></table>`;
   } else { h+=`<div class="rep-row" style="color:var(--muted)">해당 분기 VOC 칭찬 매장 없음</div>`; }
   h+=`</div>`;
   // 징계 매장 (리스트업·조치 방안)
