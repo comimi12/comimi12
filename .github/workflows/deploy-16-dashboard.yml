@@ -1,0 +1,23 @@
+name: Deploy 16-점포별손익현황 Dashboard
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "10-projects/16-점포별손익현황/dashboard/**"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Deploy to Vercel
+        working-directory: 10-projects/16-점포별손익현황/dashboard
+        run: vercel --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: team_ZE37kDH7eyTM32EokMPjReSe
+          VERCEL_PROJECT_ID: prj_2s93YVDnrp8RFaO3wYEfC3oFtbjJ
