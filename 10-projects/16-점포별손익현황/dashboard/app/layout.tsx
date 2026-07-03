@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "점포별 손익현황 | Chai797",
-  description: "Chai797 브랜드 점포별 월별 손익현황 대시보드",
+  description: "Chai797 브랜드 점포별 월별 손익현황 대시보드 · 2026",
 };
 
 export default function RootLayout({
