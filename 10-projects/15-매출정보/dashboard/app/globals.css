@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+:root {
+  --navy-900: #001a4d;
+  --navy-800: #003087;
+  --navy-700: #0a3d91;
+  --navy-600: #1a4fa8;
+  --navy-400: #4a7fd4;
+  --navy-200: #a8c4e8;
+  --navy-50:  #eef4fc;
+  --bg: #f0f4f8;
+  --card: #ffffff;
+  --text-primary: #1a2744;
+  --text-secondary: #5a6a8a;
+  --border: #d4dff0;
+  --up: #16a34a;
+  --down: #dc2626;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text-primary);
+  font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', Arial, sans-serif;
+}
