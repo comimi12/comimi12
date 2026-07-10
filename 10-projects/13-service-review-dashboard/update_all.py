@@ -25,6 +25,8 @@ CATCHTABLE = "--catchtable" in sys.argv
 SHARE = "--no-share" not in sys.argv
 MONTH = datetime.date.today().strftime("%Y-%m")
 MONTH_START = datetime.date.today().strftime("%Y-%m-01")
+# Windows: 자식 프로세스가 콘솔 창을 새로 띄우지 않게 (팝업 갱신 시 창 깜빡임 방지)
+CREATE_NO_WINDOW = 0x08000000 if os.name == "nt" else 0
 
 
 def log(msg):
@@ -38,7 +40,8 @@ def step(name, args, cwd=HERE, timeout=900):
     log(f"▶ {name}: {' '.join(os.path.basename(a) if a.endswith('.py') else a for a in args)}")
     try:
         r = subprocess.run([PY] + args, cwd=cwd, timeout=timeout,
-                           capture_output=True, text=True, encoding="utf-8", errors="replace")
+                           capture_output=True, text=True, encoding="utf-8", errors="replace",
+                           creationflags=CREATE_NO_WINDOW)
         tail = "\n".join((r.stdout or "").strip().splitlines()[-3:])
         if r.returncode == 0:
             log(f"  ✅ {name} 완료. {tail}")
@@ -65,6 +68,7 @@ def main():
     step("리뷰 수집", collect_args, timeout=1200)
     # 4) build → data.js (리뷰 + VOC). VOC DRM이면 기존값 보존
     step("build (data.js)", ["build.py"])
+    # ※ KPI(kpi_build)는 일일 갱신 안 함 — 매월 5일 KPI_Monthly_Grade(run-kpi.cmd)가 전월 확정.
     # 5) 공유파일 + 공유 사이트(GitHub Pages) 재배포
     if SHARE:
         step("공유파일", ["build_share.py"])

@@ -116,6 +116,12 @@ def clean_store(raw):
     return "(미상)", s
 
 
+def has_content(text):
+    """실질적 내용이 있는 리뷰인지. 공백·문장부호만 있으면(별점만 남긴 리뷰) 내용 없음.
+       불만 집계는 실제 불만 텍스트가 있는 리뷰만 인정 — 네이버·캐치테이블 공통 적용."""
+    return bool(re.search(r"[^\W_]", text or "", re.UNICODE))
+
+
 def classify_review(text, rating, source):
     """캐치테이블은 평점 우선, 그 외(네이버)는 사전 기반."""
     if source == "catchtable" and rating not in (None, ""):
@@ -254,11 +260,17 @@ def build_reviews():
         if ex is None or r.get("_prio", 0) > ex.get("_prio", 0):
             best[k] = r
     rows = list(best.values())
+    # 별점만 있고 내용 없는 리뷰는 불만으로 세지 않음 → 중립 처리(전체 건수는 유지).
+    # 네이버·캐치테이블 공통. 실제 불만 텍스트가 있는 리뷰만 불만 건수·불만 상세에 반영.
+    for r in rows:
+        if r["sentiment"] == "불만" and not has_content(r.get("text")):
+            r["sentiment"] = "중립"
     # 월별 건수가 충분한 달만 사용 (파일 경계의 부분 월 잡음 제거: 중앙값의 25% 미만 월 제외)
+    # 기간 제한 없음(무제한): 임계값 통과 월은 모두 포함 — 예전엔 마지막 6개월만 잘라 1월이 누락됐음
     mcount = collections.Counter(r["month"] for r in rows)
     med = statistics.median(mcount.values()) if mcount else 0
     thr = max(50, med * 0.25)
-    months = [m for m in sorted(mcount) if mcount[m] >= thr][-6:]
+    months = [m for m in sorted(mcount) if mcount[m] >= thr]
     rowset = [r for r in rows if r["month"] in months]
     cur = months[-1]
     prev = months[-2] if len(months) > 1 else None
