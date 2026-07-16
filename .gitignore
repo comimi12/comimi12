@@ -33,3 +33,7 @@ venv/
 
 # Skill cache
 .cache/
+
+# 민감 재무자료 (비공개 유지 - public repo에 노출 금지)
+10-projects/17-재무매뉴얼/
+50-resources/Fasoo Back up/
