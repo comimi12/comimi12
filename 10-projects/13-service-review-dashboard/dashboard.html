@@ -13,6 +13,7 @@
 <script src="ai_notes.js"></script>
 <script src="eck_data.js" onerror="window.ECK_DATA=window.ECK_DATA||null"></script>
 <script src="memos.js" onerror="window.MEMOS=window.MEMOS||null"></script>
+<script src="kpi_data.js" onerror="window.KPI_DATA=window.KPI_DATA||null"></script>
 <script>
 /* 새 버전 자동 반영: 배포 시 주입된 빌드토큰과 ver.txt(캐시 우회) 비교 → 다르면 최신으로 새로고침 */
 window.__BUILD__='__BUILD_TOKEN__';
@@ -156,6 +157,19 @@ window.__BUILD__='__BUILD_TOKEN__';
   .aidone-lbl{font-size:11px;font-weight:700;color:var(--brand);background:var(--brand-soft);display:inline-block;border-radius:5px;padding:2px 8px;margin-bottom:2px}
   .memo-lbl{font-size:12px;color:var(--ink);font-weight:700;margin:11px 0 5px}
   .ai-lbl{margin:1px 0 6px}
+  /* TOP3 summary table */
+  .v2-sum{display:inline-block;max-width:520px;width:100%;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:16px}
+  .v2-sum h3{font-size:12px;font-weight:700;color:var(--ink);margin:0;padding:8px 13px;background:var(--brand-soft);border-bottom:1px solid var(--line)}
+  .v2-sum table{width:100%;border-collapse:collapse;font-size:12.5px}
+  .v2-sum th,.v2-sum td{padding:7px 13px;text-align:left;border-bottom:1px solid var(--line)}
+  .v2-sum th{font-size:11px;font-weight:600;color:var(--muted)}
+  .v2-sum th.num,.v2-sum td.cnt{text-align:right}
+  .v2-sum tr:last-child td{border-bottom:0}
+  .v2-sum td.rk{width:34px;color:var(--muted);font-weight:700}
+  .v2-sum td.st{font-weight:600;color:var(--ink)}
+  .v2-sum td.br{color:var(--muted)}
+  .v2-sum td.cnt{width:70px;font-weight:700;color:var(--ink)}
+  .v2-sum td.cnt small{font-size:10.5px;color:var(--muted);font-weight:500;margin-left:1px}
   .vdet{margin:6px 0}
   .vdet>summary{cursor:pointer;font-size:12px;color:var(--brand);font-weight:600;user-select:none;list-style:none}
   .vdet>summary::before{content:'▸ ';}
@@ -255,6 +269,15 @@ window.__BUILD__='__BUILD_TOKEN__';
   .rep-kpi .b .n{font-size:23px;font-weight:800;letter-spacing:-.5px}
   .rep-row{display:flex;gap:12px;padding:8px 0;border-bottom:1px dashed var(--line);font-size:13px;align-items:baseline}
   .rep-row:last-child{border:0}
+  .rep-tbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:2px}
+  .rep-tbl th,.rep-tbl td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  .rep-tbl th{background:var(--bg);color:var(--muted);font-weight:600;font-size:11.5px;white-space:nowrap}
+  .rep-tbl td.num,.rep-tbl th.num{text-align:right;white-space:nowrap}
+  .rep-tbl tfoot td{font-weight:800;border-top:2px solid var(--line);border-bottom:0;background:var(--bg)}
+  .rep-tbl tr.grp td{font-weight:700;font-size:12.5px;padding:8px 10px;color:#fff}
+  .rep-tbl .st{font-weight:700}
+  .rep-badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:700;white-space:nowrap}
+  .rep-lead{color:var(--muted);font-size:12px;margin:0 0 4px}
   @media print{
     .sidebar,.sb-toggle,.sb-backdrop,.ctrl{display:none!important}
     .main{margin-left:0} .wrap{padding:0;max-width:none} body{background:#fff}
@@ -281,11 +304,25 @@ window.__BUILD__='__BUILD_TOKEN__';
     <button class="tab" data-v="vinput">⑧ 모니터링 결과입력</button>
     <div class="grp">경영 보고</div>
     <button class="tab" data-v="vreward">🏅 분기별 상벌 매장</button>
+    <button class="tab" data-v="vreport">📝 결과 보고서</button>
+    <button class="tab" data-v="vkpi">📊 월별 KPI 평가</button>
   </nav>
   <div class="sb-meta" id="meta"></div>
 </aside>
 <main class="main">
 <div class="wrap">
+
+  <!-- 월별 KPI 평가 (서비스 등급 · 리뷰 대비 불만율) -->
+  <section class="view" id="vkpi">
+    <div class="vhead"><h2>월별 KPI 평가 <span class="note">서비스 등급 · 리뷰 대비 불만율 기준</span></h2></div>
+    <div class="ctrl">
+      <span>월</span><select id="vkpi-month"></select>
+      <button id="vkpi-print" class="ghost">🖨 인쇄 / PDF</button>
+      <button id="vkpi-xls" class="ghost">⬇ 엑셀 다운로드 (취합양식)</button>
+      <span class="ctrl-note" id="vkpi-meta"></span>
+    </div>
+    <div id="vkpi-body"></div>
+  </section>
 
   <!-- 분기별 상벌 매장 (고객의 소리 기반) -->
   <section class="view" id="vreward">
@@ -297,6 +334,18 @@ window.__BUILD__='__BUILD_TOKEN__';
       <span class="ctrl-note" id="vreward-meta"></span>
     </div>
     <div id="vreward-body"></div>
+  </section>
+
+  <!-- 결과 보고서 (운영팀·HR팀 건의문) -->
+  <section class="view" id="vreport">
+    <div class="vhead"><h2>VOC 결과 보고서</h2></div>
+    <div class="ctrl">
+      <span>분기</span><select id="vreport-q"></select>
+      <button id="vreport-go">조회</button>
+      <button id="vreport-print" class="ghost">🖨 인쇄 / PDF</button>
+      <span class="ctrl-note" id="vreport-meta"></span>
+    </div>
+    <div id="vreport-body"></div>
   </section>
 
   <!-- VIEW 1 -->
@@ -340,6 +389,7 @@ window.__BUILD__='__BUILD_TOKEN__';
         <input type="file" id="memo-file" accept=".js,.json,application/json" style="display:none">
       </span>
     </div>
+    <div id="v2-summary"></div>
     <div id="v2-cards"></div>
     <div class="grid2">
       <div class="panel"><h3>불만 토픽 빈도 <span class="note">현재월 불만 리뷰</span></h3><div class="chart sm" id="c-topic"></div></div>
@@ -392,6 +442,7 @@ window.__BUILD__='__BUILD_TOKEN__';
       <span>브랜드</span>
       <select id="vcs-brand"></select>
       <span class="ctrl-note" id="vcs-meta"></span>
+      <button id="vcs-xls" class="ghost" style="margin-left:auto">⬇ 엑셀 다운로드</button>
     </div>
     <div class="kpis" id="vcs-kpi"></div>
     <div class="panel" style="margin-bottom:14px;overflow-x:auto"><h3 id="vcs-gridttl">매장별 점검 현황</h3><div id="vcs-grid"></div></div>
@@ -408,6 +459,7 @@ window.__BUILD__='__BUILD_TOKEN__';
       <span>브랜드</span>
       <select id="vqscs-brand"></select>
       <span class="ctrl-note" id="vqscs-meta"></span>
+      <button id="vqscs-xls" class="ghost" style="margin-left:auto">⬇ 엑셀 다운로드</button>
     </div>
     <div class="kpis" id="vqscs-kpi"></div>
     <div id="vqscs-body"></div>
@@ -423,7 +475,7 @@ window.__BUILD__='__BUILD_TOKEN__';
       <span class="ctrl-note" id="vmon-meta"></span>
     </div>
     <div class="kpis" id="vmon-kpi"></div>
-    <div class="panel"><h3>월간 방문 캘린더 <span class="note">매주 <b>목요일</b> 주 1회 · 주말·공휴일 제외 · <b>서비스 불만</b> 상위 매장 우선 · 카드 클릭 시 상세</span></h3><div id="vmon-sched"></div></div>
+    <div class="panel"><h3>월간 방문 캘린더 <span class="note">매주 <b>목요일</b> 주 1회 · 주말·공휴일 제외 · <b>전월 서비스 불만</b> 상위 매장 우선 · 카드 클릭 시 상세</span></h3><div id="vmon-sched"></div></div>
     <div class="vmodal" id="vmon-modal"><div class="box" id="vmon-modal-box"></div></div>
   </section>
 
@@ -675,6 +727,13 @@ function renderTop3(fromM,toM){
   const single = fromM===toM;
   const ranked = aggStoreRange(fromM,toM).filter(s=>s.total>=10).sort((a,b)=>b['불만']-a['불만'] || b['불만율']-a['불만율'] || (a.store<b.store?-1:1)).slice(0,3);
   document.getElementById('v2-range').textContent = single?`${fromM} 단월 기준`:`${fromM} ~ ${toM} 합산 기준`;
+  // TOP3 요약 표 (브랜드·매장명 한눈에)
+  document.getElementById('v2-summary').innerHTML = ranked.length
+    ? `<div class="v2-sum"><h3>TOP3 불만매장</h3><table>`
+      + `<thead><tr><th>순위</th><th>브랜드</th><th>매장명</th><th class="num">불만</th></tr></thead><tbody>`
+      + ranked.map((s,i)=>`<tr><td class="rk">${i+1}</td><td class="br">${s.brand||'-'}</td><td class="st">${s.store}</td><td class="cnt">${s['불만']}<small>건</small></td></tr>`).join('')
+      + `</tbody></table></div>`
+    : '';
   const md=v=>String(v).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
   const lines=v=>Array.isArray(v)?'<ul class="sum">'+v.map(x=>`<li>${md(x)}</li>`).join('')+'</ul>':md(v);
   const f=(tag,k,v)=>(!v||(Array.isArray(v)&&!v.length))?'':`<div class="field"><div class="k"><span class="tag">${tag}</span>${k}</div><div class="v">${lines(v)}</div></div>`;
@@ -686,7 +745,12 @@ function renderTop3(fromM,toM){
     const samp=R.complaints.filter(c=>c.store===s.store&&c.month>=fromM&&c.month<=toM);
     const sumItems=samp.map(c=>`<li>${hilite(gistDetail(c.text).replace(/</g,'&lt;'))}</li>`).join('');
     const cntLbl=samp.length?` <span style="color:var(--muted);font-weight:400">(${samp.length}건)</span>`:'';
-    let body=`<div class="field"><div class="k"><span class="tag">요약</span>불만 요약${cntLbl}</div><div class="v"><ul class="sum">${sumItems||'<li>불만 리뷰가 없습니다.</li>'}</ul></div></div>`;
+    // 불만 상세(전문) — 버튼 클릭 시 토글
+    const detId=`v2-det-${i}`;
+    const detItems=samp.map(c=>`<li>${c.month?`<span style="color:var(--muted)">[${c.month}]</span> `:''}${hilite(String(c.text||'(내용 없음)').replace(/</g,'&lt;'))}</li>`).join('');
+    const detBtn=samp.length?`<button class="ghost v2-det-btn" data-det="${detId}" style="margin-left:8px;font-size:11.5px;padding:2px 9px">🔍 불만 상세</button>`:'';
+    const detBox=samp.length?`<div id="${detId}" class="v2-detail" style="display:none;margin-top:8px;border-top:1px dashed var(--line);padding-top:8px"><div style="font-size:11.5px;color:var(--muted);margin-bottom:5px">불만 리뷰 전문 (${samp.length}건)</div><ul class="sum">${detItems}</ul></div>`:'';
+    let body=`<div class="field"><div class="k"><span class="tag">요약</span>불만 요약${cntLbl}${detBtn}</div><div class="v"><ul class="sum">${sumItems||'<li>불만 리뷰가 없습니다.</li>'}</ul>${detBox}</div></div>`;
     // AI 개선방안·실행계획: 수기 노트(1~5월) 있으면 사용, 없으면(6월·기간 등) 토픽 기반 자동 생성 — 항상 AI 의견 표시
     const hasNote = n && ((n['개선방안']&&n['개선방안'].length) || (n['완료방법']&&n['완료방법'].length));
     const plan = hasNote ? {개선방안:n['개선방안']||[], 완료방법:n['완료방법']||[], auto:false} : autoPlan(samp);
@@ -708,6 +772,15 @@ function renderTop3(fromM,toM){
       <div><div class="nm">${s.store}</div><div style="font-size:12px;color:var(--muted)">${s.brand} · 불만 ${s['불만']}건${basis}</div></div></div>
       <div class="body">${body}</div></div>`;
   }).join('') || '<div class="panel">해당 기간에 표본 10건 이상 매장이 없습니다.</div>';
+  // 불만 상세 토글
+  document.querySelectorAll('#v2-cards .v2-det-btn').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const box=document.getElementById(b.dataset.det); if(!box) return;
+      const show=box.style.display==='none';
+      box.style.display=show?'block':'none';
+      b.textContent=show?'🔽 상세 닫기':'🔍 불만 상세';
+    });
+  });
   // 저장된 내 의견 불러오기 + 입력 시 자동 저장
   document.querySelectorAll('#v2-cards .memo').forEach(t=>{
     try{ t.value = localStorage.getItem(t.dataset.key) || (window.MEMOS && window.MEMOS[t.dataset.key]) || ''; }catch(e){}
@@ -839,20 +912,31 @@ function renderV3(fromM,toM){
   document.getElementById('v3-cmpln').textContent = `${comps.length}건 · 요약·개선 방안`;
   document.getElementById('v3-complaints').innerHTML = comps.map(vocComplaintCard).join('')
     || '<p style="color:var(--muted);font-size:13px;margin:4px 0">해당 기간에 불만 리뷰가 없습니다.</p>';
+  // 불만 상세 토글 (뷰3)
+  document.querySelectorAll('#v3-complaints .v3-det-btn').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const box=document.getElementById(b.dataset.det); if(!box) return;
+      const show=box.style.display==='none';
+      box.style.display=show?'block':'none';
+      b.textContent=show?'🔽 상세 닫기':'🔍 불만 상세';
+    });
+  });
 }
 // 리뷰 내용 → 토픽 자동 분류 → 개선 방안(FIX_BY_CAT)
 function vocFixes(text){
   const cat={}; topicsOf(text||'').forEach(h=>cat[h]=(cat[h]||0)+1);
   return [...new Set(Object.keys(cat).map(k=>FIX_BY_CAT[k]).filter(Boolean))].slice(0,3);
 }
-function vocComplaintCard(it){
+function vocComplaintCard(it,i){
   const esc=s=>(s||'').replace(/</g,'&lt;');
+  const detId=`v3-det-${i}`;
   const head=`<div class="vtop"><span class="pill bad">불만</span><span class="pill gray">${it.inquiry_type||''}</span> <b>${it.store||''}</b> <span>${it.author||''}</span> ${it.reg?'· '+it.reg:''}${it.critical?' <span class="pill warn">고위험</span>':''}</div>`;
-  const sumy=`<div class="field"><div class="k"><span class="tag">요약</span>리뷰 요약</div><div class="v"><ul class="sum"><li>${hilite(esc(gistDetail(it.content)))}</li></ul></div></div>`;
-  const detail=`<details class="vdet"><summary>상세 내용 펼치기</summary><div class="ct">${hilite(esc(it.content))}</div></details>`;
+  const detBtn=`<button class="ghost v3-det-btn" data-det="${detId}" style="margin-left:6px;font-size:11.5px;padding:2px 9px">🔍 불만 상세</button>`;
+  const detBox=`<div id="${detId}" class="v3-detail" style="display:none;margin-top:6px;border-top:1px dashed var(--line);padding-top:6px"><div class="ct">${hilite(esc(it.content))}</div></div>`;
+  const sumy=`<div class="field"><div class="k"><span class="tag">요약</span>리뷰 요약${detBtn}</div><div class="v"><ul class="sum"><li>${hilite(esc(gistDetail(it.content)))}</li></ul>${detBox}</div></div>`;
   const fixes=vocFixes(it.content);
   const fixHtml=fixes.length?`<div class="field"><div class="k"><span class="tag">방안</span>개선 방안 <span style="color:var(--muted);font-weight:400">(토픽 자동)</span></div><div class="v"><ul class="sum">${fixes.map(f=>`<li>${f}</li>`).join('')}</ul></div></div>`:'';
-  return `<div class="voc">${head}${sumy}${detail}${fixHtml}</div>`;
+  return `<div class="voc">${head}${sumy}${fixHtml}</div>`;
 }
 (function initV3(){
   if(!V){document.getElementById('v3').innerHTML='<div class="panel">SL&C 데이터가 없습니다.</div>';return;}
@@ -898,14 +982,27 @@ function v3charts(){
       markArea:ci===0?{silent:true,itemStyle:{color:'rgba(20,85,155,0.08)'},data:[[{xAxis:fM},{xAxis:tM}]]}:undefined}))});
 }
 
-/* ---------- AI insight blocks ---------- */
-function aiBlock(id,title,arr){
-  document.getElementById(id).innerHTML =
-    `<h3><span class="bulb">AI 인사이트</span> ${title}</h3><ul>${(arr||[]).map(x=>`<li>${x}</li>`).join('')||'<li>—</li>'}</ul>`;
+/* ---------- AI insight blocks (월별 조회) ---------- */
+const AI_INS = AI.insights || {};
+// 월별 구조(키가 YYYY-MM) 감지 — 아니면 과거 flat 구조로 취급
+const AI_INS_MONTHS = Object.keys(AI_INS).filter(k=>/^\d{4}-\d{2}$/.test(k)).sort();
+function insightsFor(m){ return AI_INS_MONTHS.length ? (AI_INS[m]||{}) : AI_INS; }
+let aiMonth = AI_INS_MONTHS.length ? AI_INS_MONTHS[AI_INS_MONTHS.length-1] : (AI.month||'');
+const AI_BLOCKS=[['ai-v1','경영 모니터링 제안','view1'],['ai-v2','시사점 분석','view2'],['ai-v3','리스크 대응 제안','view3']];
+function renderAIBlocks(){
+  const src=insightsFor(aiMonth);
+  const sel = AI_INS_MONTHS.length
+    ? `<select class="ai-mon" style="margin-left:8px;font-size:12px;padding:2px 6px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink)">`
+      +AI_INS_MONTHS.map(m=>`<option value="${m}"${m===aiMonth?' selected':''}>${m}</option>`).join('')+`</select>`
+    : '';
+  AI_BLOCKS.forEach(([id,title,key])=>{
+    const el=document.getElementById(id); if(!el) return;
+    const arr=(src&&src[key])||[];
+    el.innerHTML=`<h3><span class="bulb">AI 인사이트</span> ${title}${sel}</h3><ul>${arr.map(x=>`<li>${x}</li>`).join('')||'<li>—</li>'}</ul>`;
+  });
+  document.querySelectorAll('.ai-mon').forEach(s=>s.addEventListener('change',e=>{aiMonth=e.target.value;renderAIBlocks();}));
 }
-aiBlock('ai-v1','경영 모니터링 제안', (AI.insights||{}).view1);
-aiBlock('ai-v2','시사점 분석', (AI.insights||{}).view2);
-aiBlock('ai-v3','리스크 대응 제안', (AI.insights||{}).view3);
+renderAIBlocks();
 
 /* ---------- VIEW 5/6: ECK 연동 (CS 체크리스트 / QSCS 교육일지) — 월별·기간 조회 ---------- */
 const ECK = window.ECK_DATA || null;
@@ -1038,6 +1135,65 @@ function renderVqscs(fromM,toM){
   }
 }
 
+/* ---------- VIEW 5/6: 엑셀(CSV) 다운로드 ---------- */
+function downloadCsv(rows, filename){
+  const esc=v=>{ v=(v==null?'':String(v)); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; };
+  const csv='﻿'+rows.map(r=>r.map(esc).join(',')).join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}), url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click();
+  document.body.removeChild(a); setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function exportVcs(){
+  if(!ECK){ alert('ECK 데이터가 없습니다.'); return; }
+  const months=eckR(vcsFrom,vcsTo); if(!months.length){ alert('조회된 기간이 없습니다.'); return; }
+  const brand=vcsBrand, single=months.length===1; let rows=[];
+  if(single){
+    const mo=months[0], cs=ECK.cs[mo]||{stores:[],days:[]};
+    const days=cs.days&&cs.days.length?cs.days:Array.from({length:(ECK.days_in_month[mo]||31)},(_,i)=>i+1);
+    const el=monthFullDays(mo);
+    const stores=cs.stores.filter(s=>brand==='전체'||s.brand===brand).sort((a,b)=>a.brand<b.brand?-1:a.brand>b.brand?1:(a.store<b.store?-1:1));
+    rows.push(['브랜드','매장명',...days.map(d=>d+'일'),'완료율(%)']);
+    stores.forEach(s=>{ const r=el?Math.round(doneUpto(s,el)/el*100):0;
+      rows.push([s.brand,s.store,...days.map(d=>s.days[d]?'O':''),el?r:'']); });
+    downloadCsv(rows,`CS체크리스트_${mo}_${brand}.csv`);
+  } else {
+    const csByMo={}, unionMap={};
+    months.forEach(mo=>{ const m={}; (ECK.cs[mo]?ECK.cs[mo].stores:[]).forEach(s=>{m[s.store]=s; unionMap[s.store]=unionMap[s.store]||{store:s.store,brand:s.brand};}); csByMo[mo]=m; });
+    const stores=Object.values(unionMap).filter(s=>brand==='전체'||s.brand===brand).sort((a,b)=>a.brand<b.brand?-1:a.brand>b.brand?1:(a.store<b.store?-1:1));
+    const rateOf=(store,mo)=>{ const s=csByMo[mo][store]; if(!s) return null; const el=monthFullDays(mo); return el?Math.round(doneUpto(s,el)/el*100):null; };
+    rows.push(['브랜드','매장명',...months.map(mo=>mo.slice(5)+'월(%)'),'평균(%)']);
+    stores.forEach(st=>{ let s=0,c=0; const cells=months.map(mo=>{const r=rateOf(st.store,mo); if(r!=null){s+=r;c++;} return r==null?'':r;});
+      rows.push([st.brand,st.store,...cells,c?Math.round(s/c):'']); });
+    downloadCsv(rows,`CS체크리스트_${vcsFrom}~${vcsTo}_${brand}.csv`);
+  }
+}
+function exportVqscs(){
+  if(!ECK){ alert('ECK 데이터가 없습니다.'); return; }
+  const months=eckR(vqscsFrom,vqscsTo); if(!months.length){ alert('조회된 기간이 없습니다.'); return; }
+  const brand=vqscsBrand, single=months.length===1; let rows=[];
+  if(single){
+    const mo=months[0], q=ECK.qscs[mo]||{registered:[],not_registered:[]};
+    const reg=q.registered.filter(s=>brand==='전체'||s.brand===brand), nreg=q.not_registered.filter(s=>brand==='전체'||s.brand===brand);
+    const all=[...reg.map(s=>({...s,reg:true})),...nreg.map(s=>({...s,reg:false}))].sort((a,b)=>a.brand<b.brand?-1:a.brand>b.brand?1:(a.store<b.store?-1:1));
+    rows.push(['브랜드','매장명','등록여부','등록일']);
+    all.forEach(s=>rows.push([s.brand,s.store,s.reg?'등록':'미등록',s.reg?(s.date||''):'']));
+    downloadCsv(rows,`QSCS교육일지_${mo}_${brand}.csv`);
+  } else {
+    const unionMap={}, regByMo={};
+    months.forEach(mo=>{ const qq=ECK.qscs[mo]||{registered:[],not_registered:[]}, set=new Set();
+      qq.registered.forEach(s=>{set.add(s.store); unionMap[s.store]=unionMap[s.store]||{store:s.store,brand:s.brand};});
+      qq.not_registered.forEach(s=>{ unionMap[s.store]=unionMap[s.store]||{store:s.store,brand:s.brand}; });
+      regByMo[mo]=set; });
+    const stores=Object.values(unionMap).filter(s=>brand==='전체'||s.brand===brand).sort((a,b)=>a.brand<b.brand?-1:a.brand>b.brand?1:(a.store<b.store?-1:1));
+    rows.push(['브랜드','매장명',...months.map(mo=>mo.slice(5)+'월'),`등록(/${months.length})`]);
+    stores.forEach(s=>{ let c=0; const cells=months.map(mo=>{const ok=regByMo[mo].has(s.store); if(ok)c++; return ok?'O':'';});
+      rows.push([s.brand,s.store,...cells,c]); });
+    downloadCsv(rows,`QSCS교육일지_${vqscsFrom}~${vqscsTo}_${brand}.csv`);
+  }
+}
+document.getElementById('vcs-xls')?.addEventListener('click',exportVcs);
+document.getElementById('vqscs-xls')?.addEventListener('click',exportVqscs);
+
 if(ECK && ECK.months && ECK.months.length){
   const allCs=[]; ECK.months.forEach(mo=>(ECK.cs[mo]?ECK.cs[mo].stores:[]).forEach(s=>allCs.push(s)));
   initEckBrand('vcs', allCs, v=>{vcsBrand=v; renderVcs(vcsFrom,vcsTo);});
@@ -1067,6 +1223,9 @@ const TRAIN_BY_CAT = {
   "예약·주문·결제 운영":"예약·결제·좌석 운영 응대 교육",
 };
 const WDK = ['일','월','화','수','목','금','토'];
+// 방문월 → 선정기준(전월) / 익월 계산. 모니터링 일정은 '전월 VOC 결과'로 '해당월' 방문 매장을 정한다.
+function prevMonth(ym){ let [y,m]=ym.split('-').map(Number); m--; if(m<1){m=12;y--;} return `${y}-${String(m).padStart(2,'0')}`; }
+function nextMonth(ym){ let [y,m]=ym.split('-').map(Number); m++; if(m>12){m=1;y++;} return `${y}-${String(m).padStart(2,'0')}`; }
 function bizDaysOf(ym){
   const [y,m]=ym.split('-').map(Number), dim=new Date(y,m,0).getDate(), out=[];
   for(let d=1;d<=dim;d++){
@@ -1121,7 +1280,8 @@ function svcComplaintsOf(store, ym){
 let VMON={ym:'',visits:{}};
 function renderVmon(ym){
   const box=document.getElementById('vmon-sched'); if(!box) return;
-  document.getElementById('vmon-src').textContent=`${ym} · 서비스 불만 리뷰 분석 기반 자동 생성`;
+  const basis=prevMonth(ym);   // 방문 매장 선정 기준 = 전월 VOC 결과
+  document.getElementById('vmon-src').textContent=`${ym} 방문 · 선정 기준: 전월(${basis}) 서비스 불만 VOC`;
   const [y,m]=ym.split('-').map(Number), dim=new Date(y,m,0).getDate();
   const biz=bizDaysOf(ym), bizSet=new Set(biz.map(b=>b.iso));
   // 매주 목요일(주 1회). 목요일 공휴일이면 같은 주 영업일로 대체.
@@ -1135,23 +1295,23 @@ function renderVmon(ym){
   }
   // 서비스(응대·서빙) 불만 상위 매장 우선 (표본 10건+)
   const cand=[];
-  for(const st in R.store_month){ const o=R.store_month[st][ym];
+  for(const st in R.store_month){ const o=R.store_month[st][basis];
     if(!o||o.total<10||!o['불만']) continue;
-    const svc=svcComplaintsOf(st,ym).length; if(svc<=0) continue;
+    const svc=svcComplaintsOf(st,basis).length; if(svc<=0) continue;
     cand.push({store:st,brand:R.store_brand[st],total:o.total,불만:o['불만'],불만율:Math.round(o['불만']/o.total*1000)/10,svc}); }
   cand.sort((a,b)=>b.svc-a.svc||b['불만']-a['불만']||(a.store<b.store?-1:1));
   const targets=cand.slice(0,slots.length);
   const visit={};
-  targets.forEach((t,i)=>{ const s=slots[i], cnt=topicCountOf(t.store,ym);
+  targets.forEach((t,i)=>{ const s=slots[i], cnt=topicCountOf(t.store,basis);
     const svcTop=SERVICE_CATS.slice().sort((a,b)=>(cnt[b]||0)-(cnt[a]||0))[0];
     visit[s.iso]={store:t.store,brand:t.brand,불만:t['불만'],불만율:t['불만율'],svc:t.svc,
       topic:svcTop,train:TRAIN_BY_CAT[svcTop]||'서비스 응대 점검·교육',moved:s.moved}; });
-  VMON={ym,visits:visit};
+  VMON={ym,basis,visits:visit};
   const nvisit=Object.keys(visit).length;
-  document.getElementById('vmon-meta').textContent=`영업일 ${biz.length}일 · 방문 ${nvisit}회 (주 1회·목) · 서비스 불만 매장`;
+  document.getElementById('vmon-meta').textContent=`영업일 ${biz.length}일 · 방문 ${nvisit}회 (주 1회·목) · 전월(${basis}) 서비스 불만 상위 매장`;
   document.getElementById('vmon-kpi').innerHTML=kpiHtml([
     {lab:'방문 횟수', val:fmt(nvisit), sub:`${ym} · 매주 목요일`, color:'var(--brand)'},
-    {lab:'대상 매장', val:fmt(targets.length), sub:'서비스 불만 상위', color:'var(--warn)'},
+    {lab:'대상 매장', val:fmt(targets.length), sub:`전월(${basis}) 불만 상위`, color:'var(--warn)'},
     {lab:'영업일', val:fmt(biz.length), sub:'주말·공휴일 제외', color:'var(--good)'},
     {lab:'방문 주기', val:'주 1회', sub:'목요일 방문', color:'var(--neutral)'},
   ]);
@@ -1172,18 +1332,18 @@ function renderVmon(ym){
   }
   while(col>0&&col<7){ h+='<td class="empty"></td>'; col++; }
   box.innerHTML=h+'</tr></tbody></table>';
-  if(!nvisit) box.innerHTML+='<p style="color:var(--muted);margin-top:8px">해당 월 서비스 불만(표본 10건+) 매장이 없어 방문 일정이 없습니다.</p>';
+  if(!nvisit) box.innerHTML+=`<p style="color:var(--muted);margin-top:8px">전월(${basis}) 서비스 불만(표본 10건+) 매장이 없어 방문 일정이 없습니다.</p>`;
 }
 function showVisitDetail(iso){
   const v=VMON.visits[iso]; if(!v) return;
-  const ym=VMON.ym, p=iso.split('-'), m=p[1], d=p[2];
+  const ym=VMON.ym, basis=VMON.basis, p=iso.split('-'), m=p[1], d=p[2];
   const wd=WDK[new Date(+p[0],+m-1,+d).getDay()];
   const nm=v.store.split('·').slice(1).join('·')||v.store;
-  const svc=svcComplaintsOf(v.store,ym);
-  const topics=Object.entries(topicCountOf(v.store,ym)).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([k,n])=>`${k} ${n}`);
-  const needs=[...new Set(Object.entries(topicCountOf(v.store,ym)).sort((a,b)=>b[1]-a[1]).map(([k])=>TRAIN_BY_CAT[k]).filter(Boolean))];
+  const svc=svcComplaintsOf(v.store,basis);
+  const topics=Object.entries(topicCountOf(v.store,basis)).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([k,n])=>`${k} ${n}`);
+  const needs=[...new Set(Object.entries(topicCountOf(v.store,basis)).sort((a,b)=>b[1]-a[1]).map(([k])=>TRAIN_BY_CAT[k]).filter(Boolean))];
   let aiPlan='';
-  const note=((AI.monthly||{})[ym]||[]).find(n=>n.store===v.store||(nm&&n.store&&n.store.endsWith(nm)));
+  const note=((AI.monthly||{})[basis]||[]).find(n=>n.store===v.store||(nm&&n.store&&n.store.endsWith(nm)));
   if(note&&note['개선방안']&&note['개선방안'].length){
     aiPlan='<div class="mlbl">🛠 개선 방안 (AI)</div>'+note['개선방안'].map(x=>`<div class="rv" style="border-left-color:var(--good);background:#eef7f1">${String(x).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>')}</div>`).join('');
   }
@@ -1191,24 +1351,27 @@ function showVisitDetail(iso){
   document.getElementById('vmon-modal-box').innerHTML=
     '<button class="x" onclick="closeVmonModal()">✕</button>'
     +`<h3>🏬 ${v.brand} ${nm}</h3>`
-    +`<div class="msub">📅 ${m}/${d} (${wd}) 방문${v.moved?' · 목 공휴일→대체일':''} · ${ym}</div>`
-    +`<div class="mk"><span>총 불만 ${v['불만']}건</span><span style="background:#fde7e7;color:var(--bad)">서비스 불만 ${v.svc}건</span><span>불만율 ${v['불만율']}%</span></div>`
-    +`<div class="mlbl">📊 주요 불만 토픽</div><div class="msub" style="margin:0">${topics.join(' · ')||'-'}</div>`
+    +`<div class="msub">📅 ${m}/${d} (${wd}) 방문${v.moved?' · 목 공휴일→대체일':''} · ${ym} · 선정기준 전월(${basis}) VOC</div>`
+    +`<div class="mk"><span>전월 총 불만 ${v['불만']}건</span><span style="background:#fde7e7;color:var(--bad)">서비스 불만 ${v.svc}건</span><span>불만율 ${v['불만율']}%</span></div>`
+    +`<div class="mlbl">📊 주요 불만 토픽 <span style="color:var(--muted);font-weight:400">(전월 ${basis})</span></div><div class="msub" style="margin:0">${topics.join(' · ')||'-'}</div>`
     +`<div class="mlbl">📘 방문 교육 내용(중점)</div><div class="train">${v.train}</div>`
     +`<div class="mlbl">✅ 필요 교육 사항</div>`+(needs.length?`<ul style="margin:5px 0 0;padding-left:18px;font-size:13px;line-height:1.65">${needs.map(x=>`<li>${x}</li>`).join('')}</ul>`:'<div class="msub" style="margin:0">-</div>')
     +aiPlan
-    +`<div class="mlbl">💬 서비스 불만 리뷰 (표시 ${Math.min(svc.length,5)} / 총 ${svc.length}건)</div>${samples}`;
+    +`<div class="mlbl">💬 전월(${basis}) 서비스 불만 리뷰 (표시 ${Math.min(svc.length,5)} / 총 ${svc.length}건)</div>${samples}`;
   document.getElementById('vmon-modal').classList.add('on');
 }
 function closeVmonModal(){ document.getElementById('vmon-modal').classList.remove('on'); }
 (function initVmon(){
-  const sel=document.getElementById('vmon-month'); if(!sel||!R.months) return;
-  R.months.forEach(m=>sel.add(new Option(m,m)));
-  sel.value=R.months[R.months.length-1];
+  const sel=document.getElementById('vmon-month'); if(!sel||!R.months||!R.months.length) return;
+  // 방문월 = '전월' VOC로 정하므로 첫 데이터월은 방문월에서 제외. 최신월+1(익월)까지 계획 가능.
+  const last=R.months[R.months.length-1];
+  const visitMonths=R.months.slice(1).concat([nextMonth(last)]);
+  visitMonths.forEach(m=>sel.add(new Option(R.months.includes(m)?m:`${m} (예정)`,m)));
+  sel.value=last;   // 기본: 최신 데이터월 방문(선정기준=전월)
   document.getElementById('vmon-apply').addEventListener('click',()=>renderVmon(sel.value));
   const mo=document.getElementById('vmon-modal');
   if(mo) mo.addEventListener('click',e=>{ if(e.target.id==='vmon-modal') closeVmonModal(); });
-  renderVmon(R.months[R.months.length-1]);
+  renderVmon(last);
 })();
 
 /* ---------- VIEW 8: 현장 모니터링 결과입력 (ECK CS 체크리스트용 AI 초안) ---------- */
@@ -1327,64 +1490,218 @@ const SYS_INQUIRY=['답변이 보이','답변을 확인','답변 확인','이메
 function isSysInquiry(r){ if(r.critical) return false; const t=((r.title||'')+' '+(r.content||'')); return SYS_INQUIRY.some(w=>t.indexOf(w)>=0); }
 function vocByStore(qMonths){
   const recs=(V&&V.records?V.records:[]).filter(r=>qMonths.includes(r.month)); const by={};
-  recs.forEach(r=>{ const x=by[r.store]=by[r.store]||{store:r.store,brand:r.brand||'',칭찬:0,불만:0,기타:0,praiseEx:'',badEx:''};
+  recs.forEach(r=>{ const x=by[r.store]=by[r.store]||{store:r.store,brand:r.brand||'',칭찬:0,불만:0,기타:0,praiseEx:'',badEx:'',badExs:[]};
     if(r.category==='칭찬' && isGenuinePraise(r)){ x['칭찬']++; if(!x.praiseEx)x.praiseEx=r.content; }   // 실제 칭찬만
-    else if(r.category==='불만' && !isSysInquiry(r)){ x['불만']++; if(!x.badEx)x.badEx=r.content; }   // 매장 불만만
+    else if(r.category==='불만' && !isSysInquiry(r)){ x['불만']++; if(!x.badEx)x.badEx=r.content; x.badExs.push(r.content||'(내용 없음)'); }   // 매장 불만만 — 요약을 건수만큼 모음(badExs.length === 불만)
     else x['기타']++; });   // 단순 문의·칭찬 키워드 없는 건, 시스템·멤버십 문의 등은 기타로
   return {by:Object.values(by),total:recs.length};
 }
-function rewardMemo(y,q,qMonths,praise,penalty,total){
-  const tr=s=>(s||'').replace(/\s+/g,' ').slice(0,55);
-  let t=`[${y}년 ${q}분기 고객의 소리 기반 매장 상벌 건의]  (수신: 운영팀 · HR팀)\n\n`;
-  t+=`■ 포상 추천 매장 (고객 칭찬 우수) — ${praise.length}개\n`;
-  praise.forEach((s,i)=>{t+=`${i+1}. ${s.store} — 고객 칭찬 ${s['칭찬']}건${s.praiseEx?` · "${tr(s.praiseEx)}…"`:''}\n`;});
-  t+=`▶ 포상안: 분기 우수매장 표창 · 직원 인센티브(상품권·포상휴가) · 우수사례 전사 공유\n\n`;
-  t+=`■ 징계 필요 매장 (고객 불만 다발) — ${penalty.length}개\n`;
-  penalty.forEach((s,i)=>{t+=`${i+1}. ${s.store} — 고객 불만 ${s['불만']}건${s.badEx?` · "${tr(s.badEx)}…"`:''}\n`;});
-  t+=`▶ 징계기준: 점장 면담·원인 분석 · 직원 재교육 · 개선계획 제출 후 1개월 재점검(미개선 시 인사평가 반영·징계 검토)\n\n`;
-  t+=`※ 근거: ${y}년 ${q}분기(${qMonths[0]}~${qMonths[qMonths.length-1]}) SL&C 고객의 소리(VOC) ${total}건 분석.`;
-  return t;
+// 포상 (매장당 균일 — 간식비 지원 + 그룹웨어 우수사례 공유, 필요 시 금액만 수정)
+const REWARD_PER_STORE=100000;                 // 매장당 포상 경비 (원)
+const REWARD_ITEMS='매장당 간식비 10만원 지원 · 그룹웨어 우수사례 전사 공유';
+const REWARD_SHORT='간식비 10만원 · 그룹웨어 우수사례 공유';
+const rewardCostTotal=praise=>praise.length*REWARD_PER_STORE;
+// 징계(개선) — 서비스 교육팀 권고안. 실제 시행은 운영팀·HR팀 결정. 불만 건수 3단계 (임계 3·5건, 조정 가능)
+function penMeasure(n){
+  if(n>=5) return {stage:'3단계', kind:'인사 검토 권고', detail:'운영팀·HR팀에 점포 관리자(점장) 재배치 검토 요청', col:'var(--bad)'};
+  if(n>=3) return {stage:'2단계', kind:'집중 관리 권고', detail:'운영팀에 모니터링 강화·개선계획 수립 요청',       col:'#e06c00'};
+  return          {stage:'1단계', kind:'서비스 재교육 권고', detail:'서비스 교육팀 현장 모니터링 · 점장 면담 · 직원 서비스 교육', col:'#c98a00'};
 }
-function renderRewards(qkey){
-  const box=document.getElementById('vreward-body'); if(!box) return;
+const wonKR=n=>'₩'+(n||0).toLocaleString('ko-KR');
+// 분기 데이터 계산 (상벌 매장·결과 보고서 공용)
+function rewardData(qkey){
   const Q=quartersOf((V&&V.months)||R.months), qMonths=Q[qkey]||[];
-  if(!qMonths.length){ box.innerHTML='<p style="color:var(--muted)">분기 데이터가 없습니다.</p>'; return; }
+  if(!qMonths.length) return null;
   const p=qkey.split('-'), y=p[0], q=p[1];
   const r=vocByStore(qMonths), total=r.total;
   const praise=r.by.filter(s=>s['칭찬']>0).sort((a,b)=>b['칭찬']-a['칭찬']||b['기타']-a['기타']);   // 칭찬 매장 전체
   const penalty=r.by.filter(s=>s['불만']>0).sort((a,b)=>b['불만']-a['불만']).slice(0,2);
+  return {y,q,qMonths,praise,penalty,total};
+}
+function renderRewards(qkey){
+  const box=document.getElementById('vreward-body'); if(!box) return;
+  const d=rewardData(qkey);
+  if(!d){ box.innerHTML='<p style="color:var(--muted)">분기 데이터가 없습니다.</p>'; return; }
+  const {y,q,qMonths,praise,penalty,total}=d;
   document.getElementById('vreward-meta').textContent=`${y}년 ${q}분기 (${qMonths[0]}~${qMonths[qMonths.length-1]}) · VOC ${total}건`;
-  const mk=`reward-memo|${qkey}`; let saved=''; try{saved=localStorage.getItem(mk)||'';}catch(e){}
-  const memo=saved||rewardMemo(y,q,qMonths,praise,penalty,total);
   // 요약: 기본 한 문장(48자), 포상은 조금 더 자세히(최대 2문장·130자)
   const sumz=s=>{ s=(s||'').replace(/</g,'&lt;').replace(/\s+/g,' ').trim(); const f=(s.split(/[.!?]/)[0]||s); return f.length>48?f.slice(0,48)+'…':f; };
   const sumLong=s=>{ s=(s||'').replace(/</g,'&lt;').replace(/\s+/g,' ').trim(); const parts=s.split(/[.!?]/).map(x=>x.trim()).filter(Boolean); let r=parts[0]||s; if(parts[1]&&r.length<80) r+='. '+parts[1]; return r.length>130?r.slice(0,130)+'…':r; };
   const row=(s,i,col,lbl,n,ex,detail)=>`<div class="rep-row"><b style="min-width:160px">${i+1}. ${s.store}</b><span><span style="color:${col};font-weight:700">${lbl} ${n}건</span>${ex?` · ${detail?sumLong(ex):sumz(ex)}`:''}</span></div>`;
+  // 징계 매장: 불만 건수만큼 요약을 나열 (요약 개수 === 불만 건수)
+  const penRow=(s,i)=>{
+    const exs=(s.badExs&&s.badExs.length?s.badExs:(s.badEx?[s.badEx]:[]));
+    const head=`<div class="rep-row"><b style="min-width:160px">${i+1}. ${s.store}</b><span style="color:var(--bad);font-weight:700">불만 ${s['불만']}건</span></div>`;
+    const list=exs.map((t,j)=>`<div class="rep-row" style="padding:4px 0 4px 24px;border:0;align-items:baseline;color:var(--muted);font-size:12px"><span style="min-width:26px;color:var(--bad);font-weight:600">${j+1}.</span><span>${sumz(t)}</span></div>`).join('');
+    return head+list;
+  };
   let h='';
   h+=`<div class="rep-sec"><h3>🏅 포상 추천 매장 — 고객 칭찬 매장 전체 (${praise.length}개)</h3>`
     +(praise.length?praise.map((s,i)=>row(s,i,'var(--good)','칭찬',s['칭찬'],s.praiseEx,true)).join(''):'<div class="rep-row" style="color:var(--muted)">해당 분기 VOC 칭찬 매장 없음</div>')
     +`<div class="rep-row" style="color:var(--muted);font-size:12px">▶ 포상안: 분기 우수매장 표창 · 직원 인센티브(상품권·포상휴가) · 우수사례 전사 공유</div></div>`;
   h+=`<div class="rep-sec"><h3>⛔ 징계 필요 매장 — 고객 불만 다발 2개</h3>`
-    +(penalty.length?penalty.map((s,i)=>row(s,i,'var(--bad)','불만',s['불만'],s.badEx)).join(''):'<div class="rep-row" style="color:var(--muted)">해당 분기 VOC 불만 매장 없음</div>')
+    +(penalty.length?penalty.map((s,i)=>penRow(s,i)).join(''):'<div class="rep-row" style="color:var(--muted)">해당 분기 VOC 불만 매장 없음</div>')
     +`<div class="rep-row" style="color:var(--muted);font-size:12px">▶ 징계기준: 점장 면담·원인 분석 · 직원 재교육 · 개선계획 제출 후 1개월 재점검(미개선 시 인사평가 반영·징계 검토)</div></div>`;
-  h+=`<div class="rep-sec"><h3>📝 운영팀·HR팀 건의문 <span class="note">수정 가능 · 자동 저장</span></h3>`
-    +`<textarea id="vreward-ta" style="width:100%;min-height:280px;border:1px solid var(--line);border-radius:8px;padding:12px;font-size:13px;line-height:1.6;font-family:inherit;box-sizing:border-box;color:var(--ink)">${memo.replace(/</g,'&lt;')}</textarea>`
-    +`<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center"><button id="vreward-copy">📋 건의문 복사</button><button id="vreward-regen" class="ghost">↻ 다시 생성</button><span id="vreward-copied" style="color:var(--good);font-size:12px"></span></div></div>`;
   box.innerHTML=h;
-  const ta=document.getElementById('vreward-ta');
-  ta.addEventListener('input',()=>{try{localStorage.setItem(mk,ta.value);}catch(e){}});
-  document.getElementById('vreward-copy').addEventListener('click',()=>{ta.select();let ok=false;try{ok=document.execCommand('copy');}catch(e){}if(navigator.clipboard)navigator.clipboard.writeText(ta.value).catch(()=>{});const c=document.getElementById('vreward-copied');c.textContent=ok?'복사됨 ✓':'Ctrl+C 로 복사';setTimeout(()=>{if(c)c.textContent='';},1800);});
-  document.getElementById('vreward-regen').addEventListener('click',()=>{const v=rewardMemo(y,q,qMonths,praise,penalty,total);ta.value=v;try{localStorage.setItem(mk,v);}catch(e){}});
+}
+// 결과 보고서 — 경영진 보고용(포상/징계 시안성) + 수정 가능 보고 문안
+function renderReport(qkey){
+  const box=document.getElementById('vreport-body'); if(!box) return;
+  const d=rewardData(qkey);
+  if(!d){ box.innerHTML='<p style="color:var(--muted)">분기 데이터가 없습니다.</p>'; return; }
+  const {y,q,qMonths,praise,penalty,total}=d;
+  document.getElementById('vreport-meta').textContent=`${y}년 ${q}분기 (${qMonths[0]}~${qMonths[qMonths.length-1]}) · VOC ${total}건`;
+  const esc=s=>(s||'').replace(/</g,'&lt;');
+  const badge=(txt,col)=>`<span class="rep-badge" style="color:${col};border:1px solid ${col}">${txt}</span>`;
+  const costSum=rewardCostTotal(praise);
+  const period=`${y}년 ${q}분기 (${qMonths[0]}~${qMonths[qMonths.length-1]})`;
+  // 보고 서머리 + 포상 + 개선 권고 = 단일 표 (경영진 한눈)
+  let h=`<div class="rep-sec">`;
+  h+=`<div style="font-size:14px;font-weight:800;margin-bottom:12px">${y}년 ${q}분기 고객의 소리(VOC) 기반 매장 상벌 보고</div>`;
+  h+=`<table class="rep-tbl"><thead><tr><th>매장</th><th class="num">실적</th><th>조치 · 포상 내역</th></tr></thead><tbody>`;
+  // 🏅 포상 그룹
+  h+=`<tr class="grp"><td colspan="3" style="background:var(--good)">🏅 포상 매장 — 고객 칭찬 우수 · 매장 전체 (${praise.length}개)</td></tr>`;
+  h+= praise.length
+    ? praise.map(s=>`<tr><td class="st">${esc(s.store)}</td><td class="num" style="color:var(--good);font-weight:700">칭찬 ${s['칭찬']}건</td><td>${REWARD_SHORT}</td></tr>`).join('')
+    : `<tr><td colspan="3" style="color:var(--muted)">해당 분기 VOC 칭찬 매장 없음</td></tr>`;
+  // ⚠️ 개선 권고 그룹
+  h+=`<tr class="grp"><td colspan="3" style="background:var(--bad)">⚠️ 개선 권고 매장 — 고객 불만 다발 상위 2개 (${penalty.length}개) · 운영팀·HR팀 대상 권고</td></tr>`;
+  h+= penalty.length
+    ? penalty.map(s=>{const pm=penMeasure(s['불만']);return `<tr><td class="st">${esc(s.store)}</td><td class="num" style="color:var(--bad);font-weight:700">불만 ${s['불만']}건</td><td>${badge(pm.stage,pm.col)} <b>${pm.kind}</b> — ${pm.detail}</td></tr>`;}).join('')
+    : `<tr><td colspan="3" style="color:var(--muted)">해당 분기 VOC 불만 매장 없음</td></tr>`;
+  h+=`</tbody></table>`;
+  // 하단 참고 — 포상 기준 / 징계 기준 (분리·스택 배치)
+  h+=`<div style="font-weight:700;font-size:12.5px;margin:18px 0 6px">📌 포상 기준</div>`;
+  h+=`<table class="rep-tbl"><thead><tr><th style="width:130px">구분</th><th>내용</th></tr></thead><tbody>`
+    +`<tr><td class="st">간식비 지원</td><td>매장당 ${wonKR(REWARD_PER_STORE)}</td></tr>`
+    +`<tr><td class="st">우수사례 공유</td><td>그룹웨어 전사 공유</td></tr>`
+    +`</tbody></table>`;
+  const stg=[['1~2건',1],['3~4건',3],['5건 이상',5]];
+  h+=`<div style="font-weight:700;font-size:12.5px;margin:18px 0 6px">📌 징계 기준 <span class="note" style="font-weight:400">고객 불만 건수 기준 · 운영팀·HR팀 대상 권고</span></div>`;
+  h+=`<table class="rep-tbl"><thead><tr><th style="width:190px">단계</th><th class="num" style="width:90px">불만 건수</th><th>권고 조치</th></tr></thead><tbody>`
+    +stg.map(([lbl,n])=>{const pm=penMeasure(n);return `<tr><td>${badge(pm.stage,pm.col)} <b>${pm.kind}</b></td><td class="num">${lbl}</td><td>${pm.detail}</td></tr>`;}).join('')
+    +`<tr><td colspan="3" style="color:var(--muted);font-size:12px">고객 안전·위생 등 중대 사안은 건수와 무관하게 최우선 검토 권고</td></tr>`
+    +`</tbody></table>`;
+  h+=`<p class="rep-lead" style="font-size:11.5px;margin-top:12px">※ 본 보고서는 <b>서비스 교육팀의 포상·개선 권고안</b>이며, 실제 포상 집행 및 인사 조치는 <b>운영팀·HR팀의 검토·결정</b>에 따릅니다.</p>`;
+  h+=`</div>`;
+  box.innerHTML=h;
 }
 (function initRewards(){
-  const sel=document.getElementById('vreward-q'); if(!sel) return;
   const Q=quartersOf((V&&V.months)||R.months), keys=Object.keys(Q).sort();
   if(!keys.length) return;
-  keys.forEach(k=>{const p=k.split('-');sel.add(new Option(`${p[0]}년 ${p[1]}분기`,k));});
-  sel.value=keys[keys.length-1];
-  document.getElementById('vreward-go').addEventListener('click',()=>renderRewards(sel.value));
-  document.getElementById('vreward-print').addEventListener('click',()=>window.print());
-  renderRewards(keys[keys.length-1]);
+  const setup=(selId,goId,printId,render)=>{
+    const sel=document.getElementById(selId); if(!sel) return;
+    keys.forEach(k=>{const p=k.split('-');sel.add(new Option(`${p[0]}년 ${p[1]}분기`,k));});
+    sel.value=keys[keys.length-1];
+    const gb=document.getElementById(goId); if(gb) gb.addEventListener('click',()=>render(sel.value));
+    const pb=document.getElementById(printId); if(pb) pb.addEventListener('click',()=>window.print());
+    render(keys[keys.length-1]);
+  };
+  setup('vreward-q','vreward-go','vreward-print',renderRewards);
+  setup('vreport-q','vreport-go','vreport-print',renderReport);
+})();
+
+/* ---------- 월별 KPI 평가 ---------- */
+const KPI = window.KPI_DATA || null;
+const GRADE_COL = {S:'#c8991f',A:'#2f9e6f',B:'#5b6b7d',C:'#e0772b',D:'#d64545'};
+const GRADE_BG  = {S:'rgba(200,153,31,.14)',A:'rgba(47,158,111,.12)',B:'',C:'rgba(224,119,43,.12)',D:'rgba(214,69,69,.13)'};
+function kpiBadge(g){ if(!g) return '–'; return `<span style="display:inline-block;min-width:20px;text-align:center;font-weight:800;color:#fff;background:${GRADE_COL[g]};border-radius:5px;padding:1px 7px">${g}</span>`; }
+function renderKPI(mon){
+  const box=document.getElementById('vkpi-body'); if(!box) return;
+  if(!KPI){ box.innerHTML='<p style="color:var(--muted)">KPI 데이터가 없습니다. <code>python kpi_build.py</code> 실행 후 새로고침하세요.</p>'; return; }
+  const info=KPI.by_month[mon]; if(!info){ box.innerHTML='<p style="color:var(--muted)">해당 월 데이터가 없습니다.</p>'; return; }
+  const rows=info.rows, computed=info.source==='computed';
+  const dist={S:0,A:0,B:0,C:0,D:0}; rows.forEach(r=>{if(r.grade)dist[r.grade]++;});
+  const m=document.getElementById('vkpi-meta');
+  m.innerHTML=`${computed?'자동 산출(네이버+캐치테이블+VOC)':'취합 엑셀'} · ${rows.length}개 매장`+(info.provisional?' · <b style="color:var(--bad)">집계중(잠정)</b>':'');
+  let h='';
+  h+=`<div class="rep-sec"><div style="font-size:12.5px;color:var(--muted);margin-bottom:8px">📐 <b>산정 규칙</b> — ${KPI.rule}. 최소표본 ${KPI.min_sample}건 미만은 순위 제외(B). 로스터: ${KPI.roster_source}.</div>`;
+  h+=`<div style="display:flex;gap:8px;flex-wrap:wrap">`+['S','A','B','C','D'].map(g=>`<span style="font-weight:700;color:${GRADE_COL[g]};border:1px solid ${GRADE_COL[g]};border-radius:6px;padding:3px 11px">${g} ${dist[g]}개</span>`).join('')+`</div>`;
+  if(computed && Array.isArray(KPI.new_stores) && KPI.new_stores.length && mon===KPI.default_month)
+    h+=`<div style="font-size:11.5px;color:var(--muted);margin-top:8px">🆕 ECK CS 신규 매장 후보 ${KPI.new_stores.length}개: ${KPI.new_stores.join(' · ')} <span style="opacity:.7">(데이터 확인 후 편입)</span></div>`;
+  h+=`</div>`;
+  h+=`<div class="rep-sec"><table class="rep-tbl"><thead><tr><th style="width:44px">등급</th><th class="num" style="width:52px">점수</th><th>매장</th><th>브랜드</th><th>운영담당</th><th class="num">건수<span style="font-weight:400;font-size:10px;color:var(--muted)"> 리뷰+VOC</span></th><th class="num">불만</th><th class="num">불만율</th></tr></thead><tbody>`;
+  rows.forEach(r=>{
+    const bg=GRADE_BG[r.grade]||'';
+    const noData = computed && r['불만율']==null ? (r['복합']? ' <span style="color:var(--muted);font-size:11px">(표본부족)</span>':' <span style="color:var(--muted);font-size:11px">(데이터無)</span>') : '';
+    const cnt = (r.reviews_total==null && r.voc_total==null) ? null : (r['복합']!=null ? r['복합'] : (r.reviews_total||0)+(r.voc_total||0));
+    h+=`<tr style="background:${bg}"><td>${kpiBadge(r.grade)}</td><td class="num"><b>${r.score==null?'–':r.score}</b></td><td class="st">${r.store}${noData}</td><td>${r.brand||''}</td><td>${r['운영담당']||''}</td><td class="num">${cnt==null?'–':fmt(cnt)}</td><td class="num">${r['불만']==null?'–':r['불만']}</td><td class="num">${r['불만율']==null?'–':r['불만율']+'%'}</td></tr>`;
+  });
+  h+=`</tbody></table></div>`;
+  box.innerHTML=h;
+}
+// 엑셀 다운로드 (SpreadsheetML .xls — Excel 네이티브, 외부 의존 없음)
+function gradeOfScore(sc){ if(sc==null)return''; if(sc>=100)return'S'; if(sc>=90)return'A'; if(sc>=80)return'B'; if(sc>=70)return'C'; return'D'; }
+// 엑셀 다운로드 — 취합엑셀 '서비스' 시트 템플릿 재현(제목·번호행·연파랑 헤더·테두리·우측 등급기준표,
+//   브랜드그룹 순서·신규=브랜드끝·폐점=하단, 1~5월 엑셀값·6월~ 신규조건). 서식형 SpreadsheetML .xls
+function kpiExcel(){
+  if(!KPI) return;
+  const map={};   // store → {mgr, cells:{'2026-MM':{score,grade}}}  (액티브)
+  KPI.months.forEach(mon=>{ (KPI.by_month[mon].rows||[]).forEach(r=>{
+    const e=map[r.store]||(map[r.store]={mgr:r['운영담당']||'',cells:{}});
+    e.cells[mon]={score:r.score,grade:r.grade};
+    if(r['운영담당']) e.mgr=r['운영담당'];
+  }); });
+  const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const C=(v,st,idx)=>{ const i=idx?` ss:Index="${idx}"`:''; const s=st?` ss:StyleID="${st}"`:'';
+    if(v===''||v==null) return `<Cell${i}${s}/>`;
+    const num=(typeof v==='number'); return `<Cell${i}${s}><Data ss:Type="${num?'Number':'String'}">${num?v:esc(v)}</Data></Cell>`; };
+  const MON=['2026-01','2026-02','2026-03','2026-04','2026-05','2026-06','2026-07','2026-08','2026-09','2026-10','2026-11','2026-12'];
+  // 등급 기준표(우측) + 확정월 매장수 분포
+  const dm=KPI.default_month, dist={S:0,A:0,B:0,C:0,D:0};
+  (KPI.by_month[dm]?KPI.by_month[dm].rows:[]).forEach(r=>{if(r.grade)dist[r.grade]++;});
+  const LEG=[['S',100,'0.04',dist.S],['A','90~99','0.05',dist.A],['B','80~89','0.81',dist.B],['C','70~79','0.05',dist.C],['D','69 이하','0.05',dist.D]];
+  // 데이터 행 (조직 col2 시작, 월 12개, 평균점수/등급). legendRow: 있으면 우측(col31~) 기준표 셀 추가
+  const dataRow=(store,mgr,getCell,legIdx)=>{
+    let row='<Row>'+C(store,'st',2)+C(mgr,'c'), sum=0, cnt=0;
+    MON.forEach(mon=>{ const c=getCell(mon)||{}; row+=C(c.score==null?'':c.score,'c')+C(c.grade||'','c'); if(c.score!=null){sum+=c.score;cnt++;} });
+    const avg=cnt?Math.round(sum/cnt):'';
+    row+=C(avg===''?'':avg,'avg')+C(avg===''?'':gradeOfScore(avg),'avg');
+    if(legIdx!=null && legIdx<LEG.length){ const g=LEG[legIdx];
+      row+=C(g[0],'g'+g[0],31)+C(g[1],'c')+C(g[2],'c')+C(g[3],'c'); }
+    return row+'</Row>';
+  };
+  // 헤더 행들
+  const numRow='<Row>'+Array.from({length:28},(_,i)=>C(i+1,'num',i===0?2:undefined)).join('')+'</Row>';
+  let hdr='<Row>'+C('조직','hdr',2)+C('운영담당','hdr');
+  MON.forEach((_,i)=>{ hdr+=C((i+1)+'월','hdr')+C('등급','hdr'); });
+  hdr+=C('평균점수','hdr')+C('등급','hdr')+C('등급','hdr',31)+C('점수','hdr')+C('기준','hdr')+C('매장 수(비율대비)','hdr')+'</Row>';
+  const titleRow='<Row>'+C('▣ 서비스 점수','tit',2)+'</Row>';
+  // 본문: 액티브(원본순서) → 폐점(하단)
+  const order=(KPI.download_order&&KPI.download_order.length)?KPI.download_order:Object.keys(map).sort();
+  let li=0, body='';
+  order.forEach(st=>{ const e=map[st]; if(e){ body+=dataRow(st,e.mgr,m=>e.cells[m], li<LEG.length?li:null); li++; } });
+  (KPI.closed||[]).forEach(c=>{ body+=dataRow(c.store,c['운영담당']||'',m=>(c.months||{})[m], li<LEG.length?li:null); li++; });
+  // 스타일
+  const BRD='<Borders><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1"/><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/></Borders>';
+  const GC={S:'#C8991F',A:'#2F9E6F',B:'#5B6B7D',C:'#E0772B',D:'#D64545'};
+  const gStyles=Object.keys(GC).map(g=>`<Style ss:ID="g${g}"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="${GC[g]}" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center" ss:Vertical="Center"/>${BRD}</Style>`).join('');
+  const styles=`<Styles>`
+    +`<Style ss:ID="Default"><Alignment ss:Vertical="Center"/><Font ss:FontName="맑은 고딕" ss:Size="10"/></Style>`
+    +`<Style ss:ID="tit"><Font ss:Bold="1" ss:Size="13"/></Style>`
+    +`<Style ss:ID="num"><Font ss:Size="8" ss:Color="#999999"/><Alignment ss:Horizontal="Center"/></Style>`
+    +`<Style ss:ID="hdr"><Font ss:Bold="1"/><Interior ss:Color="#DDEBF7" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center" ss:Vertical="Center"/>${BRD}</Style>`
+    +`<Style ss:ID="c"><Alignment ss:Horizontal="Center"/>${BRD}</Style>`
+    +`<Style ss:ID="st"><Alignment ss:Horizontal="Left"/>${BRD}</Style>`
+    +`<Style ss:ID="avg"><Font ss:Bold="1"/><Interior ss:Color="#F2F2F2" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/>${BRD}</Style>`
+    +gStyles+`</Styles>`;
+  const cols=`<Column ss:Width="120"/><Column ss:Width="60"/>`+Array.from({length:24},()=>`<Column ss:Width="34"/>`).join('')+`<Column ss:Width="60"/><Column ss:Width="46"/>`;
+  const xml=`<?xml version="1.0" encoding="UTF-8"?><?mso-application progid="Excel.Sheet"?>`
+    +`<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">`
+    +styles+`<Worksheet ss:Name="서비스"><Table>${cols}<Row/>${titleRow}${numRow}${hdr}${body}</Table></Worksheet></Workbook>`;
+  const blob=new Blob(['﻿'+xml],{type:'application/vnd.ms-excel'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='2026 월별 KPI 취합_서비스.xls';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+(function initKPI(){
+  const sel=document.getElementById('vkpi-month'); if(!sel||!KPI){ renderKPI(''); return; }
+  KPI.months.forEach(mm=>{ const prov=KPI.by_month[mm]&&KPI.by_month[mm].provisional; sel.add(new Option(mm+(prov?' (집계중)':''), mm)); });
+  const def=KPI.default_month||KPI.months[KPI.months.length-1];
+  sel.value=def;
+  sel.addEventListener('change',()=>renderKPI(sel.value));
+  const pb=document.getElementById('vkpi-print'); if(pb) pb.addEventListener('click',()=>window.print());
+  const xb=document.getElementById('vkpi-xls'); if(xb) xb.addEventListener('click',()=>kpiExcel());
+  renderKPI(def);
 })();
 
 /* ---------- tabs & lazy chart init ---------- */

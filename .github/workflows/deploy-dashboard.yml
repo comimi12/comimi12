@@ -1,0 +1,40 @@
+name: Deploy Sales Dashboard
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '10-projects/15-daily-sales/dashboard/index.html'
+      - '.github/workflows/deploy-dashboard.yml'
+  workflow_dispatch:  # 수동 실행 버튼
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload dashboard artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '10-projects/15-daily-sales/dashboard'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
