@@ -279,6 +279,10 @@ window.__BUILD__='__BUILD_TOKEN__';
   .rep-tbl .st{font-weight:700}
   .rep-badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:700;white-space:nowrap}
   .rep-lead{color:var(--muted);font-size:12px;margin:0 0 4px}
+  .inc-more{border:0;background:var(--brand-soft);color:var(--brand);border-radius:6px;padding:2px 9px;font-size:11px;font-weight:700;cursor:pointer;margin-left:6px;white-space:nowrap;vertical-align:middle}
+  .inc-more:hover{background:#dbe8f8}
+  .inc-detail{margin:2px 0 10px 64px;padding:11px 14px;background:var(--bg);border-left:3px solid var(--brand);border-radius:0 8px 8px 0;font-size:12px;color:var(--muted);font-weight:700}
+  .inc-detail .txt{margin-top:6px;font-size:12.5px;line-height:1.65;color:var(--ink);font-weight:400}
   @media print{
     .sidebar,.sb-toggle,.sb-backdrop,.ctrl{display:none!important}
     .main{margin-left:0} .wrap{padding:0;max-width:none} body{background:#fff}
@@ -1618,6 +1622,13 @@ function renderReport(qkey){
 const INC = window.INCENTIVE_DATA || null;
 const INC_TYPE_COL = {'위생·안전':'#d64545','품질':'#dd9b1f','서비스':'#14559b','운영':'#2f9e6f'};
 function incLabel(qkey){ const p=(qkey||'').split('-'); return `${p[0]}년 ${p[1]}분기`; }
+function incToggle(btn){
+  const row=btn.closest('.rep-row'); const det=row&&row.nextElementSibling;
+  if(!det||!det.classList.contains('inc-detail')) return;
+  const open=det.style.display==='none';
+  det.style.display=open?'block':'none';
+  btn.textContent=open?'상세 접기 ▴':'상세 보기 ▾';
+}
 function renderIncentive(qkey){
   const box=document.getElementById('vinc-body'); if(!box) return;
   const d=INC&&INC[qkey];
@@ -1657,10 +1668,14 @@ function renderIncentive(qkey){
     h+=`<div class="rep-row" style="border:0;padding-bottom:2px"><b style="min-width:130px">${esc(st)}</b><span style="color:var(--bad);font-weight:700">불만 ${arr.length}건</span></div>`;
     arr.forEach(c=>{
       const col=INC_TYPE_COL[c.type]||'var(--muted)';
+      const hasD=!!(c.detail&&String(c.detail).trim());
       h+=`<div class="rep-row" style="padding:5px 0 5px 20px;align-items:baseline">`
         +`<span style="min-width:44px;color:var(--muted);font-weight:600">${esc(c.date||'')}</span>`
         +`<span class="rep-badge" style="color:${col};border:1px solid ${col};min-width:64px;text-align:center">${esc(c.type||'')}</span>`
-        +`<span style="flex:1">${esc(c.text||'')}</span></div>`;
+        +`<span style="flex:1">${esc(c.text||'')}`
+        +(hasD?` <button type="button" class="inc-more" onclick="incToggle(this)">상세 보기 ▾</button>`:'')
+        +`</span></div>`;
+      if(hasD) h+=`<div class="inc-detail" style="display:none">💬 고객의 소리 원문<div class="txt">${esc(c.detail).replace(/\n/g,'<br>')}</div></div>`;
     });
   });
   h+=`</div>`;
