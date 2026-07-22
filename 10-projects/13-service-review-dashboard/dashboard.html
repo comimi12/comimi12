@@ -14,6 +14,7 @@
 <script src="eck_data.js" onerror="window.ECK_DATA=window.ECK_DATA||null"></script>
 <script src="memos.js" onerror="window.MEMOS=window.MEMOS||null"></script>
 <script src="kpi_data.js" onerror="window.KPI_DATA=window.KPI_DATA||null"></script>
+<script src="incentive_data.js" onerror="window.INCENTIVE_DATA=window.INCENTIVE_DATA||null"></script>
 <script>
 /* 새 버전 자동 반영: 배포 시 주입된 빌드토큰과 ver.txt(캐시 우회) 비교 → 다르면 최신으로 새로고침 */
 window.__BUILD__='__BUILD_TOKEN__';
@@ -306,6 +307,7 @@ window.__BUILD__='__BUILD_TOKEN__';
     <button class="tab" data-v="vreward">🏅 분기별 상벌 매장</button>
     <button class="tab" data-v="vreport">📝 결과 보고서</button>
     <button class="tab" data-v="vkpi">📊 월별 KPI 평가</button>
+    <button class="tab" data-v="vincentive">🎁 분기별 인센티브 행사</button>
   </nav>
   <div class="sb-meta" id="meta"></div>
 </aside>
@@ -346,6 +348,17 @@ window.__BUILD__='__BUILD_TOKEN__';
       <span class="ctrl-note" id="vreport-meta"></span>
     </div>
     <div id="vreport-body"></div>
+  </section>
+
+  <!-- 분기별 인센티브 행사 (인센티브 대상점 중 VOC 유입 매장) -->
+  <section class="view" id="vincentive">
+    <div class="vhead"><h2>분기별 인센티브 행사 <span class="note">인센티브 대상점 중 SL&C 고객의 소리(VOC) 유입 매장</span></h2></div>
+    <div class="ctrl">
+      <span>분기</span><select id="vinc-q"></select>
+      <button id="vinc-print" class="ghost">🖨 인쇄 / PDF</button>
+      <span class="ctrl-note" id="vinc-meta"></span>
+    </div>
+    <div id="vinc-body"></div>
   </section>
 
   <!-- VIEW 1 -->
@@ -1599,6 +1612,99 @@ function renderReport(qkey){
   };
   setup('vreward-q','vreward-go','vreward-print',renderRewards);
   setup('vreport-q','vreport-go','vreport-print',renderReport);
+})();
+
+/* ---------- 분기별 인센티브 행사 (인센티브 대상점 중 VOC 유입 매장) ---------- */
+const INC = window.INCENTIVE_DATA || null;
+const INC_TYPE_COL = {'위생·안전':'#d64545','품질':'#dd9b1f','서비스':'#14559b','운영':'#2f9e6f'};
+function incLabel(qkey){ const p=(qkey||'').split('-'); return `${p[0]}년 ${p[1]}분기`; }
+function renderIncentive(qkey){
+  const box=document.getElementById('vinc-body'); if(!box) return;
+  const d=INC&&INC[qkey];
+  const meta=document.getElementById('vinc-meta');
+  if(!d){ box.innerHTML='<p style="color:var(--muted)">해당 분기 인센티브 데이터가 없습니다.</p>'; if(meta)meta.textContent=''; return; }
+  const stores=d.stores||[], comps=d.complaints||[];
+  const totVoc=stores.reduce((a,s)=>a+(+s.voc||0),0);
+  const adj=stores.filter(s=>s.result==='조정').length;
+  if(meta) meta.textContent=`${d.period||incLabel(qkey)} · 대상 ${stores.length}개점 · VOC 불만 ${totVoc}건`;
+  const esc=s=>(s||'').replace(/</g,'&lt;');
+  let h='';
+  // 상단 KPI
+  h+=`<div class="grid3" style="margin-bottom:14px">`
+    +`<div class="kpi"><div class="lab">인센티브 대상 매장</div><div class="val">${stores.length}<span style="font-size:14px;font-weight:600"> 개점</span></div><div class="sub">실적 가마감 기준</div></div>`
+    +`<div class="kpi"><div class="lab">VOC 불만 유입</div><div class="val" style="color:var(--bad)">${totVoc}<span style="font-size:14px;font-weight:600"> 건</span></div><div class="sub">대상점 발생 불만 합계</div></div>`
+    +`<div class="kpi"><div class="lab">인센티브 조정 매장</div><div class="val" style="color:var(--warn)">${adj}<span style="font-size:14px;font-weight:600"> 개점</span></div><div class="sub">VOC 발생으로 조정</div></div>`
+    +`</div>`;
+  // 대상점 표
+  h+=`<div class="rep-sec"><h3>🎁 인센티브 대상점 중 VOC 발생 매장</h3>`;
+  if(d.note) h+=`<p class="rep-lead">※ ${esc(d.note)}</p>`;
+  h+=`<table class="rep-tbl"><thead><tr><th style="width:34%">매장명</th><th>실적(가마감)</th><th>인센티브 결과</th><th class="num">VOC 불만</th></tr></thead><tbody>`
+    + stores.map(s=>`<tr><td class="st">${esc(s.store)}</td><td>${esc(s.perf||'')}</td>`
+        +`<td><span class="rep-badge" style="color:${s.result==='조정'?'#c98a00':'var(--good)'};border:1px solid ${s.result==='조정'?'#c98a00':'var(--good)'}">${esc(s.result||'-')}</span></td>`
+        +`<td class="num" style="color:var(--bad);font-weight:700">${+s.voc||0}건</td></tr>`).join('')
+    + `<tr class="grp" style="background:var(--brand)"><td>합계</td><td></td><td></td><td class="num" style="color:#fff">${totVoc}건</td></tr>`
+    + `</tbody></table></div>`;
+  // 차트 2종
+  h+=`<div class="grid2">`
+    +`<div class="panel"><h3>매장별 VOC 불만 건수</h3><div class="chart" id="c-inc-store"></div></div>`
+    +`<div class="panel"><h3>불만 유형 분포</h3><div class="chart" id="c-inc-type"></div></div>`
+    +`</div>`;
+  // 불만 상세 (매장별 그룹)
+  const byStore={}; comps.forEach(c=>{(byStore[c.store]=byStore[c.store]||[]).push(c);});
+  h+=`<div class="rep-sec"><h3>📋 VOC 불만 상세</h3>`;
+  Object.keys(byStore).forEach(st=>{
+    const arr=byStore[st];
+    h+=`<div class="rep-row" style="border:0;padding-bottom:2px"><b style="min-width:130px">${esc(st)}</b><span style="color:var(--bad);font-weight:700">불만 ${arr.length}건</span></div>`;
+    arr.forEach(c=>{
+      const col=INC_TYPE_COL[c.type]||'var(--muted)';
+      h+=`<div class="rep-row" style="padding:5px 0 5px 20px;align-items:baseline">`
+        +`<span style="min-width:44px;color:var(--muted);font-weight:600">${esc(c.date||'')}</span>`
+        +`<span class="rep-badge" style="color:${col};border:1px solid ${col};min-width:64px;text-align:center">${esc(c.type||'')}</span>`
+        +`<span style="flex:1">${esc(c.text||'')}</span></div>`;
+    });
+  });
+  h+=`</div>`;
+  box.innerHTML=h;
+  drawIncCharts(qkey);
+}
+function drawIncCharts(qkey){
+  const d=INC&&INC[qkey]; if(!d||typeof echarts==='undefined') return;
+  const stores=d.stores||[], comps=d.complaints||[];
+  ['incStore','incType'].forEach(k=>{ if(charts[k]){charts[k].dispose(); delete charts[k];} });
+  const e1=document.getElementById('c-inc-store');
+  if(e1){ charts.incStore=echarts.init(e1);
+    charts.incStore.setOption({
+      grid:{left:8,right:16,top:14,bottom:8,containLabel:true},
+      tooltip:{trigger:'axis',axisPointer:{type:'shadow'}},
+      xAxis:{type:'value',minInterval:1,axisLine:{lineStyle:{color:'#c7d2e0'}}},
+      yAxis:{type:'category',data:stores.map(s=>s.store),axisLine:{lineStyle:{color:'#c7d2e0'}}},
+      series:[{type:'bar',data:stores.map(s=>+s.voc||0),barWidth:'52%',
+        itemStyle:{color:'#d64545',borderRadius:[0,4,4,0]},
+        label:{show:true,position:'right',formatter:'{c}건',color:'#161d29',fontWeight:700}}]
+    });
+  }
+  const tc={}; comps.forEach(c=>{tc[c.type]=(tc[c.type]||0)+1;});
+  const e2=document.getElementById('c-inc-type');
+  if(e2){ charts.incType=echarts.init(e2);
+    charts.incType.setOption({
+      tooltip:{trigger:'item',formatter:'{b}: {c}건 ({d}%)'},
+      legend:{bottom:0,itemWidth:11,itemHeight:11,textStyle:{fontSize:12}},
+      series:[{type:'pie',radius:['42%','66%'],center:['50%','44%'],avoidLabelOverlap:true,
+        itemStyle:{borderColor:'#fff',borderWidth:2},
+        label:{formatter:'{b}\n{c}건',fontSize:11},
+        data:Object.keys(tc).map(k=>({name:k,value:tc[k],itemStyle:{color:INC_TYPE_COL[k]||'#9aa3b2'}}))}]
+    });
+  }
+}
+(function initIncentive(){
+  const sel=document.getElementById('vinc-q'); if(!sel) return;
+  const keys=INC?Object.keys(INC).sort():[];
+  if(!keys.length){ renderIncentive(''); return; }
+  keys.forEach(k=>sel.add(new Option(incLabel(k),k)));
+  sel.value=keys[keys.length-1];
+  sel.addEventListener('change',()=>renderIncentive(sel.value));
+  const pb=document.getElementById('vinc-print'); if(pb) pb.addEventListener('click',()=>window.print());
+  renderIncentive(sel.value);
 })();
 
 /* ---------- 월별 KPI 평가 ---------- */
