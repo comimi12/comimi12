@@ -10,7 +10,7 @@
 
 수치는 이 스크립트가, 질적 요약(TOP3 요약·토픽·인사이트)은 Claude가 ai_notes.js 에 작성한다.
 """
-import csv, json, glob, os, re, datetime, collections, statistics
+import csv, json, glob, os, re, datetime, collections, statistics, subprocess, tempfile, hashlib
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REVIEW_DIR = os.path.join(HERE, "data", "reviews")
@@ -424,6 +424,64 @@ def _prev_voc():
         return None
 
 
+# ── Fasoo DRM 복호화 폴백 (eck/eck_build.py 와 동일 원리) ─────────────
+# 이 PC의 VOC(고객의 소리) xls 내보내기는 사내 Fasoo DRM 으로 재암호화되어
+# pandas.read_html 이 직접 못 읽는다. Fasoo 에이전트가 살아있는 대화형 세션에서는
+# Excel COM 으로 열면 복호화되므로, PowerShell 로 첫 시트 값을 평문 CSV 로 덤프해 파싱한다.
+_PS_DUMP = r'''
+$ErrorActionPreference='Stop'; $xl=$null
+try{
+  $xl=New-Object -ComObject Excel.Application
+  $xl.Visible=$false; $xl.DisplayAlerts=$false
+  $wb=$xl.Workbooks.Open("__PATH__",0,$true)
+  $ws=$wb.Sheets.Item(1); $u=$ws.UsedRange; $d=$u.Value2
+  $rows=$u.Rows.Count; $cols=$u.Columns.Count
+  $sw=New-Object System.IO.StreamWriter("__OUT__",$false,(New-Object System.Text.UTF8Encoding($true)))
+  for($r=1;$r -le $rows;$r++){ $line=New-Object System.Collections.Generic.List[string]
+    for($c=1;$c -le $cols;$c++){ $v=$d.GetValue($r,$c); if($null -eq $v){$v=''}; $v=[string]$v
+      if($v -match '[",\n]'){ $v='"'+($v -replace '"','""')+'"' }; $line.Add($v) }
+    $sw.WriteLine([string]::Join(',',$line)) }
+  $sw.Close(); $wb.Close($false); $xl.Quit()
+}finally{ if($xl){[void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($xl)} }
+'''
+
+
+def _voc_df_via_excel(path):
+    """DRM 잠긴 VOC xls → Excel COM 으로 첫 시트를 평문 CSV 덤프 후 header=None DataFrame 반환.
+    비대화형(작업 스케줄러)에서 Excel COM 이 안 뜨면 None (상위에서 이전값 폴백)."""
+    import pandas as pd
+    key = hashlib.md5(os.path.abspath(path).encode("utf-8")).hexdigest()[:12]
+    out = os.path.join(tempfile.gettempdir(), f"voc_drm_{key}.csv")
+    if not (os.path.exists(out) and os.path.getmtime(out) >= os.path.getmtime(path)):
+        ps = _PS_DUMP.replace("__PATH__", os.path.abspath(path)).replace("__OUT__", out)
+        try:
+            subprocess.run(["powershell", "-NoProfile", "-NonInteractive", "-Command", ps],
+                           check=True, capture_output=True, timeout=180)
+        except Exception:
+            return None
+    if not (os.path.exists(out) and os.path.getsize(out) > 0):
+        return None
+    df = pd.read_csv(out, header=None, dtype=str, keep_default_na=False, encoding="utf-8-sig")
+    # Excel COM(Value2)은 날짜셀을 시리얼 숫자(예: 46222.85)로 준다 → 날짜 문자열로 복원.
+    # 헤더행(row0)에서 날짜 컬럼을 찾아 그 열만 변환.
+    epoch = datetime.datetime(1899, 12, 30)
+    if len(df):
+        hdr = list(df.iloc[0])
+        date_cols = [i for i, h in enumerate(hdr)
+                     if any(k in str(h) for k in ("일자", "등록일", "답변일", "방문"))]
+        for c in date_cols:
+            for r in range(1, len(df)):
+                v = str(df.iat[r, c]).strip()
+                try:
+                    fv = float(v)
+                except (ValueError, TypeError):
+                    continue
+                if fv > 1:  # 유효 시리얼(1899-12-31 이후)
+                    dt = epoch + datetime.timedelta(days=fv)
+                    df.iat[r, c] = dt.strftime("%Y-%m-%d %H:%M:%S")
+    return df
+
+
 def build_voc():
     import pandas as pd
     path = latest(os.path.join(VOC_DIR, "*.xls")) or latest(os.path.join(VOC_DIR, "*.xlsx"))
@@ -431,13 +489,15 @@ def build_voc():
         return None, None
     try:
         tables = pd.read_html(path)
+        df = max(tables, key=lambda d: d.shape[0])
     except Exception as e:
-        prev = _prev_voc()
-        print(f"[!] VOC 원본 읽기 실패({type(e).__name__}) - DRM 잠김 추정. "
-              f"기존 data.js 의 VOC {('유지' if prev else '없음')}. "
-              f"VOC 갱신하려면 DRM 해제 환경(대화형)에서 build.py 재실행.")
-        return prev, None
-    df = max(tables, key=lambda d: d.shape[0])
+        df = _voc_df_via_excel(path)  # DRM → Excel COM 복호화 CSV
+        if df is None:
+            prev = _prev_voc()
+            print(f"[!] VOC 원본 읽기 실패({type(e).__name__}) - DRM 잠김·Excel COM 실패. "
+                  f"기존 data.js 의 VOC {('유지' if prev else '없음')}. "
+                  f"VOC 갱신하려면 DRM 해제 환경(대화형)에서 build.py 재실행.")
+            return prev, None
     df = df.iloc[1:]  # 첫 행은 헤더(웹 내보내기라 <th>가 없음)
     df.columns = COLS[:df.shape[1]]
     recs = []
