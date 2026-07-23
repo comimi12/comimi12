@@ -210,6 +210,86 @@ def load_merged_catchtable(path, skip_months):
     return out
 
 
+# ─────────────────────── 2025 월별 집계 (팀 월간 분석 워크북) ───────────────────────
+# 2025년은 raw 리뷰 CSV 가 없고, 팀이 만든 월별 분석 엑셀(온라인 리뷰_25.MM월.xlsx)만 있다.
+# 각 파일 TOTAL 시트의 '매장유형별 총건수/BAD/GOOD' 를 브랜드로 집계해 월·브랜드 추이에 주입.
+# (매장 단위·리뷰 원문·출처분해는 워크북에 없으므로 2025는 추이/브랜드 집계까지만 — 매장 드릴다운은 2026+.)
+WB_BRANDS = ["Chai", "호우섬", "서리재", "이타마에", "정육점"]
+
+
+def _wb_brand(sub):
+    s = str(sub).replace(" ", "")
+    if "정육" in s or "바른고기" in s:
+        return "정육점"
+    if "서리재" in s:
+        return "서리재"
+    if "이타" in s:
+        return "이타마에"
+    if "호우섬" in s:          # 살롱드호우섬 포함
+        return "호우섬"
+    return "Chai"              # CHAI797 Black/Dining/UCD/JUCD/CD
+
+
+def build_2025():
+    """온라인 리뷰_25.MM월.xlsx (팀 월간 분석 워크북)들의 TOTAL 시트를 브랜드로 집계.
+    반환: (months, by_month_total, by_month_brand). 파일 없으면 ([], {}, {})."""
+    import pandas as pd
+    files = sorted(glob.glob(os.path.join(REVIEW_DIR, "온라인*리뷰_25.*.xlsx")))
+    seen = {}
+    for f in files:
+        mm = re.search(r"25\.(\d{2})월", os.path.basename(f))
+        if not mm:
+            continue
+        key = mm.group(1)
+        # 같은 달 중복(예: 10월 _차재환)은 접미어 없는 원본 우선
+        if key not in seen or "차재환" not in os.path.basename(f):
+            seen[key] = f
+
+    def num(x):
+        try:
+            return int(float(x))
+        except (ValueError, TypeError):
+            return None
+
+    months, bmt, bmb = [], {}, {}
+    for key in sorted(seen):
+        m = f"2025-{key}"
+        try:
+            t = pd.ExcelFile(seen[key]).parse("TOTAL", header=None)
+        except Exception:
+            continue
+        tot = bad = good = None
+        per = {b: {"total": 0, "칭찬": 0, "불만": 0} for b in WB_BRANDS}
+        for i in range(len(t)):
+            c1 = str(t.iat[i, 1]).strip() if t.shape[1] > 1 else ""
+            c2 = str(t.iat[i, 2]).strip() if t.shape[1] > 2 else ""
+            rtot = num(t.iat[i, 3]) if t.shape[1] > 3 else None
+            rbad = num(t.iat[i, 4]) if t.shape[1] > 4 else None
+            rgood = num(t.iat[i, 5]) if t.shape[1] > 5 else None
+            if "전매장" in c1 and "합계" in c1:
+                tot, bad, good = rtot, rbad, rgood
+                break
+            if rtot is not None and c2 and "소계" not in c2 and "합계" not in c2 and "구분" not in c1:
+                b = _wb_brand(c2)
+                per[b]["total"] += rtot or 0
+                per[b]["불만"] += rbad or 0
+                per[b]["칭찬"] += rgood or 0
+        if not tot:
+            continue
+        months.append(m)
+        neu = max(0, tot - (bad or 0) - (good or 0))
+        bmt[m] = {"total": tot, "칭찬": good or 0, "불만": bad or 0, "중립": neu,
+                  "불만율": pct(bad or 0, tot), "칭찬율": pct(good or 0, tot)}
+        bmb[m] = {}
+        for b in WB_BRANDS:
+            o = per[b]
+            ot = o["total"]
+            bmb[m][b] = {"total": ot, "칭찬": o["칭찬"], "불만": o["불만"],
+                         "중립": max(0, ot - o["칭찬"] - o["불만"]),
+                         "불만율": pct(o["불만"], ot), "칭찬율": pct(o["칭찬"], ot)}
+    return months, bmt, bmb
+
+
 def build_reviews():
     files = [f for f in sorted(glob.glob(os.path.join(REVIEW_DIR, "*.csv")))
              if not os.path.basename(f).startswith("_")]
@@ -265,12 +345,13 @@ def build_reviews():
     for r in rows:
         if r["sentiment"] == "불만" and not has_content(r.get("text")):
             r["sentiment"] = "중립"
-    # 월별 건수가 충분한 달만 사용 (파일 경계의 부분 월 잡음 제거: 중앙값의 25% 미만 월 제외)
-    # 기간 제한 없음(무제한): 임계값 통과 월은 모두 포함 — 예전엔 마지막 6개월만 잘라 1월이 누락됐음
+    # raw 리뷰 파이프라인은 2026-01~ 만 담당(월별 CSV 존재). 2025년은 raw 리뷰가 없고
+    # 팀 월간 분석 워크북(온라인 리뷰_25.MM월.xlsx)만 있어 build_2025()가 집계로 별도 주입한다.
+    # (여기서 2025를 포함하면 캐치테이블 과거분·네이버 방문일자 잔여만 잡혀 실제보다 훨씬 적게 나옴.)
+    START_MONTH = "2026-01"
+    FLOOR = 15
     mcount = collections.Counter(r["month"] for r in rows)
-    med = statistics.median(mcount.values()) if mcount else 0
-    thr = max(50, med * 0.25)
-    months = [m for m in sorted(mcount) if mcount[m] >= thr]
+    months = [m for m in sorted(mcount) if m >= START_MONTH and mcount[m] >= FLOOR]
     rowset = [r for r in rows if r["month"] in months]
     cur = months[-1]
     prev = months[-2] if len(months) > 1 else None
@@ -357,6 +438,23 @@ def build_reviews():
         "source_file": ", ".join(used),
         "n_reviews": len(rowset),
     }
+
+    # 2025년 팀 월간 분석 워크북(집계) 주입 — 추이/브랜드 차트를 2025-01 까지 확장.
+    # 매장 단위·원문·출처는 워크북에 없어 by_month_total/by_month_brand 만 채운다(프런트는 그 외 월별 구조를 ||{} 로 방어).
+    try:
+        m25, bmt25, bmb25 = build_2025()
+    except Exception as e:
+        m25, bmt25, bmb25 = [], {}, {}
+        print(f"[!] 2025 워크북 집계 실패({type(e).__name__}: {e}) — 2025 없이 진행")
+    if m25:
+        add_months = [m for m in m25 if m not in data["months"]]
+        data["months"] = sorted(add_months + data["months"])
+        data["by_month_total"].update(bmt25)
+        data["by_month_brand"].update(bmb25)
+        n25 = sum(bmt25[m]["total"] for m in bmt25)
+        data["n_reviews"] += n25
+        data["_n2025"] = n25
+        data["_months2025"] = add_months
 
     # Claude용 추출본 (TOP3 매장 불만 텍스트 + 토픽 샘플)
     def sample_complaints(store, n=25):
