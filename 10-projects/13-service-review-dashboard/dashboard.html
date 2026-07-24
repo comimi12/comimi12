@@ -870,7 +870,18 @@ function renderStore(q){
     return `<tr><td class="d">${m}</td><td>${o.total}</td><td style="color:var(--good)">${o['칭찬']}</td><td>${neu}</td><td style="color:var(--bad)"><b>${o['불만']}</b></td><td><b>${rate}%</b></td></tr>`;
   }).join('');
   const comps=R.complaints.filter(c=>c.store===store);
-  const compHtml=comps.map(c=>`<div class="voc"><div class="vtop"><span class="pill bad">불만</span><span class="pill gray">${c.month}</span> <span>${c.date}</span></div><div class="ct">${c.text.replace(/</g,'&lt;')}</div></div>`).join('')||'<p style="color:var(--muted);font-size:13px">이 매장의 불만 리뷰가 없습니다 (AI 분류 기준).</p>';
+  const compHtml=comps.map(c=>{
+    const hasD=c.detail&&String(c.detail).trim();
+    const ty=c.type?`<span class="pill gray">${(c.type||'').replace(/</g,'&lt;')}</span>`:'';
+    const src=c.src2025?`<span class="pill" style="background:#eef1fb;color:#3a63b0">2025 집계</span>`:'';
+    const txt=(c.text||'').replace(/</g,'&lt;').replace(/\n/g,'<br>');
+    return `<div class="voc"><div class="vtop"><span class="pill bad">불만</span><span class="pill gray">${c.month}</span> <span>${c.date}</span>${ty}${src}</div>`
+      +`<div class="ct">${txt}`
+      +(hasD?` <button type="button" class="inc-more" onclick="incToggle(this)">상세 보기 ▾</button>`:'')
+      +`</div>`
+      +(hasD?`<div class="inc-detail" style="display:none">💬 고객 리뷰 원문<div class="txt">${String(c.detail).replace(/</g,'&lt;').replace(/\n/g,'<br>')}</div></div>`:'')
+      +`</div>`;
+  }).join('')||'<p style="color:var(--muted);font-size:13px">이 매장의 불만 리뷰가 없습니다 (AI 분류 기준).</p>';
   box.innerHTML=`<div class="panel" style="margin-bottom:14px">
       <h3>${store} <span class="pill brand">${R.store_brand[store]}</span></h3>
       <div style="font-size:13px;color:var(--muted);margin-bottom:10px">표시 기간 ${ms[0]||'–'} ~ ${ms[ms.length-1]||'–'} · 총 ${fmt(tot)}건 · 칭찬 ${fmt(good)} · 불만 ${fmt(bad)} · 불만율 ${tot?Math.round(bad/tot*1000)/10:0}%</div>
@@ -1624,11 +1635,17 @@ const INC = window.INCENTIVE_DATA || null;
 const INC_TYPE_COL = {'위생·안전':'#d64545','품질':'#dd9b1f','서비스':'#14559b','운영':'#2f9e6f'};
 function incLabel(qkey){ const p=(qkey||'').split('-'); return `${p[0]}년 ${p[1]}분기`; }
 function incToggle(btn){
-  const row=btn.closest('.rep-row'); const det=row&&row.nextElementSibling;
-  if(!det||!det.classList.contains('inc-detail')) return;
-  const open=det.style.display==='none';
-  det.style.display=open?'block':'none';
-  btn.textContent=open?'상세 접기 ▴':'상세 보기 ▾';
+  // 인센티브 뷰(.rep-row)·매장 드릴다운(.ct/.voc) 공통: 가장 가까운 컨테이너 다음의 .inc-detail 토글
+  const ct = btn.closest('.ct') || btn.closest('.rep-row');
+  let det = ct && ct.nextElementSibling;
+  if(!det || !det.classList.contains('inc-detail')){
+    const card = btn.closest('.voc') || (ct && ct.parentElement);
+    det = card ? card.querySelector('.inc-detail') : null;
+  }
+  if(!det || !det.classList.contains('inc-detail')) return;
+  const open = det.style.display==='none' || !det.style.display;
+  det.style.display = open?'block':'none';
+  btn.textContent = open?'상세 접기 ▴':'상세 보기 ▾';
 }
 function renderIncentive(qkey){
   const box=document.getElementById('vinc-body'); if(!box) return;

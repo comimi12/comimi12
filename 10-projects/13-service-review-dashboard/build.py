@@ -231,63 +231,48 @@ def _wb_brand(sub):
 
 
 def build_2025():
-    """온라인 리뷰_25.MM월.xlsx (팀 월간 분석 워크북)들의 TOTAL 시트를 브랜드로 집계.
-    반환: (months, by_month_total, by_month_brand). 파일 없으면 ([], {}, {})."""
-    import pandas as pd
-    files = sorted(glob.glob(os.path.join(REVIEW_DIR, "온라인*리뷰_25.*.xlsx")))
-    seen = {}
-    for f in files:
-        mm = re.search(r"25\.(\d{2})월", os.path.basename(f))
-        if not mm:
-            continue
-        key = mm.group(1)
-        # 같은 달 중복(예: 10월 _차재환)은 접미어 없는 원본 우선
-        if key not in seen or "차재환" not in os.path.basename(f):
-            seen[key] = f
-
-    def num(x):
+    """`_2025_cache.json`(extract_2025.py 가 Excel COM 으로 DRM 복호화 후 덤프한 캐시)를 읽어
+    (months, by_month_total, by_month_brand, complaints) 반환. 캐시 없으면 ([],{},{},[]).
+    워크북이 Fasoo DRM 으로 수시 재암호화돼 자동실행 때 못 읽으므로, 대화형에서 extract_2025.py 로 캐시 생성."""
+    cache_path = os.path.join(REVIEW_DIR, "_2025_cache.json")
+    if not os.path.exists(cache_path):
+        print("[!] _2025_cache.json 없음 → 2025 미포함. 대화형에서 `python extract_2025.py` 실행 필요.")
+        return [], {}, {}, []
+    with open(cache_path, encoding="utf-8") as f:
+        cache = json.load(f)
+    sm_path = os.path.join(REVIEW_DIR, "_2025_summaries.json")
+    summaries = {}
+    if os.path.exists(sm_path):
         try:
-            return int(float(x))
-        except (ValueError, TypeError):
-            return None
+            with open(sm_path, encoding="utf-8") as f:
+                summaries = json.load(f)
+        except Exception:
+            summaries = {}
 
     months, bmt, bmb = [], {}, {}
-    for key in sorted(seen):
-        m = f"2025-{key}"
-        try:
-            t = pd.ExcelFile(seen[key]).parse("TOTAL", header=None)
-        except Exception:
-            continue
-        tot = bad = good = None
-        per = {b: {"total": 0, "칭찬": 0, "불만": 0} for b in WB_BRANDS}
-        for i in range(len(t)):
-            c1 = str(t.iat[i, 1]).strip() if t.shape[1] > 1 else ""
-            c2 = str(t.iat[i, 2]).strip() if t.shape[1] > 2 else ""
-            rtot = num(t.iat[i, 3]) if t.shape[1] > 3 else None
-            rbad = num(t.iat[i, 4]) if t.shape[1] > 4 else None
-            rgood = num(t.iat[i, 5]) if t.shape[1] > 5 else None
-            if "전매장" in c1 and "합계" in c1:
-                tot, bad, good = rtot, rbad, rgood
-                break
-            if rtot is not None and c2 and "소계" not in c2 and "합계" not in c2 and "구분" not in c1:
-                b = _wb_brand(c2)
-                per[b]["total"] += rtot or 0
-                per[b]["불만"] += rbad or 0
-                per[b]["칭찬"] += rgood or 0
-        if not tot:
-            continue
+    for m in sorted(cache.get("months", {})):
+        mm = cache["months"][m]
+        tot, bad, good = mm["total"], mm["bad"], mm["good"]
         months.append(m)
-        neu = max(0, tot - (bad or 0) - (good or 0))
-        bmt[m] = {"total": tot, "칭찬": good or 0, "불만": bad or 0, "중립": neu,
-                  "불만율": pct(bad or 0, tot), "칭찬율": pct(good or 0, tot)}
+        bmt[m] = {"total": tot, "칭찬": good, "불만": bad, "중립": max(0, tot - bad - good),
+                  "불만율": pct(bad, tot), "칭찬율": pct(good, tot)}
         bmb[m] = {}
         for b in WB_BRANDS:
-            o = per[b]
+            o = mm.get("brand", {}).get(b, {"total": 0, "칭찬": 0, "불만": 0})
             ot = o["total"]
             bmb[m][b] = {"total": ot, "칭찬": o["칭찬"], "불만": o["불만"],
                          "중립": max(0, ot - o["칭찬"] - o["불만"]),
                          "불만율": pct(o["불만"], ot), "칭찬율": pct(o["칭찬"], ot)}
-    return months, bmt, bmb
+
+    complaints = []
+    for i, c in enumerate(cache.get("complaints", [])):
+        summ = (summaries.get(str(i)) or c.get("team_summary") or "").strip()
+        complaints.append({
+            "brand": c["brand"], "store_short": c["store_short"],
+            "month": c["month"], "date": c["date"], "type": c.get("type", ""),
+            "summary": summ, "detail": (c.get("opinion") or "").strip(),
+        })
+    return months, bmt, bmb, complaints
 
 
 def build_reviews():
@@ -442,10 +427,10 @@ def build_reviews():
     # 2025년 팀 월간 분석 워크북(집계) 주입 — 추이/브랜드 차트를 2025-01 까지 확장.
     # 매장 단위·원문·출처는 워크북에 없어 by_month_total/by_month_brand 만 채운다(프런트는 그 외 월별 구조를 ||{} 로 방어).
     try:
-        m25, bmt25, bmb25 = build_2025()
+        m25, bmt25, bmb25, cmp25 = build_2025()
     except Exception as e:
-        m25, bmt25, bmb25 = [], {}, {}
-        print(f"[!] 2025 워크북 집계 실패({type(e).__name__}: {e}) — 2025 없이 진행")
+        m25, bmt25, bmb25, cmp25 = [], {}, {}, []
+        print(f"[!] 2025 집계 실패({type(e).__name__}: {e}) — 2025 없이 진행")
     if m25:
         add_months = [m for m in m25 if m not in data["months"]]
         data["months"] = sorted(add_months + data["months"])
@@ -455,6 +440,25 @@ def build_reviews():
         data["n_reviews"] += n25
         data["_n2025"] = n25
         data["_months2025"] = add_months
+        # 2025 불만 상세를 complaints 에 주입 — 매장명을 2026 매장키에 정합(표기 흔들림 흡수).
+        def _nk(s):
+            return re.sub(r"[\s점·]", "", s or "")
+        idx = {_nk(st): st for st in store_brand}
+        for c in cmp25:
+            cand = f"{c['brand']}·{c['store_short']}"
+            store = idx.get(_nk(cand), cand)
+            if store not in store_brand:
+                store_brand[store] = c["brand"]        # 2025 전용 매장(2026 미존재)도 검색 가능하게 등록
+                idx[_nk(cand)] = store
+            data["complaints"].append({
+                "store": store, "brand": c["brand"], "month": c["month"],
+                "date": c["date"], "text": c["summary"] or "(요약 없음)",
+                "detail": c["detail"], "type": c["type"], "src2025": True,
+            })
+        data["complaints"].sort(key=lambda x: x["date"], reverse=True)
+        data["store_brand"] = store_brand
+        data["stores"] = sorted(store_brand.keys())
+        data["_n2025_complaints"] = len(cmp25)
 
     # Claude용 추출본 (TOP3 매장 불만 텍스트 + 토픽 샘플)
     def sample_complaints(store, n=25):
