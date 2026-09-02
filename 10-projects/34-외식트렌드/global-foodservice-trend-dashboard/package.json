@@ -14,7 +14,9 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
     "collect": "tsx scripts/collect.ts",
-    "collect:dry": "tsx scripts/collect.ts --dry-run"
+    "collect:dry": "tsx scripts/collect.ts --dry-run",
+    "sync": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/sync.ps1",
+    "deploy": "vercel deploy --prod --yes"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.123.0",
