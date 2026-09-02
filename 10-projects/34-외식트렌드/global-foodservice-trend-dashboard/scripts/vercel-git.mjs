@@ -111,15 +111,23 @@ async function connect() {
   })
 
   if (!link.ok) {
-    const msg = link.json?.error?.message ?? JSON.stringify(link.json)
-    console.error(`저장소 연결 실패 (${link.status}): ${msg}`)
-    if (/install the GitHub integration/i.test(msg)) {
-      console.error('\n→ https://github.com/apps/vercel 에서 Vercel GitHub App 을 먼저 설치하세요.')
-      console.error(`   설치 시 Repository access 에 ${REPO} 를 포함해야 합니다.`)
+    // Vercel 대시보드에서 이미 연결한 경우에는 실패가 아니다.
+    // 실제 연결 상태를 확인하고, 연결돼 있으면 설정 단계로 계속 진행한다.
+    const existing = describeLink(await getProject(token, ref))
+    if (existing && existing.repo?.toLowerCase() === REPO.toLowerCase()) {
+      console.log(`저장소 이미 연결됨: ${existing.repo}`)
+    } else {
+      const msg = link.json?.error?.message ?? JSON.stringify(link.json)
+      console.error(`저장소 연결 실패 (${link.status}): ${msg}`)
+      if (/install the GitHub integration/i.test(msg)) {
+        console.error('\n→ https://github.com/apps/vercel 에서 Vercel GitHub App 을 먼저 설치하세요.')
+        console.error(`   설치 시 Repository access 에 ${REPO} 를 포함해야 합니다.`)
+      }
+      return 1
     }
-    return 1
+  } else {
+    console.log(`저장소 연결 완료: ${REPO}`)
   }
-  console.log(`저장소 연결 완료: ${REPO}`)
 
   // 2) Root Directory + 빌드 스킵 조건
   const patch = await api(`/v9/projects/${ref.projectId}`, {
