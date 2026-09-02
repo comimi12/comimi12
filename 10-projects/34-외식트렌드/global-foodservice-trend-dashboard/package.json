@@ -16,7 +16,9 @@
     "collect": "tsx scripts/collect.ts",
     "collect:dry": "tsx scripts/collect.ts --dry-run",
     "sync": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/sync.ps1",
-    "deploy": "vercel deploy --prod --yes"
+    "deploy": "vercel deploy --prod --yes",
+    "connect:git": "node scripts/vercel-git.mjs connect",
+    "git:status": "node scripts/vercel-git.mjs status"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.123.0",

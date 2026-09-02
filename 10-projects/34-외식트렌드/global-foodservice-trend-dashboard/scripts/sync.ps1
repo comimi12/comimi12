@@ -1,4 +1,4 @@
-# 34-외식트렌드 대시보드 — 커밋 → 푸시 → Vercel 배포를 한 번에 실행한다.
+﻿# 34-외식트렌드 대시보드 — 커밋 → 푸시 → Vercel 배포를 한 번에 실행한다.
 #
 #   npm run sync                      # 기본 메시지로
 #   npm run sync -- "메시지"          # 커밋 메시지 지정
@@ -73,8 +73,25 @@ if ($NoDeploy) {
 
 Push-Location $AppDir
 try {
-  npx vercel deploy --prod --yes
-  Write-Host "배포 완료: https://global-foodservice-trend-dashboard.vercel.app" -ForegroundColor Green
+  # Vercel↔GitHub 연동이 켜져 있으면 푸시만으로 배포된다.
+  # 그 상태에서 CLI 배포를 또 하면 Root Directory 설정과 어긋나므로 건너뛴다.
+  $gitLinked = $false
+  try {
+    $statusOut = node scripts/vercel-git.mjs status 2>&1 | Out-String
+    $gitLinked = $statusOut -match '연결됨'
+  }
+  catch {
+    Write-Host "연동 상태 확인 실패 — CLI 배포로 진행합니다" -ForegroundColor Yellow
+  }
+
+  if ($gitLinked) {
+    Write-Host "Vercel↔GitHub 연동됨 — 푸시로 자동 배포됩니다 (CLI 배포 생략)" -ForegroundColor Green
+    Write-Host "https://global-foodservice-trend-dashboard.vercel.app"
+  }
+  else {
+    npx vercel deploy --prod --yes
+    Write-Host "배포 완료: https://global-foodservice-trend-dashboard.vercel.app" -ForegroundColor Green
+  }
 }
 finally {
   Pop-Location
