@@ -173,6 +173,7 @@ export interface DailyBrief {
 export interface Kpi {
   key: string
   label: string
+  labelKo: string
   value: number
   unit: string
   delta: number | null

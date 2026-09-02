@@ -30,13 +30,13 @@ export function CardHeader({
   return (
     <header
       className={cn(
-        'flex items-start justify-between gap-3 border-b border-line px-4 py-2.5',
+        'flex items-start justify-between gap-3 border-b border-line px-4 py-3',
         className,
       )}
     >
       <div className="min-w-0">
-        <h2 className="text-[13px] font-semibold tracking-tight text-navy-800">{title}</h2>
-        {subtitle ? <p className="mt-0.5 text-[11px] text-muted">{subtitle}</p> : null}
+        <h2 className="text-[14px] font-semibold tracking-tight text-navy-900">{title}</h2>
+        {subtitle ? <p className="mt-1 text-[11.5px] leading-snug text-muted">{subtitle}</p> : null}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}
     </header>
@@ -109,7 +109,13 @@ export function TableWrap({ className, ...props }: React.ComponentProps<'div'>) 
 export function Table({ className, ...props }: React.ComponentProps<'table'>) {
   return (
     <table
-      className={cn('w-full border-collapse text-[12px] tabular', className)}
+      className={cn(
+        'w-full border-collapse text-[12.5px] tabular',
+        // 행을 눈으로 따라가기 쉽도록 짝수행 음영 + hover 강조
+        '[&_tbody_tr:nth-child(even)]:bg-canvas/60',
+        '[&_tbody_tr:hover]:bg-blue-soft/50',
+        className,
+      )}
       {...props}
     />
   )
@@ -119,7 +125,7 @@ export function Th({ className, ...props }: React.ComponentProps<'th'>) {
   return (
     <th
       className={cn(
-        'border-b border-line bg-canvas px-2.5 py-1.5 text-left text-[10.5px] font-semibold uppercase tracking-wide text-muted',
+        'border-b-2 border-line bg-white px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-navy-700',
         className,
       )}
       {...props}
@@ -130,7 +136,10 @@ export function Th({ className, ...props }: React.ComponentProps<'th'>) {
 export function Td({ className, ...props }: React.ComponentProps<'td'>) {
   return (
     <td
-      className={cn('border-b border-line px-2.5 py-1.5 align-top text-ink', className)}
+      className={cn(
+        'border-b border-line px-3 py-2.5 align-top leading-relaxed text-ink',
+        className,
+      )}
       {...props}
     />
   )
@@ -166,6 +175,35 @@ export function Select({ className, ...props }: React.ComponentProps<'select'>) 
 }
 
 /* ------------------------------------------------------------------ */
+/* Section title — 대시보드 읽는 순서 안내                              */
+/* ------------------------------------------------------------------ */
+
+export function SectionTitle({
+  step,
+  title,
+  ko,
+  action,
+}: {
+  step: string
+  title: string
+  ko: string
+  action?: React.ReactNode
+}) {
+  return (
+    <div className="flex items-end justify-between gap-3 pb-1 pt-1">
+      <div className="flex items-baseline gap-2">
+        <span className="text-[11px] font-bold tracking-widest text-blue-accent tabular">
+          {step}
+        </span>
+        <h2 className="text-[15px] font-bold tracking-tight text-navy-900">{title}</h2>
+        <span className="text-[12px] text-muted">{ko}</span>
+      </div>
+      {action ? <div className="shrink-0">{action}</div> : null}
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
 /* Misc                                                                */
 /* ------------------------------------------------------------------ */
 
@@ -180,14 +218,14 @@ export function Metric({
 }) {
   return (
     <div className={cn('flex items-baseline gap-1', className)}>
-      <span className="text-[26px] font-semibold leading-none tracking-tight text-navy-900 tabular">
+      <span className="text-[30px] font-bold leading-none tracking-tight text-navy-900 tabular">
         {value}
       </span>
-      {unit ? <span className="text-[11px] text-muted">{unit}</span> : null}
+      {unit ? <span className="text-[12px] text-muted">{unit}</span> : null}
     </div>
   )
 }
 
 export function Empty({ children = '표시할 데이터가 없습니다.' }: { children?: React.ReactNode }) {
-  return <p className="px-4 py-6 text-center text-[12px] text-muted">{children}</p>
+  return <p className="px-4 py-8 text-center text-[12.5px] text-muted">{children}</p>
 }

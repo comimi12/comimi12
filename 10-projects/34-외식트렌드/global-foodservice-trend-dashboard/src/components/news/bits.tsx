@@ -49,12 +49,14 @@ export function Headline({
     <Link
       href={`/article/${article.id}`}
       className={cn(
-        'group block min-w-0 text-[12px] font-medium leading-snug text-navy-800 hover:text-blue-accent',
+        'group block min-w-0 hover:text-blue-accent',
         className,
       )}
     >
-      <span className="line-clamp-2">{article.titleKo}</span>
-      <span className="mt-0.5 line-clamp-1 text-[10.5px] font-normal text-muted">
+      <span className="line-clamp-2 text-[13px] font-semibold leading-snug text-navy-900 group-hover:text-blue-accent">
+        {article.titleKo}
+      </span>
+      <span className="mt-1 line-clamp-1 text-[11px] font-normal leading-tight text-muted">
         {article.title}
       </span>
     </Link>

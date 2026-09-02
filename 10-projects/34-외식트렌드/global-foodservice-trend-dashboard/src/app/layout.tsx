@@ -23,7 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Sidebar />
           <div className="flex min-w-0 flex-1 flex-col">
             <Suspense
-              fallback={<div className="h-12 shrink-0 border-b border-line bg-white" />}
+              fallback={<div className="h-14 shrink-0 border-b border-line bg-white" />}
             >
               <Topbar lastUpdated={lastUpdated} demo={demo} />
             </Suspense>

@@ -138,6 +138,7 @@ export function computeKpis(articles: NewsArticle[], reference: Date = now()): K
     {
       key: 'today',
       label: 'Today Articles',
+      labelKo: '오늘 수집 기사',
       value: today.length,
       unit: '건',
       delta: delta(today.length, yesterday.length),
@@ -147,6 +148,7 @@ export function computeKpis(articles: NewsArticle[], reference: Date = now()): K
     {
       key: 'high',
       label: 'High Priority Trends',
+      labelKo: '중요 뉴스',
       value: countIn(today, highPriority),
       unit: '건',
       delta: delta(countIn(today, highPriority), countIn(yesterday, highPriority)),
@@ -156,6 +158,7 @@ export function computeKpis(articles: NewsArticle[], reference: Date = now()): K
     {
       key: 'concepts',
       label: 'New Brands / Concepts',
+      labelKo: '신규 브랜드 · 콘셉트',
       value: countIn(today, newConcept),
       unit: '건',
       delta: delta(countIn(today, newConcept), countIn(yesterday, newConcept)),
@@ -165,6 +168,7 @@ export function computeKpis(articles: NewsArticle[], reference: Date = now()): K
     {
       key: 'menu',
       label: 'Menu Trends',
+      labelKo: '메뉴 트렌드',
       value: countIn(today, menu),
       unit: '건',
       delta: delta(countIn(today, menu), countIn(yesterday, menu)),
@@ -174,6 +178,7 @@ export function computeKpis(articles: NewsArticle[], reference: Date = now()): K
     {
       key: 'tech',
       label: 'Restaurant Tech',
+      labelKo: '레스토랑 테크',
       value: countIn(today, tech),
       unit: '건',
       delta: delta(countIn(today, tech), countIn(yesterday, tech)),
@@ -183,6 +188,7 @@ export function computeKpis(articles: NewsArticle[], reference: Date = now()): K
     {
       key: 'expansion',
       label: 'Expansion / M&A',
+      labelKo: '출점 · M&A',
       value: countIn(today, expansion),
       unit: '건',
       delta: delta(countIn(today, expansion), countIn(yesterday, expansion)),

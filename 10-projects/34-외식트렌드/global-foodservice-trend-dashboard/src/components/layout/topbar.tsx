@@ -25,12 +25,12 @@ export function Topbar({ lastUpdated, demo }: { lastUpdated: string; demo: boole
   }
 
   return (
-    <header className="no-print flex h-12 shrink-0 items-center justify-between gap-4 border-b border-line bg-white px-5">
+    <header className="no-print flex h-14 shrink-0 items-center justify-between gap-4 border-b border-line bg-white px-5">
       <div className="min-w-0">
-        <h1 className="truncate text-[14px] font-bold tracking-tight text-navy-900">
+        <h1 className="truncate text-[15px] font-bold tracking-tight text-navy-900">
           GLOBAL FOODSERVICE TREND INTELLIGENCE
         </h1>
-        <p className="truncate text-[10.5px] text-muted">
+        <p className="truncate text-[11.5px] text-muted">
           Daily Global Restaurant &amp; Foodservice Intelligence
         </p>
       </div>
