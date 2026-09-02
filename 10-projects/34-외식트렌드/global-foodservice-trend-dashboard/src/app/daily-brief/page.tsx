@@ -62,7 +62,7 @@ function BriefSection({
                     <ul className="mt-1 space-y-0.5">
                       {a.koreanSummary.filter(Boolean).map((line, li) => (
                         <li key={li} className="text-[12.5px] leading-relaxed text-ink">
-                          · {line}
+                          · <span data-tr>{line}</span>
                         </li>
                       ))}
                     </ul>
@@ -125,7 +125,7 @@ export default async function DailyBriefPage() {
               brief.keyMessage.map((m, i) => (
                 <li key={i} className="flex gap-2 text-[12.5px] leading-relaxed text-ink">
                   <span className="font-semibold text-blue-accent tabular">{i + 1}.</span>
-                  <span>{m}</span>
+                  <span data-tr>{m}</span>
                 </li>
               ))
             )}
@@ -171,7 +171,9 @@ export default async function DailyBriefPage() {
                     <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm bg-navy-800 text-[11px] font-bold text-white">
                       {i + 1}
                     </span>
-                    <span className="text-[12px] leading-relaxed text-ink">{t}</span>
+                    <span data-tr className="text-[12px] leading-relaxed text-ink">
+                      {t}
+                    </span>
                   </li>
                 ))
               )}

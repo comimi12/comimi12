@@ -53,12 +53,19 @@ export function Headline({
         className,
       )}
     >
-      <span className="line-clamp-2 text-[13px] font-semibold leading-snug text-navy-900 group-hover:text-blue-accent">
+      {/* data-tr: 페이지 전체 번역 버튼이 이 요소의 텍스트를 교체한다 */}
+      <span
+        data-tr
+        className="line-clamp-2 text-[13px] font-semibold leading-snug text-navy-900 group-hover:text-blue-accent"
+      >
         {article.titleKo}
       </span>
-      <span className="mt-1 line-clamp-1 text-[11px] font-normal leading-tight text-muted">
-        {article.title}
-      </span>
+      {/* 번역 미적용 기사는 한글 제목이 원문과 같다. 같은 문장을 두 번 보이지 않는다. */}
+      {article.titleKo !== article.title ? (
+        <span className="mt-1 line-clamp-1 text-[11px] font-normal leading-tight text-muted">
+          {article.title}
+        </span>
+      ) : null}
     </Link>
   )
 }

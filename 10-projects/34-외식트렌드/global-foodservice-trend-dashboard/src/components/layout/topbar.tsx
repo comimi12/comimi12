@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Search } from 'lucide-react'
 import { Input, Select } from '@/components/ui/primitives'
 import { REGION_ORDER } from '@/lib/categories'
+import { PageTranslateButton } from './page-translate'
 
 /** §9 Header — Last Updated · Search · Date Range · Region Filter */
 export function Topbar({ lastUpdated, demo }: { lastUpdated: string; demo: boolean }) {
@@ -36,6 +37,7 @@ export function Topbar({ lastUpdated, demo }: { lastUpdated: string; demo: boole
       </div>
 
       <div className="flex shrink-0 items-center gap-2">
+        <PageTranslateButton />
         {demo ? (
           <span className="rounded-sm border border-blue-accent/40 bg-blue-soft px-1.5 py-px text-[10px] font-semibold tracking-wide text-navy-800">
             DEMO DATA
