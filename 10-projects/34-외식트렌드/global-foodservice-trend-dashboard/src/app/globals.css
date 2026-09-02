@@ -1,0 +1,69 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap");
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+@import "tailwindcss";
+
+/* ============================================================
+   GLOBAL FOODSERVICE TREND INTELLIGENCE — Executive theme
+   White background · Navy + Blue accent · minimal color
+   ============================================================ */
+
+@theme {
+  --color-navy-900: #0b2340;
+  --color-navy-800: #0f2f54;
+  --color-navy-700: #1f3864;
+  --color-navy-600: #2c4a7c;
+  --color-blue-accent: #0b63ce;
+  --color-blue-soft: #e8f0fb;
+  --color-line: #e3e8ef;
+  --color-ink: #16202c;
+  --color-muted: #5b6b7f;
+  --color-canvas: #f6f8fb;
+
+  --font-sans: "Inter", "Pretendard", "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "SFMono-Regular", ui-monospace, Menlo, Consolas, monospace;
+}
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  background: #ffffff;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Consulting-grade table defaults */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+  border: 3px solid #fff;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Print / PDF export of the Daily Brief */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  .print-full {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+  body {
+    font-size: 11pt;
+  }
+}

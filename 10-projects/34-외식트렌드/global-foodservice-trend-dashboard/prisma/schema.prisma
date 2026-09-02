@@ -1,0 +1,332 @@
+// GLOBAL FOODSERVICE TREND INTELLIGENCE — database schema
+// §23 PostgreSQL + Prisma / §27 최소 3년 보존 + YoY·Monthly 분석 가능 구조
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Region {
+  GLOBAL
+  ASIA
+  EUROPE
+  AMERICAS
+}
+
+enum TrendCategory {
+  MENU_FOOD
+  BEVERAGE
+  CONSUMER
+  PRICE_COST
+  RESTAURANT_TECH
+  OPERATIONS
+  SERVICE
+  FRANCHISE
+  EXPANSION
+  M_AND_A
+  DESIGN_CONCEPT
+  SUSTAINABILITY
+  LABOR
+  DELIVERY
+  MARKETING
+  DATA_INSIGHT
+}
+
+enum Sentiment {
+  POSITIVE
+  NEUTRAL
+  NEGATIVE
+}
+
+enum RecommendedAction {
+  IMMEDIATE_REVIEW
+  BENCHMARK
+  MID_LONG_TERM
+  REFERENCE
+}
+
+enum TechCategory {
+  AI_ORDERING
+  AI_FORECASTING
+  ROBOTICS
+  POS
+  CRM
+  LOYALTY
+  RESERVATION
+  DELIVERY
+  KITCHEN_AUTOMATION
+  INVENTORY
+  WORKFORCE
+}
+
+enum MenuType {
+  FOOD
+  BEVERAGE
+  DESSERT
+  ALCOHOL
+  INGREDIENT
+  COOKING_METHOD
+  CUISINE
+}
+
+enum ExpansionType {
+  NEW_MARKET_ENTRY
+  STORE_OPENING
+  MASTER_FRANCHISE
+  ACQUISITION
+  REFRANCHISING
+  FORMAT_LAUNCH
+}
+
+enum Ownership {
+  FRANCHISE
+  DIRECT
+  JV
+}
+
+enum RunStatus {
+  SUCCESS
+  PARTIAL
+  FAILED
+}
+
+/// §29 Source 관리 페이지
+model Source {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  name            String
+  region          Region
+  country         String
+  url             String
+  rssUrl          String?
+  reliabilityTier Int      @default(3)
+  active          Boolean  @default(true)
+  lastCrawledAt   DateTime?
+  lastSuccessAt   DateTime?
+  articleCount    Int      @default(0)
+  note            String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  articles    Article[]
+  crawlEvents CrawlEvent[]
+
+  @@index([region, active])
+}
+
+/// §3 NewsArticle
+model Article {
+  id                  String            @id @default(cuid())
+  /// 원문 URL 해시 — 재수집 시 upsert 키
+  urlHash             String            @unique
+  title               String
+  titleKo             String
+  articleUrl          String
+  publishedAt         DateTime
+  collectedAt         DateTime          @default(now())
+  region              Region
+  country             String?
+  category            TrendCategory
+  secondaryCategories TrendCategory[]
+  originalSummary     String
+  /// 3줄 요약
+  koreanSummary       String[]
+  trend               String
+  whyItMatters        String
+  koreaImplication    String
+  recommendedAction   RecommendedAction
+  sentiment           Sentiment         @default(NEUTRAL)
+
+  businessImpactScore Int
+  noveltyScore        Int
+  marketScaleScore    Int
+  reliabilityScore    Int
+  koreaRelevanceScore Int
+  trendScore          Int
+  totalScore          Int
+
+  isDuplicate      Boolean @default(false)
+  duplicateGroupId String?
+  imageUrl         String?
+
+  sourceId String
+  source   Source @relation(fields: [sourceId], references: [id])
+
+  brands    ArticleBrand[]
+  keywords  ArticleKeyword[]
+  expansion ExpansionRecord?
+  tech      TechRecord?
+  menu      MenuRecord?
+
+  /// §27 YoY / Monthly 집계용 비정규화 컬럼
+  publishedDate  DateTime @db.Date
+  publishedMonth String
+  publishedYear  Int
+
+  @@index([publishedAt])
+  @@index([region, publishedAt])
+  @@index([category, publishedAt])
+  @@index([totalScore])
+  @@index([duplicateGroupId])
+  @@index([publishedMonth])
+  @@index([publishedYear])
+}
+
+model Brand {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  normalized  String  @unique
+  hqCountry   String?
+  parentGroup String?
+  watchlist   Boolean @default(false)
+
+  articles ArticleBrand[]
+
+  @@index([watchlist])
+}
+
+model ArticleBrand {
+  articleId String
+  brandId   String
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  brand     Brand   @relation(fields: [brandId], references: [id], onDelete: Cascade)
+
+  @@id([articleId, brandId])
+  @@index([brandId])
+}
+
+model Keyword {
+  id         String  @id @default(cuid())
+  term       String  @unique
+  normalized String  @unique
+  labelKo    String?
+  isRadar    Boolean @default(false)
+
+  articles ArticleKeyword[]
+  stats    KeywordDailyStat[]
+
+  @@index([isRadar])
+}
+
+model ArticleKeyword {
+  articleId String
+  keywordId String
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  keyword   Keyword @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+
+  @@id([articleId, keywordId])
+  @@index([keywordId])
+}
+
+/// §13 Trend Radar 사전 집계 (30일/7일 성장률 즉시 조회)
+model KeywordDailyStat {
+  id        String   @id @default(cuid())
+  keywordId String
+  date      DateTime @db.Date
+  region    Region
+  mentions  Int      @default(0)
+
+  keyword Keyword @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+
+  @@unique([keywordId, date, region])
+  @@index([date])
+}
+
+/// §17 Expansion & Franchise
+model ExpansionRecord {
+  id               String        @id @default(cuid())
+  articleId        String        @unique
+  brand            String
+  hqCountry        String
+  expansionCountry String
+  city             String
+  storeCount       Int?
+  expansionType    ExpansionType
+  ownership        Ownership
+  announcementDate DateTime      @db.Date
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@index([expansionCountry])
+  @@index([brand])
+}
+
+/// §16 Restaurant Tech
+model TechRecord {
+  id             String       @id @default(cuid())
+  articleId      String       @unique
+  techCategory   TechCategory
+  vendor         String
+  adopterBrand   String
+  purpose        String
+  expectedEffect String
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@index([techCategory])
+}
+
+/// §14 Menu & Product Trend
+model MenuRecord {
+  id               String   @id @default(cuid())
+  articleId        String   @unique
+  trendName        String
+  menuType         MenuType
+  koreaOpportunity String
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@index([trendName])
+  @@index([menuType])
+}
+
+/// §18 Executive Daily Brief (매일 1건 생성 후 보존)
+model DailyBrief {
+  id             String   @id @default(cuid())
+  date           DateTime @unique @db.Date
+  keyMessage     String[]
+  koreaImplication String[]
+  todayThree     String[]
+  /// 섹션별 대표 기사 ID
+  payload        Json
+  generatedAt    DateTime @default(now())
+}
+
+/// §24 수집 스케줄 실행 로그 + §29 소스별 수집 실패 확인
+model CollectionRun {
+  id            String    @id @default(cuid())
+  startedAt     DateTime  @default(now())
+  finishedAt    DateTime?
+  status        RunStatus @default(SUCCESS)
+  sourcesTried  Int       @default(0)
+  sourcesOk     Int       @default(0)
+  articlesFound Int       @default(0)
+  articlesNew   Int       @default(0)
+  duplicates    Int       @default(0)
+  aiAnalyzed    Int       @default(0)
+  errorLog      String?
+
+  events CrawlEvent[]
+
+  @@index([startedAt])
+}
+
+model CrawlEvent {
+  id           String    @id @default(cuid())
+  runId        String
+  sourceId     String
+  ok           Boolean
+  itemsFound   Int       @default(0)
+  itemsNew     Int       @default(0)
+  message      String?
+  createdAt    DateTime  @default(now())
+
+  run    CollectionRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  source Source        @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@index([sourceId, createdAt])
+}
