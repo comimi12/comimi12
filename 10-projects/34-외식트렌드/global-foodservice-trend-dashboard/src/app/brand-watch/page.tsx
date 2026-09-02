@@ -21,14 +21,14 @@ export default async function BrandWatchPage() {
       <PageHeader
         eyebrow="BRAND WATCH"
         title="주요 브랜드 활동 추적"
-        description="워치리스트 브랜드의 뉴스 발생량과 활동 유형(신규 시장·출점·신메뉴·프랜차이즈·투자·M&A·기술)을 집계합니다."
+        description="워치리스트 브랜드의 뉴스량과 활동 유형 집계."
         action={<ExportButton resource="brand-watch" />}
       />
 
       <div className="space-y-3 p-4">
         <div className="grid grid-cols-1 gap-3 xl:grid-cols-[1fr_1.6fr]">
           <Card>
-            <CardHeader title="Brand Mention Ranking" subtitle="전체 기간 언급 건수 상위 10" />
+            <CardHeader title="Brand Mention Ranking" subtitle="언급 건수 상위 10" />
             <CardBody>
               {ranking.length === 0 ? <Empty /> : <BrandRankingChart data={ranking} />}
             </CardBody>
@@ -37,7 +37,7 @@ export default async function BrandWatchPage() {
           <Card>
             <CardHeader
               title="Watchlist"
-              subtitle={`${WATCHLIST_BRANDS.length}개 브랜드 상시 추적`}
+              subtitle={`상시 추적 ${WATCHLIST_BRANDS.length}개`}
             />
             <CardBody>
               <div className="flex flex-wrap gap-1.5">

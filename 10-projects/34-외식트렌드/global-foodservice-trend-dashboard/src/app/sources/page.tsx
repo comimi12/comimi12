@@ -36,7 +36,7 @@ export default async function SourcesPage() {
       <PageHeader
         eyebrow="ADMIN · SOURCES"
         title="수집 소스 관리"
-        description="소스별 RSS 여부, 신뢰도 Tier, 활성 상태, 마지막 수집·성공 시각, 누적 기사 수를 확인합니다. Tier 4는 메인 대시보드에 노출되지 않습니다."
+        description="소스별 RSS 여부, 신뢰도 Tier, 수집 현황. Tier 4는 메인 대시보드에서 제외."
         action={<ExportButton resource="sources" />}
       />
 

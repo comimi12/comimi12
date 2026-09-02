@@ -48,7 +48,9 @@ export function TopTable({
                   <span className="block text-[11px] text-muted">{a.country}</span>
                 ) : null}
               </Td>
-              <Td className="text-[12.5px] leading-snug text-ink">{a.trend}</Td>
+              <Td className="text-[12.5px] leading-snug text-ink">
+                {a.trend || a.keywords.slice(0, 2).join(' · ') || '—'}
+              </Td>
               <Td className="text-[11.5px] leading-snug text-muted">
                 {a.brands.length ? a.brands.join(', ') : '—'}
               </Td>

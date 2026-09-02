@@ -20,7 +20,7 @@ export default async function RestaurantTechPage() {
       <PageHeader
         eyebrow="RESTAURANT TECH"
         title="레스토랑 기술 도입 동향"
-        description="AI 주문·수요예측·로보틱스·POS·CRM·로열티·예약·배달·주방 자동화·재고·인력관리 11개 축으로 도입 기업, 브랜드, 목적, 기대효과를 추적합니다."
+        description="11개 기술 축별 도입 기업·브랜드·목적·기대효과."
         action={<ExportButton resource="restaurant-tech" />}
       />
 
@@ -44,7 +44,7 @@ export default async function RestaurantTechPage() {
         <Card>
           <CardHeader
             title="Technology Adoption Table"
-            subtitle={`도입 사례 ${rows.length}건 · 최신순`}
+            subtitle={`도입 사례 ${rows.length}건, 최신순`}
           />
           {rows.length === 0 ? (
             <Empty />

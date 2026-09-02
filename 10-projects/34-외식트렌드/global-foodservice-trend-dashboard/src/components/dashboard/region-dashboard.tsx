@@ -11,10 +11,10 @@ import { REGION_LABEL_KO } from '@/lib/categories'
 import { now, pct } from '@/lib/utils'
 
 const DESCRIPTION: Record<Region, string> = {
-  GLOBAL: '국가 단위를 넘어서는 시장 지표·소비자 조사·글로벌 메뉴 트래킹을 모읍니다.',
-  ASIA: '일본·중국·동남아 외식 시장의 지표, 브랜드 확장, 메뉴 동향을 추적합니다.',
-  EUROPE: '영국·EU 중심의 외식 시장 실적, 규제, 포맷 변화를 추적합니다.',
-  AMERICAS: '미국·캐나다·브라질의 QSR·패스트캐주얼·풀서비스 동향을 추적합니다.',
+  GLOBAL: '국가 단위를 넘는 시장 지표, 소비자 조사, 글로벌 메뉴 트래킹.',
+  ASIA: '일본·중국·동남아 시장 지표, 브랜드 확장, 메뉴 동향.',
+  EUROPE: '영국·EU 실적, 규제, 매장 포맷 변화.',
+  AMERICAS: '미국·캐나다·브라질 QSR·패스트캐주얼·풀서비스 동향.',
 }
 
 /** §11 — Region Dashboard (4개 탭 공용 본문) */
@@ -59,13 +59,13 @@ export async function RegionDashboard({ region }: { region: Region }) {
           <Card>
             <CardHeader
               title={`Today TOP 5 — ${REGION_LABEL_KO[region]}`}
-              subtitle="랭킹 점수 기준 상위 5건"
+              subtitle="랭킹 점수 상위 5건"
             />
             <CompactList articles={summary.top5} />
           </Card>
 
           <Card>
-            <CardHeader title="Trending Keywords" subtitle="최근 30일 언급량 · 7일 성장률" />
+            <CardHeader title="Trending Keywords" subtitle="최근 30일 언급량, 7일 증감" />
             <CardBody className="px-0 py-0">
               {radar.length === 0 ? (
                 <Empty />
@@ -121,7 +121,7 @@ export async function RegionDashboard({ region }: { region: Region }) {
           </Card>
 
           <Card className="xl:col-span-2">
-            <CardHeader title="Category Distribution" subtitle="최근 30일 · 보조 카테고리 포함" />
+            <CardHeader title="Category Distribution" subtitle="최근 30일, 보조 카테고리 포함" />
             <CardBody>
               {summary.categories.length === 0 ? (
                 <Empty />

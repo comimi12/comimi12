@@ -3,6 +3,7 @@ import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
 import OpenAI from 'openai'
 import { AnalysisSchema, type Analysis } from './schema'
 import { SYSTEM_PROMPT, buildUserPrompt, type ArticleInput } from './prompt'
+import { analyzeWithRules } from './rule-based'
 
 /**
  * §23 — AI Provider 추상화.
@@ -80,65 +81,15 @@ class OpenAiAnalyzer implements AiAnalyzer {
 
 /* ------------------------- Rule-based fallback ------------------------ */
 
-const CATEGORY_RULES: [Analysis['category'], RegExp][] = [
-  ['RESTAURANT_TECH', /\b(ai|robot|automation|kiosk|pos|app|software|voice)\b/i],
-  ['M_AND_A', /\b(acquisit|acquire|merger|takeover|stake|buyout)\b/i],
-  ['EXPANSION', /\b(open|opening|expand|expansion|new market|store count|units)\b/i],
-  ['FRANCHISE', /\b(franchis|refranchis|master franchise)\b/i],
-  ['DELIVERY', /\b(delivery|off-premise|aggregator|doordash|uber eats|deliveroo)\b/i],
-  ['LABOR', /\b(wage|labour|labor|staffing|shortage|hiring)\b/i],
-  ['PRICE_COST', /\b(price|pricing|cost|inflation|value menu|discount)\b/i],
-  ['BEVERAGE', /\b(coffee|tea|drink|beverage|cocktail|alcohol|matcha)\b/i],
-  ['MENU_FOOD', /\b(menu|dish|launch|flavor|flavour|ingredient|recipe)\b/i],
-  ['SUSTAINABILITY', /\b(sustainab|packaging|emission|recycl)\b/i],
-  ['DESIGN_CONCEPT', /\b(design|format|concept|remodel|prototype)\b/i],
-  ['MARKETING', /\b(loyalty|campaign|promotion|marketing|brand refresh)\b/i],
-  ['DATA_INSIGHT', /\b(index|survey|data|report|research|traffic|same-store)\b/i],
-]
-
 /**
- * AI 키가 없을 때도 파이프라인이 끝까지 돌도록 하는 규칙 기반 분석.
- * 요약을 생성하지 않고 원문 문장을 그대로 인용한다(사실 생성 금지).
+ * AI 키가 없을 때도 파이프라인이 끝까지 돌도록 하는 규칙 기반 분석기.
+ * 요약·번역을 생성하지 않고 원문에서 관측 가능한 것만 추출한다.
  */
 class RuleBasedAnalyzer implements AiAnalyzer {
   readonly name = 'rule-based'
 
   async analyze(input: ArticleInput): Promise<Analysis> {
-    const text = `${input.title} ${input.body}`
-    const category =
-      CATEGORY_RULES.find(([, re]) => re.test(text))?.[0] ?? 'DATA_INSIGHT'
-
-    const sentences = input.body
-      .split(/(?<=[.!?])\s+/)
-      .map((s) => s.trim())
-      .filter((s) => s.length > 30)
-      .slice(0, 3)
-
-    return {
-      original_title: input.title,
-      korean_title: input.title,
-      summary_ko: sentences.length
-        ? sentences
-        : [input.title, '', ''].slice(0, 1),
-      region: (['GLOBAL', 'ASIA', 'EUROPE', 'AMERICAS'].includes(input.sourceRegion)
-        ? input.sourceRegion
-        : 'GLOBAL') as Analysis['region'],
-      country: input.sourceCountry,
-      category,
-      secondary_categories: [],
-      brands: [],
-      keywords: [],
-      trend: '',
-      why_it_matters: '',
-      korea_implication: '',
-      sentiment: 'NEUTRAL',
-      business_impact_score: 60,
-      novelty_score: 50,
-      market_scale_score: 55,
-      source_reliability_score: 70,
-      korea_relevance_score: 50,
-      recommended_action: 'REFERENCE',
-    }
+    return analyzeWithRules(input)
   }
 }
 

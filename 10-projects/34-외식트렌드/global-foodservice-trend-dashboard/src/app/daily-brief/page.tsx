@@ -29,7 +29,7 @@ function BriefSection({
         {caption ? <span className="text-[10.5px] text-muted">{caption}</span> : null}
       </div>
       {articles.length === 0 ? (
-        <Empty>해당 섹션에 노출할 기사가 없습니다.</Empty>
+        <Empty>노출할 기사 없음</Empty>
       ) : (
         <ol className="space-y-2.5">
           {articles.map((a, i) => (
@@ -52,17 +52,28 @@ function BriefSection({
                   {a.source} · {a.region}
                   {a.country ? ` · ${a.country}` : ''} · {formatDate(a.publishedAt)}
                 </p>
-                <ul className="mt-1 space-y-0.5">
-                  {a.koreanSummary.map((line, li) => (
-                    <li key={li} className="text-[12.5px] leading-relaxed text-ink">
-                      · {line}
-                    </li>
-                  ))}
-                </ul>
-                <p className="mt-1 border-l-2 border-blue-soft pl-2 text-[11.5px] leading-relaxed text-muted">
-                  <span className="font-semibold text-navy-700">한국 적용</span> —{' '}
-                  {a.koreaImplication}
-                </p>
+                {a.koreanSummary.filter(Boolean).length > 0 ? (
+                  <>
+                    {a.titleKo === a.title ? (
+                      <p className="mt-1 text-[10.5px] font-semibold uppercase tracking-wide text-muted">
+                        원문 발췌 (번역 미적용)
+                      </p>
+                    ) : null}
+                    <ul className="mt-1 space-y-0.5">
+                      {a.koreanSummary.filter(Boolean).map((line, li) => (
+                        <li key={li} className="text-[12.5px] leading-relaxed text-ink">
+                          · {line}
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                ) : null}
+                {a.koreaImplication ? (
+                  <p className="mt-1 border-l-2 border-blue-soft pl-2 text-[11.5px] leading-relaxed text-muted">
+                    <span className="font-semibold text-navy-700">한국 적용</span> —{' '}
+                    {a.koreaImplication}
+                  </p>
+                ) : null}
                 <Link
                   href={`/article/${a.id}`}
                   className="no-print mt-1.5 inline-flex items-center gap-1 text-[11.5px] font-medium text-blue-accent hover:underline"
@@ -88,7 +99,7 @@ export default async function DailyBriefPage() {
       <PageHeader
         eyebrow="EXECUTIVE DAILY BRIEF"
         title={`GLOBAL FOODSERVICE DAILY BRIEF — ${brief.date}`}
-        description="매일 자동 생성되는 경영진 브리핑. 지역별 핵심 3건 + 글로벌 데이터 2건, 총 10~12건만 노출합니다."
+        description="매일 자동 생성. 지역별 3건 + 글로벌 2건, 총 10~12건."
         action={
           <div className="flex items-center gap-2">
             <ShareButton
@@ -105,7 +116,7 @@ export default async function DailyBriefPage() {
         <Card className="mx-auto max-w-5xl">
           <CardHeader
             title="Today's Key Message"
-            subtitle="오늘 글로벌 외식업의 가장 중요한 변화 3줄"
+            subtitle="오늘 가장 중요한 변화 3줄"
           />
           <ol className="space-y-1.5 px-5 py-3">
             {brief.keyMessage.length === 0 ? (
@@ -132,18 +143,20 @@ export default async function DailyBriefPage() {
           <BriefSection heading="RESTAURANT TECH" articles={brief.restaurantTech} />
           <BriefSection heading="EXPANSION / FRANCHISE" articles={brief.expansion} />
 
-          <section className="border-t border-line px-5 py-3">
-            <h2 className="mb-2 text-[12.5px] font-bold tracking-tight text-navy-900">
-              KOREA IMPLICATION
-            </h2>
-            <ul className="space-y-1">
-              {brief.koreaImplication.map((k, i) => (
-                <li key={i} className="text-[11.5px] leading-relaxed text-ink">
-                  · {k}
-                </li>
-              ))}
-            </ul>
-          </section>
+          {brief.koreaImplication.length > 0 ? (
+            <section className="border-t border-line px-5 py-3">
+              <h2 className="mb-2 text-[12.5px] font-bold tracking-tight text-navy-900">
+                KOREA IMPLICATION
+              </h2>
+              <ul className="space-y-1">
+                {brief.koreaImplication.map((k, i) => (
+                  <li key={i} className="text-[11.5px] leading-relaxed text-ink">
+                    · {k}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
 
           <section className="border-t-2 border-navy-800 bg-canvas px-5 py-4">
             <h2 className="mb-2 text-[13px] font-bold tracking-tight text-navy-900">

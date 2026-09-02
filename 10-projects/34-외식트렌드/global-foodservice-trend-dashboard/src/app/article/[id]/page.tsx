@@ -133,28 +133,34 @@ export default async function ArticlePage({ params }: { params: Promise<{ id: st
                 translated={translated}
               />
 
-              <section>
-                <h2 className="mb-1 text-[12px] font-bold tracking-tight text-navy-900">
-                  핵심 트렌드
-                </h2>
-                <p className="text-[12.5px] leading-relaxed text-ink">{article.trend}</p>
-              </section>
+              {article.trend ? (
+                <section>
+                  <h2 className="mb-1 text-[12px] font-bold tracking-tight text-navy-900">
+                    핵심 트렌드
+                  </h2>
+                  <p className="text-[12.5px] leading-relaxed text-ink">{article.trend}</p>
+                </section>
+              ) : null}
 
-              <section className="border-l-2 border-blue-accent bg-blue-soft/40 px-3 py-2">
-                <h2 className="mb-1 text-[12px] font-bold tracking-tight text-navy-900">
-                  Why It Matters
-                </h2>
-                <p className="text-[12.5px] leading-relaxed text-ink">{article.whyItMatters}</p>
-              </section>
+              {article.whyItMatters ? (
+                <section className="border-l-2 border-blue-accent bg-blue-soft/40 px-3 py-2">
+                  <h2 className="mb-1 text-[12px] font-bold tracking-tight text-navy-900">
+                    Why It Matters
+                  </h2>
+                  <p className="text-[12.5px] leading-relaxed text-ink">{article.whyItMatters}</p>
+                </section>
+              ) : null}
 
-              <section className="border-l-2 border-navy-800 bg-canvas px-3 py-2">
-                <h2 className="mb-1 text-[12px] font-bold tracking-tight text-navy-900">
-                  Korea Implication — 한국 외식기업 적용 가능성
-                </h2>
-                <p className="text-[12.5px] leading-relaxed text-ink">
-                  {article.koreaImplication}
-                </p>
-              </section>
+              {article.koreaImplication ? (
+                <section className="border-l-2 border-navy-800 bg-canvas px-3 py-2">
+                  <h2 className="mb-1 text-[12px] font-bold tracking-tight text-navy-900">
+                    Korea Implication — 한국 외식기업 적용 가능성
+                  </h2>
+                  <p className="text-[12.5px] leading-relaxed text-ink">
+                    {article.koreaImplication}
+                  </p>
+                </section>
+              ) : null}
 
               <section>
                 <h2 className="mb-1.5 text-[12px] font-bold tracking-tight text-navy-900">

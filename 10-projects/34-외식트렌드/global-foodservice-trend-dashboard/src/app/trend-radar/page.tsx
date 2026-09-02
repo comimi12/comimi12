@@ -23,13 +23,13 @@ export default async function TrendRadarPage() {
       <PageHeader
         eyebrow="TREND RADAR"
         title="최근 30일 급상승 키워드"
-        description="키워드별 언급량과 7일·30일 성장률, 지역 분포, 관련 브랜드를 함께 봅니다. 성장률은 직전 동일 기간 대비입니다."
+        description="키워드별 언급량과 증감. 성장률은 직전 동일 기간 대비."
         action={<ExportButton resource="trend-radar" />}
       />
 
       <div className="space-y-3 p-4">
         <Card>
-          <CardHeader title="키워드 언급량 추이" subtitle="상위 5개 키워드 · 주 단위" />
+          <CardHeader title="키워드 언급량 추이" subtitle="상위 5개 키워드, 주간 언급량" />
           <CardBody>
             <KeywordTimelineChart keys={timeline.keys} rows={timeline.rows} />
           </CardBody>

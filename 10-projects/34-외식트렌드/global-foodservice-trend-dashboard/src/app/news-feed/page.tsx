@@ -60,7 +60,7 @@ export default async function NewsFeedPage({
       <PageHeader
         eyebrow="NEWS FEED"
         title="전체 기사 검색"
-        description="브랜드·국가·제목·메뉴·식재료·카테고리·키워드 전 필드를 검색합니다. 기본은 대표 기사만 노출하며, 중복 기사도 선택해 볼 수 있습니다."
+        description="브랜드 · 국가 · 제목 · 메뉴 · 카테고리 · 키워드 전 필드 검색. 기본은 대표 기사만."
         action={<ExportButton resource="articles" query={exportQuery.toString()} />}
       />
 

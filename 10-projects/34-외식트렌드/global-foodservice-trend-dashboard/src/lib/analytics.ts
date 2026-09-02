@@ -613,7 +613,10 @@ export function buildDailyBrief(
   const headline = [...asiaTop3, ...europeTop3, ...americasTop3, ...globalInsight]
   const ranked = sortByRanking(headline, reference)
 
-  const keyMessage = ranked.slice(0, 3).map((a) => `${a.titleKo} — ${a.trend}`)
+  // 번역 미적용(무료 수집) 기사는 trend 가 비어 있으므로 제목만 쓴다.
+  const keyMessage = ranked
+    .slice(0, 3)
+    .map((a) => (a.trend ? `${a.titleKo} — ${a.trend}` : a.titleKo))
 
   const actionable = sortByRanking(
     recent.filter(
@@ -635,8 +638,16 @@ export function buildDailyBrief(
       (a) => hasCategory(a, 'EXPANSION') || hasCategory(a, 'FRANCHISE') || hasCategory(a, 'M_AND_A'),
       3,
     ),
-    koreaImplication: ranked.slice(0, 4).map((a) => a.koreaImplication),
-    todayThree: actionable.slice(0, 3).map((a) => a.koreaImplication),
+    koreaImplication: ranked.slice(0, 4).map((a) => a.koreaImplication).filter(Boolean),
+    // 시사점이 없으면(무료 수집 모드) 상위 헤드라인으로 대체한다.
+    todayThree: (() => {
+      const withImplication = actionable
+        .map((a) => a.koreaImplication)
+        .filter(Boolean)
+        .slice(0, 3)
+      if (withImplication.length > 0) return withImplication
+      return ranked.slice(0, 3).map((a) => a.titleKo)
+    })(),
   }
 }
 

@@ -29,7 +29,7 @@ export default async function MenuTrendsPage() {
       <PageHeader
         eyebrow="MENU & PRODUCT TREND"
         title="메뉴 · 식재료 트렌드"
-        description="Food · Beverage · Dessert · Alcohol · Ingredient · Cooking Method · Cuisine 축으로 분류합니다. 성장률은 최근 30일 대비 직전 30일 언급량입니다."
+        description="Food · Beverage · Dessert · Alcohol · Ingredient · Cooking Method · Cuisine 7개 축. 성장률은 직전 30일 대비."
         action={<ExportButton resource="menu-trends" />}
       />
 
@@ -53,7 +53,7 @@ export default async function MenuTrendsPage() {
         <Card>
           <CardHeader
             title="Menu Trend Table"
-            subtitle={`추적 트렌드 ${rows.length}건 · 언급량 순`}
+            subtitle={`추적 트렌드 ${rows.length}건, 언급량 순`}
           />
           {rows.length === 0 ? (
             <Empty />

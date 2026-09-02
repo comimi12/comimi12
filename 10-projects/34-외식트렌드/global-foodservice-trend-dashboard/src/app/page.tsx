@@ -29,11 +29,10 @@ import {
   scoreDistribution,
   todayTop,
 } from '@/lib/analytics'
-import { getArticles } from '@/lib/repository'
+import { dataSourceMeta, getArticles } from '@/lib/repository'
 import { REGION_LABEL_KO, REGION_ORDER } from '@/lib/categories'
-import { dataMode } from '@/lib/db'
 import { DEMO_NOTICE } from '@/lib/data/demo'
-import { now, pct } from '@/lib/utils'
+import { formatDate, now, pct } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -46,13 +45,17 @@ export default async function DashboardPage() {
   const radar = keywordTrends(articles, reference).slice(0, 8)
   const timeline = keywordTimeline(articles, reference)
   const regions = REGION_ORDER.map((r) => regionSummary(articles, r, reference))
+  const meta = dataSourceMeta()
+  // 무료 수집 모드: 실기사이지만 AI 번역이 없는 상태
+  const untranslated =
+    meta.source === 'collected' && articles.every((a) => a.titleKo === a.title)
 
   return (
     <div className="min-h-full">
       <PageHeader
         eyebrow="EXECUTIVE DASHBOARD"
         title="오늘의 글로벌 외식 인텔리전스"
-        description="① 오늘 한눈에 → ② 핵심 뉴스 → ③ 트렌드 → ④ 지역별 → ⑤ 분포 순으로 읽으면 3분 안에 파악됩니다."
+        description="위에서 아래로 읽으면 3분. KPI → 핵심 뉴스 → 트렌드 → 지역 → 분포."
         action={
           <Link
             href="/daily-brief"
@@ -64,10 +67,20 @@ export default async function DashboardPage() {
       />
 
       <div className="space-y-6 p-5">
-        {dataMode() === 'demo' ? (
+        {meta.source === 'demo' ? (
           <p className="rounded-sm border border-blue-accent/30 bg-blue-soft px-3.5 py-2 text-[12px] leading-relaxed text-navy-800">
             {DEMO_NOTICE} 실데이터 연결 방법은 <code className="font-mono">README.md</code> 를
             참고하세요.
+          </p>
+        ) : untranslated ? (
+          <p className="rounded-sm border border-line bg-canvas px-3.5 py-2 text-[12px] leading-relaxed text-ink">
+            <b className="text-navy-800">원문 수집 모드</b> · 매일 09:00 자동 수집 · 실기사{' '}
+            {meta.count}건
+            {meta.generatedAt ? (
+              <span className="text-muted"> · 최근 수집 {formatDate(meta.generatedAt)}</span>
+            ) : null}
+            <br />
+            한국어 번역·요약 없음. 제목 클릭 시 원문. 중요도 점수는 본문 분석 없이 산출돼 참고용.
           </p>
         ) : null}
 
@@ -116,7 +129,7 @@ export default async function DashboardPage() {
             <Card>
               <CardHeader
                 title="급상승 키워드"
-                subtitle="최근 30일 언급량 · 직전 기간 대비 성장률"
+                subtitle="최근 30일 언급량, 직전 기간 대비 증감"
               />
               {radar.length === 0 ? (
                 <Empty />
@@ -168,7 +181,7 @@ export default async function DashboardPage() {
             <Card>
               <CardHeader
                 title="30일 키워드 변화"
-                subtitle="상위 5개 키워드 · 주 단위 언급량"
+                subtitle="상위 5개 키워드, 주간 언급량"
               />
               <CardBody>
                 <KeywordTimelineChart keys={timeline.keys} rows={timeline.rows} />
@@ -237,13 +250,13 @@ export default async function DashboardPage() {
               </CardBody>
             </Card>
             <Card>
-              <CardHeader title="중요도 분포" subtitle="전체 기사 · Trend Score 구간" />
+              <CardHeader title="중요도 분포" subtitle="Trend Score 구간별 기사 수" />
               <CardBody>
                 <ScoreDistributionChart data={scoreDistribution(articles)} />
               </CardBody>
             </Card>
             <Card>
-              <CardHeader title="카테고리별 기사량" subtitle="최근 30일 · 상위 9개" />
+              <CardHeader title="카테고리별 기사량" subtitle="최근 30일, 상위 9개" />
               <CardBody>
                 <CategoryBarChart data={categoryCounts(articles, reference).slice(0, 9)} />
               </CardBody>

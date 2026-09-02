@@ -49,7 +49,7 @@ export default function SettingsPage() {
       <PageHeader
         eyebrow="SETTINGS"
         title="시스템 설정"
-        description="스코어링 가중치, 중복 판정 기준, 신뢰도 Tier, 추적 키워드·브랜드, 환경 변수 상태를 확인합니다. 값 변경은 소스 파일과 .env 에서 관리합니다."
+        description="가중치 · 중복 기준 · Tier · 추적 대상 · 환경 변수. 값 변경은 소스 파일과 .env 에서."
       />
 
       <div className="grid grid-cols-1 gap-3 p-4 xl:grid-cols-2">

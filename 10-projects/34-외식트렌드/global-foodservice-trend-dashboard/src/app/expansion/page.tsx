@@ -39,7 +39,7 @@ export default async function ExpansionPage() {
       <PageHeader
         eyebrow="EXPANSION & FRANCHISE"
         title="해외 진출 · 프랜차이즈 동향"
-        description="발표된 출점·진출 건을 브랜드, 본사 국가, 진출 국가, 도시, 점포 수, 확장 유형, 운영 형태로 정리합니다."
+        description="발표된 출점·진출 건 정리. 브랜드 · 국가 · 점포 수 · 확장 유형 · 운영 형태."
         action={<ExportButton resource="expansion" />}
       />
 
@@ -73,7 +73,7 @@ export default async function ExpansionPage() {
           <Card>
             <CardHeader
               title="진출 국가 분포"
-              subtitle="World Map 시각화는 지도 데이터 연결 후 활성화 (README 참고)"
+              subtitle="진출 발표 건수 기준. 지도 시각화는 미적용"
             />
             <CardBody>
               {ranking.length === 0 ? (
@@ -105,7 +105,7 @@ export default async function ExpansionPage() {
         <Card>
           <CardHeader
             title="Expansion & Franchise Table"
-            subtitle={`발표 ${rows.length}건 · 최신순`}
+            subtitle={`발표 ${rows.length}건, 최신순`}
           />
           {rows.length === 0 ? (
             <Empty />
