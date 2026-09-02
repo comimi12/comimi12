@@ -4,6 +4,8 @@ import { ArrowLeft, ExternalLink } from 'lucide-react'
 import { Card, CardBody, CardHeader, Label } from '@/components/ui/primitives'
 import { ActionTag, ScoreTag, TierTag } from '@/components/news/bits'
 import { CompactList } from '@/components/news/article-table'
+import { OriginalTranslation } from '@/components/news/original-translation'
+import { ShareButton } from '@/components/dashboard/share-button'
 import { getArticleById, getArticles } from '@/lib/repository'
 import { relatedInGroup } from '@/lib/dedupe'
 import { CATEGORY_LABEL, REGION_LABEL_KO } from '@/lib/categories'
@@ -36,6 +38,10 @@ export default async function ArticlePage({ params }: { params: Promise<{ id: st
 
   const radar = keywordTrends(all, now())
 
+  // AI 번역이 적용된 기사인지 — 한국어 제목이 원문과 다르고 요약이 있으면 번역본으로 본다.
+  const translated =
+    article.koreanSummary.filter(Boolean).length > 0 && article.titleKo !== article.title
+
   const scoreRows = [
     { label: 'Business Impact', value: article.businessImpactScore, weight: SCORE_WEIGHTS.businessImpact },
     { label: 'Novelty', value: article.noveltyScore, weight: SCORE_WEIGHTS.novelty },
@@ -47,13 +53,20 @@ export default async function ArticlePage({ params }: { params: Promise<{ id: st
   return (
     <div className="min-h-full p-4">
       <div className="mx-auto max-w-5xl space-y-3">
-        <Link
-          href="/news-feed"
-          className="inline-flex items-center gap-1 text-[11.5px] text-muted hover:text-navy-800"
-        >
-          <ArrowLeft className="h-3 w-3" aria-hidden />
-          전체 기사로
-        </Link>
+        <div className="flex items-center justify-between gap-3">
+          <Link
+            href="/news-feed"
+            className="inline-flex items-center gap-1 text-[12px] text-muted hover:text-navy-800"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
+            전체 기사로
+          </Link>
+          <ShareButton
+            title={article.titleKo}
+            text={`${article.titleKo} — ${article.source}`}
+            path={`/article/${article.id}`}
+          />
+        </div>
 
         <Card>
           <div className="border-b border-line px-5 py-4">
@@ -110,18 +123,15 @@ export default async function ArticlePage({ params }: { params: Promise<{ id: st
 
           <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr]">
             <div className="space-y-4 px-5 py-4">
-              <section>
-                <h2 className="mb-1.5 text-[12px] font-bold tracking-tight text-navy-900">
-                  3줄 요약
-                </h2>
-                <ul className="space-y-1">
-                  {article.koreanSummary.map((line, i) => (
-                    <li key={i} className="text-[12.5px] leading-relaxed text-ink">
-                      · {line}
-                    </li>
-                  ))}
-                </ul>
-              </section>
+              <OriginalTranslation
+                title={article.title}
+                titleKo={article.titleKo}
+                original={article.originalSummary}
+                koreanSummary={article.koreanSummary}
+                source={article.source}
+                articleUrl={article.articleUrl}
+                translated={translated}
+              />
 
               <section>
                 <h2 className="mb-1 text-[12px] font-bold tracking-tight text-navy-900">
@@ -144,13 +154,6 @@ export default async function ArticlePage({ params }: { params: Promise<{ id: st
                 <p className="text-[12.5px] leading-relaxed text-ink">
                   {article.koreaImplication}
                 </p>
-              </section>
-
-              <section>
-                <h2 className="mb-1 text-[12px] font-bold tracking-tight text-navy-900">
-                  원문 요약 (Original)
-                </h2>
-                <p className="text-[12px] leading-relaxed text-muted">{article.originalSummary}</p>
               </section>
 
               <section>

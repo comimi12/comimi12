@@ -4,6 +4,7 @@ import { PageHeader } from '@/components/layout/page-header'
 import { Card, CardHeader, Empty } from '@/components/ui/primitives'
 import { ActionTag, ScoreTag } from '@/components/news/bits'
 import { PrintButton } from '@/components/dashboard/print-button'
+import { ShareButton } from '@/components/dashboard/share-button'
 import { buildDailyBrief } from '@/lib/analytics'
 import { getArticles } from '@/lib/repository'
 import { formatDate, now } from '@/lib/utils'
@@ -40,7 +41,7 @@ function BriefSection({
                 <div className="flex flex-wrap items-center gap-1.5">
                   <Link
                     href={`/article/${a.id}`}
-                    className="text-[12.5px] font-semibold leading-snug text-navy-800 hover:text-blue-accent"
+                    className="text-[13.5px] font-bold leading-snug text-navy-800 hover:text-blue-accent"
                   >
                     {a.titleKo}
                   </Link>
@@ -53,15 +54,21 @@ function BriefSection({
                 </p>
                 <ul className="mt-1 space-y-0.5">
                   {a.koreanSummary.map((line, li) => (
-                    <li key={li} className="text-[11.5px] leading-relaxed text-ink">
+                    <li key={li} className="text-[12.5px] leading-relaxed text-ink">
                       · {line}
                     </li>
                   ))}
                 </ul>
-                <p className="mt-1 border-l-2 border-blue-soft pl-2 text-[11px] leading-relaxed text-muted">
+                <p className="mt-1 border-l-2 border-blue-soft pl-2 text-[11.5px] leading-relaxed text-muted">
                   <span className="font-semibold text-navy-700">한국 적용</span> —{' '}
                   {a.koreaImplication}
                 </p>
+                <Link
+                  href={`/article/${a.id}`}
+                  className="no-print mt-1.5 inline-flex items-center gap-1 text-[11.5px] font-medium text-blue-accent hover:underline"
+                >
+                  원문 · 번역 보기 →
+                </Link>
               </div>
             </li>
           ))}
@@ -82,7 +89,16 @@ export default async function DailyBriefPage() {
         eyebrow="EXECUTIVE DAILY BRIEF"
         title={`GLOBAL FOODSERVICE DAILY BRIEF — ${brief.date}`}
         description="매일 자동 생성되는 경영진 브리핑. 지역별 핵심 3건 + 글로벌 데이터 2건, 총 10~12건만 노출합니다."
-        action={<PrintButton />}
+        action={
+          <div className="flex items-center gap-2">
+            <ShareButton
+              title={`글로벌 외식 데일리 브리프 ${brief.date}`}
+              text="오늘 글로벌 외식업의 핵심 변화 요약"
+              path="/daily-brief"
+            />
+            <PrintButton />
+          </div>
+        }
       />
 
       <div className="p-4">

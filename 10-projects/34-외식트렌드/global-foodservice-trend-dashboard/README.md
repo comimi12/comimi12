@@ -187,35 +187,67 @@ Daily Executive Brief Generation
 
 ---
 
-## 7. Cron Setup
+## 7. 매일 자동 수집 (09:00 KST)
 
-기본 스케줄은 **매일 06:00 KST = 21:00 UTC**.
+기사 데이터를 매일 갱신하는 경로는 **두 가지**다. 목적에 따라 하나만 쓰면 된다.
 
-### Vercel Cron
+### A. DB 없이 — GitHub Actions + 파일 커밋 (기본, 지금 동작하는 방식)
 
-`vercel.json` 에 이미 등록돼 있다.
+`.github/workflows/foodservice-daily-collect.yml` (저장소 루트)
 
-```json
-{ "crons": [{ "path": "/api/cron/daily", "schedule": "0 21 * * *" }] }
+```
+매일 00:00 UTC (= 09:00 KST)
+  → RSS 수집 · AI 분석
+  → src/lib/data/collected.json 갱신
+  → 변경이 있으면 커밋 · 푸시
+  → Vercel 자동 배포 → 사이트 데이터 갱신
 ```
 
-Vercel 프로젝트 환경변수에 `CRON_SECRET` 을 설정한다.
+데이터베이스가 필요 없다. `collected.json` 이 비어 있으면 DEMO 데이터셋으로 폴백한다.
 
-### GitHub Actions
+**필수 설정 — 저장소 Settings → Secrets and variables → Actions**
 
-`.github/workflows/daily-collect.yml` 이 같은 시각에 배포된 앱의 엔드포인트를 호출한다.
-리포지토리 Secrets에 다음을 등록한다.
+| Secret | 필요성 | 없으면 |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | **필수** | 한국어 제목·3줄 요약·시사점이 생성되지 않아 **커밋을 건너뛴다** |
 
-- `APP_URL` — 예: `https://your-app.vercel.app`
-- `CRON_SECRET` — 앱과 동일한 값
+키가 없으면 규칙 기반 폴백이 영문 원문만 담은 결과를 만든다. 그 상태로 대시보드를 덮어쓰면
+한국어 브리핑이 사라지므로, 워크플로가 커밋을 자동으로 막는다.
+영문만이라도 반영하려면 Actions 탭에서 수동 실행 시 `force_commit` 을 켠다.
 
-### 수동 실행
+수동 실행: Actions → *Daily foodservice trend collection* → **Run workflow**
+
+로컬에서 같은 작업:
 
 ```bash
-curl -X POST https://your-app.vercel.app/api/collect \
-  -H "Authorization: Bearer $CRON_SECRET" \
-  -H "content-type: application/json" \
-  -d '{"dryRun": true}'
+npx tsx scripts/collect-to-file.ts    # collected.json 갱신
+```
+
+보존 정책은 `COLLECT_RETAIN_DAYS`(기본 45일) / `COLLECT_MAX_ARTICLES`(기본 600건).
+
+### B. DB 사용 — Vercel Cron
+
+`vercel.json` 에 등록돼 있다. PostgreSQL 에 장기 적재할 때 쓴다(§27 3년 보존).
+
+```json
+{ "crons": [{ "path": "/api/cron/daily", "schedule": "0 0 * * *" }] }
+```
+
+Vercel 환경변수에 `CRON_SECRET` 과 `DATABASE_URL` 이 필요하다.
+`DATABASE_URL` 이 없으면 수집은 돌지만 적재되지 않는다.
+
+수동 실행:
+
+```bash
+curl -X POST https://your-app.vercel.app/api/collect   -H "Authorization: Bearer $CRON_SECRET"   -H "content-type: application/json"   -d '{"dryRun": true}'
+```
+
+### 데이터 출처 우선순위
+
+```
+1) DATA_MODE=live + DATABASE_URL  → PostgreSQL
+2) collected.json 에 기사 있음      → 매일 수집된 실기사
+3) 그 외                            → DEMO 합성 데이터
 ```
 
 ---
@@ -244,6 +276,21 @@ npm start          # 기본 포트 3000
 
 Node 20+ 런타임과 PostgreSQL 접근이 필요하다. Cron은 시스템 crontab에서
 `curl -H "Authorization: Bearer $CRON_SECRET" $APP_URL/api/cron/daily` 를 호출하면 된다.
+
+---
+
+## 8-1. 공유 기능
+
+Daily Brief 화면과 기사 상세 화면 우측 상단에 **카카오톡 공유 / 링크 복사** 버튼이 있다.
+
+- **모바일(안드로이드·iOS)**: Web Share API 가 열리고 공유 시트에 카카오톡이 나온다.
+- **데스크톱**: 브라우저에 Web Share 가 없으므로 링크가 클립보드에 복사된다.
+  복사한 링크를 카카오톡 대화창에 붙여넣으면 동일하게 공유된다.
+
+카카오톡 전용 **카드형 미리보기**(썸네일·제목·설명)를 붙이려면
+[Kakao Developers](https://developers.kakao.com/) 에서 앱을 만들고 JavaScript 키를 발급받은 뒤
+`ShareButton`(`src/components/dashboard/share-button.tsx`)에 Kakao SDK 호출을 추가하면 된다.
+현재는 외부 키 없이 동작하도록 표준 Web Share + 클립보드만 사용한다.
 
 ---
 

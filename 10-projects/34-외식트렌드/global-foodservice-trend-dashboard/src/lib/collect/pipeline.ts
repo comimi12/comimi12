@@ -10,7 +10,7 @@ import { fetchFeed, urlHash } from './rss'
 import { toDateKey } from '../utils'
 
 /**
- * §24 — 자동 수집 파이프라인 (매일 06:00 KST)
+ * §24 — 자동 수집 파이프라인 (매일 09:00 KST)
  *
  *  1 Source Check          6 Categorization
  *  2 New Article Collection 7 Scoring
@@ -44,6 +44,8 @@ export interface RunReport {
   briefGenerated: boolean
   outcomes: SourceOutcome[]
   errors: string[]
+  /** 이번 실행에서 분석까지 마친 기사 (파일 저장 파이프라인이 사용) */
+  articles: NewsArticle[]
 }
 
 interface Collected {
@@ -329,6 +331,7 @@ export async function runPipeline(options: { dryRun?: boolean } = {}): Promise<R
     briefGenerated,
     outcomes,
     errors,
+    articles: flaggedNew,
   }
 }
 

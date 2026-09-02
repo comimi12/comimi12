@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic'
 export const maxDuration = 300
 
 /**
- * GET /api/cron/daily — 매일 06:00 KST 스케줄 진입점 (§24)
+ * GET /api/cron/daily — 매일 09:00 KST 스케줄 진입점 (§24)
  * Vercel Cron 또는 GitHub Actions 가 호출한다.
  * Authorization: Bearer <CRON_SECRET>
  */
