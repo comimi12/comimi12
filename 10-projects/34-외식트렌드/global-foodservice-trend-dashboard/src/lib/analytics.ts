@@ -16,6 +16,7 @@ import { CATEGORY_LABEL, CATEGORY_ORDER, REGION_ORDER, scoreLabel } from './cate
 import { RADAR_KEYWORDS, WATCHLIST_BRANDS } from './radar-keywords'
 import { sortByRanking } from './scoring'
 import { tierOf } from './sources'
+import { deriveExpansion, deriveMenuTerms, deriveTech } from './derive'
 import { countBy, daysAgo, now, toDateKey, topN, uniq } from './utils'
 
 const DAY = 86_400_000
@@ -396,11 +397,16 @@ export function keywordTimeline(articles: NewsArticle[], reference: Date = now()
 
 export function menuTrends(articles: NewsArticle[], reference: Date = now()): MenuTrendRow[] {
   const base = mainDashboardArticles(articles)
-  const withMenu = base.filter((a) => a.menu)
+
+  // AI 분석본은 menu 필드를 갖는다. 없으면(무료 수집) 본문에서 메뉴 용어를 파생한다.
   const groups = new Map<string, NewsArticle[]>()
-  withMenu.forEach((a) => {
-    const key = a.menu!.trendName
-    groups.set(key, [...(groups.get(key) ?? []), a])
+  const typeOf = new Map<string, MenuTrendRow['menuType']>()
+  base.forEach((a) => {
+    const details = a.menu ? [a.menu] : deriveMenuTerms(a)
+    details.forEach((d) => {
+      groups.set(d.trendName, [...(groups.get(d.trendName) ?? []), a])
+      if (!typeOf.has(d.trendName)) typeOf.set(d.trendName, d.menuType)
+    })
   })
 
   const last30 = (list: NewsArticle[]) =>
@@ -416,12 +422,13 @@ export function menuTrends(articles: NewsArticle[], reference: Date = now()): Me
       const patterns = RADAR_KEYWORDS.find((r) => r.keyword === trendName)?.match ?? [
         trendName.toLowerCase(),
       ]
-      const allMentions = mentions(base, patterns)
+      // 파생 그룹은 이미 매칭된 기사 목록이 정확하다. 레이더 어휘가 있을 때만 확장 매칭.
+      const allMentions = list[0].menu ? mentions(base, patterns) : list
       const cur = last30(allMentions)
       const prev = prev30(allMentions)
       return {
         trendName,
-        menuType: list[0].menu!.menuType,
+        menuType: list[0].menu?.menuType ?? typeOf.get(trendName) ?? 'FOOD',
         mentions: allMentions.length,
         growthRate:
           prev === 0 ? (cur === 0 ? 0 : 100) : Math.round(((cur - prev) / prev) * 100),
@@ -434,7 +441,7 @@ export function menuTrends(articles: NewsArticle[], reference: Date = now()): Me
           3,
         ).map(([b]) => b),
         articleIds: allMentions.map((a) => a.id),
-        koreaOpportunity: list[0].menu!.koreaOpportunity,
+        koreaOpportunity: list[0].menu?.koreaOpportunity ?? '',
       }
     })
     .sort((a, b) => b.mentions - a.mentions)
@@ -497,9 +504,10 @@ export interface TechRow extends TechDetail {
 
 export function techRows(articles: NewsArticle[]): TechRow[] {
   return mainDashboardArticles(articles)
-    .filter((a) => a.tech)
-    .map((a) => ({
-      ...a.tech!,
+    .map((a) => ({ a, tech: a.tech ?? deriveTech(a) }))
+    .filter((x): x is { a: NewsArticle; tech: TechDetail } => x.tech !== null)
+    .map(({ a, tech }) => ({
+      ...tech,
       articleId: a.id,
       headline: a.title,
       headlineKo: a.titleKo,
@@ -521,9 +529,10 @@ export interface ExpansionRow extends ExpansionDetail {
 
 export function expansionRows(articles: NewsArticle[]): ExpansionRow[] {
   return mainDashboardArticles(articles)
-    .filter((a) => a.expansion)
-    .map((a) => ({
-      ...a.expansion!,
+    .map((a) => ({ a, exp: a.expansion ?? deriveExpansion(a) }))
+    .filter((x): x is { a: NewsArticle; exp: ExpansionDetail } => x.exp !== null)
+    .map(({ a, exp }) => ({
+      ...exp,
       articleId: a.id,
       source: a.source,
       headlineKo: a.titleKo,
