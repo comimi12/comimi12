@@ -17,6 +17,9 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+# Windows PowerShell 콘솔에서 한글이 깨지지 않도록 출력 인코딩을 UTF-8로 고정
+try { [Console]::OutputEncoding = [Text.Encoding]::UTF8 } catch {}
+
 $Message = if ($Rest) { ($Rest -join ' ').Trim() } else { '' }
 
 $AppDir   = Split-Path -Parent $PSScriptRoot
