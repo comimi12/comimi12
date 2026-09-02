@@ -45,8 +45,12 @@ jobs:
           # 없으면 규칙 기반(영문 원문 인용)으로 동작한다.
           AI_PROVIDER: ${{ secrets.ANTHROPIC_API_KEY != '' && 'claude' || 'none' }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          ANTHROPIC_MODEL: claude-opus-5
-          COLLECT_MAX_PER_SOURCE: '20'
+          # 저장소 Variables 에서 모델·수집량을 바꿀 수 있다 (비용 조절용).
+          #   Settings → Secrets and variables → Actions → Variables 탭
+          #   ANTHROPIC_MODEL        : claude-haiku-4-5 로 바꾸면 비용이 크게 내려간다
+          #   COLLECT_MAX_PER_SOURCE : 소스당 수집 건수 (기본 20 → 11개 소스 약 220건/일)
+          ANTHROPIC_MODEL: ${{ vars.ANTHROPIC_MODEL || 'claude-opus-5' }}
+          COLLECT_MAX_PER_SOURCE: ${{ vars.COLLECT_MAX_PER_SOURCE || '20' }}
         run: npx tsx scripts/collect-to-file.ts
 
       - name: Check analysis quality
