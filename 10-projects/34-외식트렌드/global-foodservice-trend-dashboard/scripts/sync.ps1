@@ -77,7 +77,12 @@ try {
   # 그 상태에서 CLI 배포를 또 하면 Root Directory 설정과 어긋나므로 건너뛴다.
   $gitLinked = $false
   try {
-    $statusOut = node scripts/vercel-git.mjs status 2>&1 | Out-String
+    # PS 5.1 은 네이티브 stderr 를 2>&1 로 합치면 NativeCommandError 로 던지므로
+    # stdout 만 받고, 이 구간에서는 오류를 치명적으로 다루지 않는다.
+    $prevEap = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    $statusOut = node scripts/vercel-git.mjs status | Out-String
+    $ErrorActionPreference = $prevEap
     $gitLinked = $statusOut -match '연결됨'
   }
   catch {
