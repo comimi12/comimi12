@@ -6,10 +6,29 @@ import { Topbar } from '@/components/layout/topbar'
 import { dataMode } from '@/lib/db'
 import { formatDateTime, now } from '@/lib/utils'
 
+const SITE_URL = 'https://global-foodservice-trend-dashboard.vercel.app'
+const SITE_TITLE = '글로벌 외식 트렌드 인텔리전스'
+const SITE_DESC =
+  '전 세계 외식산업 뉴스·신메뉴·브랜드·Restaurant Tech·출점 동향을 매일 수집·분석하는 경영진용 인텔리전스 대시보드'
+
 export const metadata: Metadata = {
-  title: 'Global Foodservice Trend Intelligence',
-  description:
-    '전 세계 외식산업 뉴스·신메뉴·브랜드·Restaurant Tech·출점 동향을 매일 수집·분석하는 경영진용 인텔리전스 대시보드',
+  // 카카오톡·슬랙 등은 절대경로 og:image 만 읽으므로 metadataBase 가 필요하다.
+  metadataBase: new URL(SITE_URL),
+  title: SITE_TITLE,
+  description: SITE_DESC,
+  openGraph: {
+    type: 'website',
+    locale: 'ko_KR',
+    url: SITE_URL,
+    siteName: SITE_TITLE,
+    title: SITE_TITLE,
+    description: SITE_DESC,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: SITE_TITLE,
+    description: SITE_DESC,
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
