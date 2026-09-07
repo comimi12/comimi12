@@ -59,6 +59,13 @@ Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
   # ---- 2) 푸시 -------------------------------------------------------------
   $branch = git rev-parse --abbrev-ref HEAD
   git push origin $branch
+  # git 은 실패해도 예외를 던지지 않으므로 종료 코드를 직접 본다.
+  # (매일 09시 GitHub Actions 자동 수집 커밋 때문에 원격이 앞서 있는 경우가 잦다.)
+  if ($LASTEXITCODE -ne 0) {
+    Write-Host "푸시 실패 — 원격이 앞서 있습니다. 아래를 실행한 뒤 다시 시도하세요:" -ForegroundColor Red
+    Write-Host "  git merge origin/$branch   # collected.json 충돌 시 원격 것을 받고 재수집" -ForegroundColor Yellow
+    exit 1
+  }
   Write-Host "푸시 완료: origin/$branch" -ForegroundColor Green
 }
 finally {
