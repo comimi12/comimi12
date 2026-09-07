@@ -5,7 +5,14 @@ import { ArticleBriefList } from '@/components/news/article-brief'
 import { PrintButton } from '@/components/dashboard/print-button'
 import { ShareButton } from '@/components/dashboard/share-button'
 import { Card, CardHeader, Empty, SectionTitle } from '@/components/ui/primitives'
-import { buildDailyBrief, computeKpis, regionSummary, todayTop } from '@/lib/analytics'
+import {
+  buildDailyBrief,
+  computeKpis,
+  koreaSummary,
+  koreaTop,
+  regionSummary,
+  todayTop,
+} from '@/lib/analytics'
 import { dataSourceMeta, getArticles } from '@/lib/repository'
 import { REGION_LABEL_KO } from '@/lib/categories'
 import { DEMO_NOTICE } from '@/lib/data/demo'
@@ -29,15 +36,42 @@ export default async function DashboardPage() {
   const top10 = todayTop(articles, 10, reference)
   const meta = dataSourceMeta()
 
-  const regionBlocks: { region: Region; articles: NewsArticle[] }[] = [
-    { region: 'ASIA', articles: brief.asiaTop3 },
-    { region: 'EUROPE', articles: brief.europeTop3 },
-    { region: 'AMERICAS', articles: brief.americasTop3 },
-    { region: 'GLOBAL', articles: brief.globalInsight },
+  // 한국 → 아시아 → 미주 → 유럽 순. GLOBAL 은 기사가 있을 때만 붙인다.
+  const korea = koreaSummary(articles, reference)
+  const regionBlocks: {
+    key: string
+    title: string
+    href: string
+    caption: string
+    articles: NewsArticle[]
+  }[] = [
+    {
+      key: 'KOREA',
+      title: 'KOREA · 한국',
+      href: '/korea',
+      caption: `오늘 ${korea.today}건 · 30일 ${korea.total30d}건 · 해외 보도 ${korea.overseas.length}건`,
+      articles: koreaTop(articles, 3, reference),
+    },
+    ...(
+      [
+        ['ASIA', brief.asiaTop3],
+        ['AMERICAS', brief.americasTop3],
+        ['EUROPE', brief.europeTop3],
+        ['GLOBAL', brief.globalInsight],
+      ] as [Region, NewsArticle[]][]
+    )
+      .filter(([region, list]) => region !== 'GLOBAL' || list.length > 0)
+      .map(([region, list]) => {
+        const summary = regionSummary(articles, region, reference)
+        return {
+          key: region,
+          title: `${region} · ${REGION_LABEL_KO[region]}`,
+          href: `/${region.toLowerCase()}`,
+          caption: `오늘 ${summary.today}건 · 30일 ${summary.total}건`,
+          articles: list,
+        }
+      }),
   ]
-  const counts = Object.fromEntries(
-    regionBlocks.map((b) => [b.region, regionSummary(articles, b.region, reference)]),
-  ) as Record<Region, ReturnType<typeof regionSummary>>
 
   const topicBlocks = [
     { title: '메뉴 트렌드', href: '/menu-trends', articles: brief.menuTrend },
@@ -159,19 +193,16 @@ export default async function DashboardPage() {
 
         {/* ④ 지역별 */}
         <section className="space-y-2">
-          <SectionTitle step="04" title="지역별 TOP 3" ko="Region Brief" />
+          <SectionTitle step="04" title="한국 · 지역별 TOP 3" ko="Country & Region Brief" />
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
             {regionBlocks.map((b) => (
-              <Card key={b.region}>
+              <Card key={b.key}>
                 <CardHeader
-                  title={`${b.region} · ${REGION_LABEL_KO[b.region]}`}
-                  subtitle={`오늘 ${counts[b.region].today}건 · 30일 ${counts[b.region].total}건`}
+                  title={b.title}
+                  subtitle={b.caption}
                   action={
-                    <Link
-                      href={`/${b.region.toLowerCase()}`}
-                      className="text-[11px] text-blue-accent hover:underline"
-                    >
-                      지역 탭 →
+                    <Link href={b.href} className="text-[11px] text-blue-accent hover:underline">
+                      탭 열기 →
                     </Link>
                   }
                 />

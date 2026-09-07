@@ -5,7 +5,7 @@ import { RegionTabs } from '@/components/layout/region-tabs'
 import { Card, CardBody, CardHeader, Empty } from '@/components/ui/primitives'
 import { ArticleBriefList } from '@/components/news/article-brief'
 import { getArticles } from '@/lib/repository'
-import { keywordTrends, regionSummary } from '@/lib/analytics'
+import { hasGlobalArticles, keywordTrends, regionSummary } from '@/lib/analytics'
 import { REGION_LABEL_KO } from '@/lib/categories'
 import { now, pct } from '@/lib/utils'
 
@@ -33,7 +33,7 @@ export async function RegionDashboard({ region }: { region: Region }) {
         title={`${region} 대시보드`}
         description={`${DESCRIPTION[region]} 기사마다 요약과 [원문] 버튼이 있고, 상단바 '한국어 번역'으로 이 화면을 한 번에 번역합니다.`}
       />
-      <RegionTabs />
+      <RegionTabs showGlobal={hasGlobalArticles(articles)} />
 
       <div className="space-y-3 p-4">
         <div className="grid grid-cols-2 gap-px border border-line bg-line md:grid-cols-4">

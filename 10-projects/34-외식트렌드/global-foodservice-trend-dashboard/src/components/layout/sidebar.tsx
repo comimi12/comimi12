@@ -31,10 +31,10 @@ const NAV = [
     group: 'REGION · 지역 · 국가',
     items: [
       { href: '/korea', label: 'Korea', ko: '한국', icon: Globe2 },
-      { href: '/global', label: 'Global', ko: '글로벌', icon: Globe2 },
       { href: '/asia', label: 'Asia', ko: '아시아', icon: Globe2 },
-      { href: '/europe', label: 'Europe', ko: '유럽', icon: Globe2 },
       { href: '/americas', label: 'Americas', ko: '미주', icon: Globe2 },
+      { href: '/europe', label: 'Europe', ko: '유럽', icon: Globe2 },
+      { href: '/global', label: 'Global', ko: '글로벌', icon: Globe2 },
     ],
   },
   {
@@ -61,9 +61,12 @@ const NAV = [
 export function Sidebar({
   sources,
   skippedSources,
+  showGlobal = false,
 }: {
   sources: PanelSource[]
   skippedSources: number
+  /** GLOBAL 지역 기사가 하나도 없으면 메뉴에서 감춘다. */
+  showGlobal?: boolean
 }) {
   const pathname = usePathname()
 
@@ -94,7 +97,9 @@ export function Sidebar({
                 {section.group}
               </p>
             ) : null}
-            {section.items.map((item) => {
+            {section.items
+              .filter((item) => item.href !== '/global' || showGlobal)
+              .map((item) => {
               const active =
                 item.href === '/' ? pathname === '/' : pathname.startsWith(item.href)
               const Icon = item.icon

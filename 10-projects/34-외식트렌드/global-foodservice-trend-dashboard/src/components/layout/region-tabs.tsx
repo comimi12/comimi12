@@ -5,18 +5,21 @@ import { usePathname } from 'next/navigation'
 import { REGION_LABEL_KO, REGION_ORDER } from '@/lib/categories'
 import { cn } from '@/lib/utils'
 
-/** 지역 4개 + 국가별(한국) 탭 */
-const TABS: { href: string; label: string; ko: string }[] = [
-  ...REGION_ORDER.map((region) => ({
-    href: `/${region.toLowerCase()}`,
-    label: region as string,
-    ko: REGION_LABEL_KO[region],
-  })),
-  { href: '/korea', label: 'KOREA', ko: '한국' },
-]
+/** 국가별(한국) → 지역 순. GLOBAL 은 해당 기사가 있을 때만 노출한다. */
+function tabs(showGlobal: boolean) {
+  return [
+    { href: '/korea', label: 'KOREA', ko: '한국' },
+    ...REGION_ORDER.filter((region) => region !== 'GLOBAL' || showGlobal).map((region) => ({
+      href: `/${region.toLowerCase()}`,
+      label: region as string,
+      ko: REGION_LABEL_KO[region],
+    })),
+  ]
+}
 
-export function RegionTabs() {
+export function RegionTabs({ showGlobal = false }: { showGlobal?: boolean }) {
   const pathname = usePathname()
+  const TABS = tabs(showGlobal)
 
   return (
     <nav className="no-print flex items-center gap-1 border-b border-line bg-white px-5">

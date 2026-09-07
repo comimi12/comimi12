@@ -44,8 +44,8 @@ npm run lint       # ESLint
 | `/` | Dashboard · Daily Brief | KPI 6개 → 오늘의 요약 → 핵심 뉴스 TOP 10 → 지역별 TOP 3 → 주제별. 공유·PDF 저장 가능 |
 | `/daily-brief` | (구 경로) | 대시보드와 통합돼 `/` 로 리다이렉트. 기존 공유 링크 유지용 |
 | `/collection` | 수집 출처 | 수집 중인 매체와 매체별 최근 기사·미수집 사유 |
-| `/korea` | Country Dashboard | 국내 매체 기사 + 해외 매체의 한국 관련 보도 · 카테고리 분포 |
-| `/global` `/asia` `/europe` `/americas` | Region Dashboard | TOP 5 · 키워드 · 브랜드 · 카테고리 분포 · 최근 피드 |
+| `/korea` | Country Dashboard | 국내 매체 기사 + 해외 매체의 한국 관련 보도 · 카테고리 분포. 탭 순서는 한국 → 아시아 → 미주 → 유럽 |
+| `/asia` `/americas` `/europe` `/global` | Region Dashboard | TOP 5 · 키워드 · 최근 기사. `/global`(국가 단위를 넘는 리서치)은 해당 기사가 있을 때만 메뉴에 노출 |
 | `/trend-radar` | Trend Radar | 30일 급상승 키워드, 7일/30일 성장률, 지역 분포 |
 | `/menu-trends` | Menu Trend | Food/Beverage/Dessert/Ingredient/Cuisine 등 축별 분석 |
 | `/brand-watch` | Brand Watch | 워치리스트 브랜드 활동 매트릭스 |

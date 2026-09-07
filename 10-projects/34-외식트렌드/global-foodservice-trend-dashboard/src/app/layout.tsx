@@ -4,7 +4,8 @@ import './globals.css'
 import { Sidebar } from '@/components/layout/sidebar'
 import { Topbar } from '@/components/layout/topbar'
 import { dataMode } from '@/lib/db'
-import { getSources } from '@/lib/repository'
+import { getArticles, getSources } from '@/lib/repository'
+import { hasGlobalArticles } from '@/lib/analytics'
 import type { PanelSource } from '@/components/layout/source-panel'
 import { formatDateTime, now } from '@/lib/utils'
 
@@ -50,12 +51,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       count: s.articleCount,
     }))
   const skippedSources = allSources.filter((s) => s.active && !s.rssUrl).length
+  // GLOBAL 소스(Technomic·Euromonitor·Circana)는 RSS 미제공이라 기사가 없다.
+  // 빈 탭을 노출하지 않도록, 실제 기사가 생기면 그때 메뉴에 나타난다.
+  const showGlobal = hasGlobalArticles(await getArticles())
 
   return (
     <html lang="ko">
       <body className="bg-white text-ink antialiased">
         <div className="flex h-screen w-full overflow-hidden">
-          <Sidebar sources={panelSources} skippedSources={skippedSources} />
+          <Sidebar
+              sources={panelSources}
+              skippedSources={skippedSources}
+              showGlobal={showGlobal}
+            />
           <div className="flex min-w-0 flex-1 flex-col">
             <Suspense
               fallback={<div className="h-14 shrink-0 border-b border-line bg-white" />}

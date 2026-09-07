@@ -726,3 +726,21 @@ export function koreaSummary(
       .sort((a, b) => b.count - a.count),
   }
 }
+
+/** GLOBAL 지역 기사가 하나라도 있는지 — 없으면 메뉴/탭에서 감춘다. */
+export function hasGlobalArticles(articles: NewsArticle[]): boolean {
+  return mainDashboardArticles(articles).some((a) => a.region === 'GLOBAL')
+}
+
+/** 한국 TOP N — 국내 매체 기사와 해외 매체의 한국 관련 보도를 함께 랭킹한다. */
+export function koreaTop(
+  articles: NewsArticle[],
+  n: number,
+  reference: Date = now(),
+): NewsArticle[] {
+  const pool = mainDashboardArticles(articles).filter(
+    (a) => a.country === 'KR' || isKoreaCoverage(a),
+  )
+  const recent = pool.filter((a) => daysAgo(a.publishedAt, reference) <= 2)
+  return sortByRanking(recent.length >= n ? recent : pool, reference).slice(0, n)
+}

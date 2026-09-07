@@ -4,7 +4,7 @@ import { RegionTabs } from '@/components/layout/region-tabs'
 import { Card, CardBody, CardHeader, Empty } from '@/components/ui/primitives'
 import { ArticleBriefList } from '@/components/news/article-brief'
 import { getArticles, getSources } from '@/lib/repository'
-import { koreaSummary } from '@/lib/analytics'
+import { hasGlobalArticles, koreaSummary } from '@/lib/analytics'
 import { now } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
@@ -32,7 +32,7 @@ export default async function KoreaPage() {
         title="한국 대시보드"
         description="국내 외식 전문지 기사와, 해외 매체가 다룬 한국 관련 보도를 함께 봅니다. 국내 기사는 아시아 탭에도 함께 집계됩니다."
       />
-      <RegionTabs />
+      <RegionTabs showGlobal={hasGlobalArticles(articles)} />
 
       <div className="space-y-3 p-4">
         <div className="grid grid-cols-2 gap-px border border-line bg-line md:grid-cols-4">

@@ -46,7 +46,8 @@ export const REGION_LABEL_KO: Record<Region, string> = {
   AMERICAS: '미주',
 }
 
-export const REGION_ORDER: Region[] = ['GLOBAL', 'ASIA', 'EUROPE', 'AMERICAS']
+/** 화면 표시 순서 — 가까운 시장부터. 국가별 '한국' 탭은 이 앞에 따로 붙는다. */
+export const REGION_ORDER: Region[] = ['ASIA', 'AMERICAS', 'EUROPE', 'GLOBAL']
 
 /** §5 — 한국 외식기업 적용 가능성 */
 export const ACTION_LABEL: Record<RecommendedAction, string> = {
