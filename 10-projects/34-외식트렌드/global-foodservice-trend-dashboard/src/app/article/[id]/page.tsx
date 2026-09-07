@@ -38,9 +38,12 @@ export default async function ArticlePage({ params }: { params: Promise<{ id: st
     )
     .slice(0, 5)
 
+  // 국내 매체 기사는 이미 한국어라 번역 버튼이 필요 없다.
+  const isKoreanArticle = /[가-힣]/.test(article.title)
   // AI 번역이 적용된 기사인지 — 한국어 제목이 원문과 다르고 요약이 있으면 번역본으로 본다.
   const translated =
-    article.koreanSummary.filter(Boolean).length > 0 && article.titleKo !== article.title
+    isKoreanArticle ||
+    (article.koreanSummary.filter(Boolean).length > 0 && article.titleKo !== article.title)
 
   const summaryLines = cleanSummaryLines(article.koreanSummary)
   const summaryText = summaryLines.length

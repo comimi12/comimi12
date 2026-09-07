@@ -167,12 +167,14 @@ npm run collect:dry   # 수집·분석만 실행, DB 쓰기 없음 (설정 검�
 npm run collect       # 수집 + DB 저장 (DATA_MODE=live 필요)
 ```
 
-현재 21개 소스 중 **11개가 공개 RSS를 제공**하며 나머지 10개는 RSS가 없다.
+현재 22개 소스 중 **12개가 공개 RSS를 제공**하며 나머지 10개는 RSS가 없다.
+국내 매체는 **식품외식경제**(foodbank.co.kr) 한 곳이며, 한국어 기사는 규칙 기반 분석기가
+한국어 카테고리 규칙으로 분류하고 한국 적용도를 최고 구간으로 잡는다(번역 버튼도 건너뛴다).
 RSS 미제공 소스는 `/sources` 화면에 사유가 표시되고 수집에서 건너뛴다.
 
 | 상태 | 소스 |
 |---|---|
-| RSS 수집 | QSR Media Asia, SCMP Food, Restaurant Online, The Caterer, Restaurant Industry UK, Restaurant Business, Restaurant Dive, NRN, QSR Magazine, FSR Magazine, Mercado & Consumo |
+| RSS 수집 | 식품외식경제(KR), QSR Media Asia, SCMP Food, Restaurant Online, The Caterer, Restaurant Industry UK, Restaurant Business, Restaurant Dive, NRN, QSR Magazine, FSR Magazine, Mercado & Consumo |
 | RSS 없음 | Technomic, Euromonitor, Circana, Foodlink Japan, Hot Pepper 外食総研, JF Association, MCA Insight, HOTREC, NRA, Restaurants Canada |
 
 RSS 없는 소스를 붙이려면 `src/lib/collect/` 에 소스별 HTML 어댑터를 추가하고

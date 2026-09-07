@@ -33,6 +33,32 @@ const CATEGORY_RULES: [Analysis['category'], RegExp][] = [
   ['DATA_INSIGHT', /\b(index|survey|data|report|research|traffic|same-?store|sales (rose|fell|up|down))\b/i],
 ]
 
+/**
+ * 한국어 기사(식품외식경제 등 국내 매체)용 규칙.
+ * 영문 정규식은 한글 본문에 걸리지 않으므로 같은 카테고리를 한국어로 한 번 더 정의한다.
+ */
+const HANGUL_RE = /[가-힣]/
+const CATEGORY_RULES_KO: [Analysis['category'], RegExp][] = [
+  ['M_AND_A', /(인수|합병|지분 ?취득|매각|M&A)/],
+  ['RESTAURANT_TECH', /(AI|인공지능|로봇|자동화|키오스크|무인|푸드테크|솔루션|스마트 ?주방)/i],
+  ['FRANCHISE', /(프랜차이즈|가맹점|가맹본부|가맹 ?사업)/],
+  ['EXPANSION', /(출점|개점|오픈|신규 ?매장|점포 ?확대|입점|해외 ?진출)/],
+  ['DELIVERY', /(배달|배민|배달의민족|쿠팡이츠|요기요|포장 ?주문)/],
+  ['LABOR', /(인건비|채용|구인|최저임금|근로|인력난)/],
+  ['PRICE_COST', /(가격 ?인상|원가|물가|할인|마진|비용 ?부담)/],
+  ['BEVERAGE', /(커피|음료|카페|주류|맥주|와인|차 ?음료)/],
+  ['MENU_FOOD', /(메뉴|신메뉴|출시|레시피|식재료|디저트|버거|치킨|피자)/],
+  ['SUSTAINABILITY', /(친환경|지속가능|포장재|탄소|재활용|음식물 ?쓰레기)/],
+  ['DESIGN_CONCEPT', /(리뉴얼|콘셉트|인테리어|리모델링|매장 ?디자인)/],
+  ['MARKETING', /(마케팅|캠페인|프로모션|협업|콜라보|멤버십|리브랜딩)/],
+  ['SERVICE', /(서비스|접객|고객 ?경험|응대)/],
+  ['CONSUMER', /(소비자|외식 ?소비|소비 ?트렌드|외식비)/],
+  ['DATA_INSIGHT', /(조사|보고서|통계|지수|동향|분석|매출)/],
+]
+const KO_FIGURE_RE = /\d[\d,.]*\s?(%|퍼센트|억|조|만 ?원|개점|호점|개 ?점포|명)/
+const KO_NOVEL_RE = /(신규|신메뉴|최초|출시|론칭|공개|도입|선보)/
+const KO_SCALE_RE = /(전국|글로벌|해외|전 ?세계|수출|세계 ?시장)/
+
 const FIGURE_RE = /\d[\d,.]*\s?(%|percent|billion|million|bn|m\b|stores?|units?|sites?|outlets?)/i
 const NOVEL_RE = /\b(first|new|launch\w*|debut\w*|unveil\w*|introduc\w*|pilot|trial|test\w*)\b/i
 const SCALE_RE = /\b(global|worldwide|international|nationwide|across (europe|asia|the us)|multiple markets)\b/i
@@ -63,23 +89,33 @@ function extractKeywords(text: string): string[] {
   return Array.from(new Set([...radar, ...topics])).slice(0, 7)
 }
 
+/** 한글이 섞인 기사에는 한국어 규칙을 먼저 적용한다. */
+function rulesFor(text: string): [Analysis['category'], RegExp][] {
+  return HANGUL_RE.test(text) ? [...CATEGORY_RULES_KO, ...CATEGORY_RULES] : CATEGORY_RULES
+}
+
 function classify(text: string): Analysis['category'] {
-  return CATEGORY_RULES.find(([, re]) => re.test(text))?.[0] ?? 'DATA_INSIGHT'
+  return rulesFor(text).find(([, re]) => re.test(text))?.[0] ?? 'DATA_INSIGHT'
 }
 
 function secondaryCategories(text: string, primary: Analysis['category']): string[] {
-  return CATEGORY_RULES.filter(([cat, re]) => cat !== primary && re.test(text))
+  const seen = new Set<string>()
+  return rulesFor(text)
+    .filter(([cat, re]) => cat !== primary && re.test(text))
     .map(([cat]) => cat)
+    .filter((cat) => (seen.has(cat) ? false : seen.add(cat)))
     .slice(0, 2)
 }
 
 /** 원문에서 온전한 문장 2~3개를 발췌한다(번역 아님). */
 function excerpt(body: string): string[] {
-  const sentences = body
-    .replace(/\s+/g, ' ')
-    .split(/(?<=[.!?])\s+/)
+  const clean = body.replace(/\s+/g, ' ')
+  // 한국어는 '…했다.' 처럼 마침표 뒤 공백이 없는 경우가 많다.
+  const sentences = (
+    HANGUL_RE.test(clean) ? clean.split(/(?<=다\.|[.!?])\s*/) : clean.split(/(?<=[.!?])\s+/)
+  )
     .map((s) => s.trim())
-    .filter((s) => s.length > 40 && s.length < 320)
+    .filter((s) => s.length > 20 && s.length < 320)
   return sentences.slice(0, 3)
 }
 
@@ -89,11 +125,13 @@ export function analyzeWithRules(input: ArticleInput): Analysis {
   const keywords = extractKeywords(text)
   const category = classify(text)
 
-  const hasFigures = FIGURE_RE.test(text)
-  const figureInTitle = FIGURE_RE.test(input.title)
-  const isNovel = NOVEL_RE.test(input.title)
-  const isWideScale = SCALE_RE.test(text)
-  const isKoreaRelated = KOREA_RE.test(text)
+  const isKoreanArticle = HANGUL_RE.test(text)
+  const hasFigures = FIGURE_RE.test(text) || KO_FIGURE_RE.test(text)
+  const figureInTitle = FIGURE_RE.test(input.title) || KO_FIGURE_RE.test(input.title)
+  const isNovel = NOVEL_RE.test(input.title) || KO_NOVEL_RE.test(input.title)
+  const isWideScale = SCALE_RE.test(text) || KO_SCALE_RE.test(text)
+  // 국내 매체 기사는 그 자체로 한국 적용도가 가장 높다.
+  const isKoreaRelated = KOREA_RE.test(text) || isKoreanArticle
   const majorBrand = brands.some((b) => WATCHLIST_BRANDS.includes(b))
   const brandInTitle = brands.some((b) =>
     input.title.toLowerCase().includes(b.toLowerCase().split(' ')[0]),

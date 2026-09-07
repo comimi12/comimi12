@@ -17,9 +17,11 @@ export function PageTranslateButton() {
   const [progress, setProgress] = useState(0)
 
   async function run() {
-    const nodes = Array.from(document.querySelectorAll<HTMLElement>('[data-tr]')).filter(
-      (n) => n.dataset.trDone !== '1' && (n.textContent ?? '').trim().length > 0,
-    )
+    // 이미 한국어인 기사(국내 매체)는 en→ko 번역을 돌리면 문장이 망가진다 — 건너뛴다.
+    const nodes = Array.from(document.querySelectorAll<HTMLElement>('[data-tr]')).filter((n) => {
+      const text = (n.textContent ?? '').trim()
+      return n.dataset.trDone !== '1' && text.length > 0 && !/[가-힣]/.test(text)
+    })
     if (nodes.length === 0) {
       setState('done')
       return
