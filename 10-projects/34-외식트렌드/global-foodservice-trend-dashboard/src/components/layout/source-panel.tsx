@@ -98,10 +98,10 @@ export function SourcePanel({
             RSS 미제공 {skipped}곳은 수집 제외
           </p>
           <Link
-            href="/sources"
+            href="/collection"
             className="block px-2 pt-0.5 text-[9.5px] font-medium text-blue-accent hover:underline"
           >
-            소스 전체 보기 →
+            수집 출처 탭 열기 →
           </Link>
         </div>
       ) : null}

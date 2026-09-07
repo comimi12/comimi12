@@ -13,6 +13,7 @@ import {
   Map,
   Newspaper,
   Radar,
+  Rss,
   Settings,
   UtensilsCrossed,
 } from 'lucide-react'
@@ -51,6 +52,7 @@ const NAV = [
     group: 'DATA · 데이터',
     items: [
       { href: '/news-feed', label: 'News Feed', ko: '전체 기사', icon: Newspaper },
+      { href: '/collection', label: 'Collection Sources', ko: '수집 출처', icon: Rss },
       { href: '/sources', label: 'Sources', ko: '소스 관리', icon: Activity },
       { href: '/settings', label: 'Settings', ko: '설정', icon: Settings },
     ],
