@@ -28,8 +28,9 @@ const NAV = [
     ],
   },
   {
-    group: 'REGION · 지역',
+    group: 'REGION · 지역 · 국가',
     items: [
+      { href: '/korea', label: 'Korea', ko: '한국', icon: Globe2 },
       { href: '/global', label: 'Global', ko: '글로벌', icon: Globe2 },
       { href: '/asia', label: 'Asia', ko: '아시아', icon: Globe2 },
       { href: '/europe', label: 'Europe', ko: '유럽', icon: Globe2 },

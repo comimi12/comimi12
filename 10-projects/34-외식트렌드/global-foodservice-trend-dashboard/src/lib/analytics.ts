@@ -674,3 +674,55 @@ export function executiveSummaryArticles(
     .map((id) => articles.find((a) => a.id === id)!)
     .filter(Boolean)
 }
+
+/* ------------------------------------------------------------------ */
+/* Korea (국가별 탭)                                                    */
+/* ------------------------------------------------------------------ */
+
+/** 제목에 한국이 등장하면서 외식 맥락인 기사 — 해외 매체의 한국 관련 보도 */
+const KOREA_TERM_RE = /(korea|korean|seoul|k-?food|kimchi|한국|서울)/i
+const FOODSERVICE_TERM_RE =
+  /(restaurant|chain|menu|caf[eé]|coffee|dining|franchise|food|beverage|store|outlet|qsr|brand|외식|매장|메뉴|프랜차이즈|식품)/i
+
+export function isKoreaCoverage(a: NewsArticle): boolean {
+  return KOREA_TERM_RE.test(a.title) && FOODSERVICE_TERM_RE.test(a.title)
+}
+
+export interface KoreaSummary {
+  /** 국내 매체(country=KR) 기사 */
+  domestic: NewsArticle[]
+  /** 해외 매체가 다룬 한국 관련 기사 */
+  overseas: NewsArticle[]
+  today: number
+  total30d: number
+  categories: { category: TrendCategory; label: string; count: number }[]
+}
+
+export function koreaSummary(
+  articles: NewsArticle[],
+  reference: Date = now(),
+): KoreaSummary {
+  const base = mainDashboardArticles(articles)
+  const domestic = base
+    .filter((a) => a.country === 'KR')
+    .sort((x, y) => new Date(y.publishedAt).getTime() - new Date(x.publishedAt).getTime())
+  const overseas = base
+    .filter((a) => a.country !== 'KR' && isKoreaCoverage(a))
+    .sort((x, y) => new Date(y.publishedAt).getTime() - new Date(x.publishedAt).getTime())
+
+  const last30 = domestic.filter((a) => daysAgo(a.publishedAt, reference) < 30)
+
+  return {
+    domestic,
+    overseas,
+    today: domestic.filter((a) => toDateKey(a.publishedAt) === toDateKey(reference)).length,
+    total30d: last30.length,
+    categories: CATEGORY_ORDER.map((category) => ({
+      category,
+      label: CATEGORY_LABEL[category],
+      count: last30.filter((a) => hasCategory(a, category)).length,
+    }))
+      .filter((c) => c.count > 0)
+      .sort((a, b) => b.count - a.count),
+  }
+}
