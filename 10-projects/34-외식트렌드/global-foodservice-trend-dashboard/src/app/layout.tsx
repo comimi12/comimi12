@@ -4,6 +4,8 @@ import './globals.css'
 import { Sidebar } from '@/components/layout/sidebar'
 import { Topbar } from '@/components/layout/topbar'
 import { dataMode } from '@/lib/db'
+import { getSources } from '@/lib/repository'
+import type { PanelSource } from '@/components/layout/source-panel'
 import { formatDateTime, now } from '@/lib/utils'
 
 const SITE_URL = 'https://global-foodservice-trend-dashboard.vercel.app'
@@ -31,15 +33,29 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const demo = dataMode() === 'demo'
   const lastUpdated = formatDateTime(now().toISOString())
+
+  // 사이드바 최상단 "수집 출처" 목록 — 실제로 수집되는(RSS 보유) 매체만 보여준다.
+  const allSources = await getSources()
+  const panelSources: PanelSource[] = allSources
+    .filter((s) => s.active && s.rssUrl)
+    .map((s) => ({
+      id: s.id,
+      name: s.name,
+      url: s.url,
+      region: s.region,
+      country: s.country,
+      count: s.articleCount,
+    }))
+  const skippedSources = allSources.filter((s) => s.active && !s.rssUrl).length
 
   return (
     <html lang="ko">
       <body className="bg-white text-ink antialiased">
         <div className="flex h-screen w-full overflow-hidden">
-          <Sidebar />
+          <Sidebar sources={panelSources} skippedSources={skippedSources} />
           <div className="flex min-w-0 flex-1 flex-col">
             <Suspense
               fallback={<div className="h-14 shrink-0 border-b border-line bg-white" />}

@@ -17,6 +17,7 @@ import {
   UtensilsCrossed,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { SourcePanel, type PanelSource } from './source-panel'
 
 /** §28 — 좌측 Navigation (영문 라벨 + 한글 병기) */
 const NAV = [
@@ -56,7 +57,13 @@ const NAV = [
   },
 ] as const
 
-export function Sidebar() {
+export function Sidebar({
+  sources,
+  skippedSources,
+}: {
+  sources: PanelSource[]
+  skippedSources: number
+}) {
   const pathname = usePathname()
 
   return (
@@ -75,6 +82,8 @@ export function Sidebar() {
           <span className="mt-1 block text-[10.5px] text-muted">글로벌 외식 트렌드</span>
         </Link>
       </div>
+
+      <SourcePanel sources={sources} skipped={skippedSources} />
 
       <div className="flex-1 overflow-y-auto py-1.5">
         {NAV.map((section, i) => (
