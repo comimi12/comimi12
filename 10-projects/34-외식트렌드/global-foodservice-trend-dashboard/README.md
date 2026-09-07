@@ -41,8 +41,9 @@ npm run lint       # ESLint
 
 | 경로 | 화면 | 내용 |
 |---|---|---|
-| `/` | Dashboard | KPI 6개 → TOP 10 → Trend Radar → 지역 스냅샷 → 차트 |
-| `/daily-brief` | Daily Brief | 경영진 브리핑(지역별 TOP 3 + 글로벌 2). PDF 저장 가능 |
+| `/` | Dashboard · Daily Brief | KPI 6개 → 오늘의 요약 → 핵심 뉴스 TOP 10 → 지역별 TOP 3 → 주제별. 공유·PDF 저장 가능 |
+| `/daily-brief` | (구 경로) | 대시보드와 통합돼 `/` 로 리다이렉트. 기존 공유 링크 유지용 |
+| `/collection` | 수집 출처 | 수집 중인 매체와 매체별 최근 기사·미수집 사유 |
 | `/global` `/asia` `/europe` `/americas` | Region Dashboard | TOP 5 · 키워드 · 브랜드 · 카테고리 분포 · 최근 피드 |
 | `/trend-radar` | Trend Radar | 30일 급상승 키워드, 7일/30일 성장률, 지역 분포 |
 | `/menu-trends` | Menu Trend | Food/Beverage/Dessert/Ingredient/Cuisine 등 축별 분석 |

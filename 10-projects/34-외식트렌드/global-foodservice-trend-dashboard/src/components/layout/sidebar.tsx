@@ -7,7 +7,6 @@ import {
   BarChart3,
   Building2,
   Cpu,
-  FileText,
   Globe2,
   LayoutDashboard,
   Map,
@@ -25,8 +24,7 @@ const NAV = [
   {
     group: null,
     items: [
-      { href: '/', label: 'Dashboard', ko: '대시보드', icon: LayoutDashboard },
-      { href: '/daily-brief', label: 'Daily Brief', ko: '데일리 브리프', icon: FileText },
+      { href: '/', label: 'Dashboard', ko: '대시보드 · 오늘의 브리프', icon: LayoutDashboard },
     ],
   },
   {

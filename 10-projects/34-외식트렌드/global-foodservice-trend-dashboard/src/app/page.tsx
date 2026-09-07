@@ -2,23 +2,49 @@ import Link from 'next/link'
 import { PageHeader } from '@/components/layout/page-header'
 import { KpiCards } from '@/components/dashboard/kpi-cards'
 import { ArticleBriefList } from '@/components/news/article-brief'
-import { Card, SectionTitle } from '@/components/ui/primitives'
-import { computeKpis, regionSummary, todayTop } from '@/lib/analytics'
+import { PrintButton } from '@/components/dashboard/print-button'
+import { ShareButton } from '@/components/dashboard/share-button'
+import { Card, CardHeader, Empty, SectionTitle } from '@/components/ui/primitives'
+import { buildDailyBrief, computeKpis, regionSummary, todayTop } from '@/lib/analytics'
 import { dataSourceMeta, getArticles } from '@/lib/repository'
-import { REGION_LABEL_KO, REGION_ORDER } from '@/lib/categories'
+import { REGION_LABEL_KO } from '@/lib/categories'
 import { DEMO_NOTICE } from '@/lib/data/demo'
 import { formatDate, now } from '@/lib/utils'
+import type { NewsArticle, Region } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
 
+/**
+ * 대시보드 = 데일리 브리프 (하나로 합친 오늘의 화면).
+ *
+ * KPI → 오늘의 요약 → 핵심 뉴스 TOP 10 → 지역별 TOP 3 → 주제별 순으로 읽는다.
+ * 기사마다 요약 · [원문] 버튼이 있고, 상단바 '한국어 번역'이 화면 전체를 번역한다.
+ */
 export default async function DashboardPage() {
   const articles = await getArticles()
   const reference = now()
 
   const kpis = computeKpis(articles, reference)
+  const brief = buildDailyBrief(articles, reference)
   const top10 = todayTop(articles, 10, reference)
-  const regions = REGION_ORDER.map((r) => regionSummary(articles, r, reference))
   const meta = dataSourceMeta()
+
+  const regionBlocks: { region: Region; articles: NewsArticle[] }[] = [
+    { region: 'ASIA', articles: brief.asiaTop3 },
+    { region: 'EUROPE', articles: brief.europeTop3 },
+    { region: 'AMERICAS', articles: brief.americasTop3 },
+    { region: 'GLOBAL', articles: brief.globalInsight },
+  ]
+  const counts = Object.fromEntries(
+    regionBlocks.map((b) => [b.region, regionSummary(articles, b.region, reference)]),
+  ) as Record<Region, ReturnType<typeof regionSummary>>
+
+  const topicBlocks = [
+    { title: '메뉴 트렌드', href: '/menu-trends', articles: brief.menuTrend },
+    { title: '레스토랑 테크', href: '/restaurant-tech', articles: brief.restaurantTech },
+    { title: '출점 · 프랜차이즈', href: '/expansion', articles: brief.expansion },
+  ]
+
   // 무료 수집 모드: 실기사이지만 AI 번역이 없는 상태
   const untranslated =
     meta.source === 'collected' && articles.every((a) => a.titleKo === a.title)
@@ -26,16 +52,18 @@ export default async function DashboardPage() {
   return (
     <div className="min-h-full">
       <PageHeader
-        eyebrow="EXECUTIVE DASHBOARD"
-        title="오늘의 글로벌 외식 인텔리전스"
-        description="KPI → 핵심 뉴스 → 지역 순으로 3분. 기사마다 요약과 [원문] 버튼이 있고, 상단바 '한국어 번역'으로 화면 전체를 번역합니다."
+        eyebrow="EXECUTIVE DASHBOARD · DAILY BRIEF"
+        title={`오늘의 글로벌 외식 브리프 — ${brief.date}`}
+        description="매일 09:00 자동 갱신. 요약 → 핵심 뉴스 → 지역 → 주제 순으로 3분. 기사마다 [원문] 버튼이 있고, 상단바 '한국어 번역'으로 이 화면 전체를 번역합니다."
         action={
-          <Link
-            href="/daily-brief"
-            className="inline-flex h-8 items-center rounded-sm border border-navy-800 bg-navy-800 px-3.5 text-[12px] font-semibold text-white hover:bg-navy-700"
-          >
-            Daily Brief 열기
-          </Link>
+          <div className="flex items-center gap-2">
+            <ShareButton
+              title={`글로벌 외식 브리프 ${brief.date}`}
+              text="오늘 글로벌 외식업의 핵심 변화 요약"
+              path="/"
+            />
+            <PrintButton />
+          </div>
         }
       />
 
@@ -53,20 +81,66 @@ export default async function DashboardPage() {
               <span className="text-muted"> · 최근 수집 {formatDate(meta.generatedAt)}</span>
             ) : null}
             <br />
-            한국어 번역·요약 없음. 제목 클릭 시 원문. 중요도 점수는 본문 분석 없이 산출돼 참고용.
+            한국어 번역·요약 없음. 요약은 원문 발췌이고, 중요도 점수는 본문 분석 없이 산출돼
+            참고용입니다.
           </p>
         ) : null}
 
-        {/* ① 오늘 한눈에 */}
+        {/* ① KPI */}
         <section className="space-y-2">
           <SectionTitle step="01" title="오늘 한눈에" ko="KPI" />
           <KpiCards kpis={kpis} />
         </section>
 
-        {/* ② 핵심 뉴스 */}
+        {/* ② 오늘의 요약 */}
+        <section className="space-y-2">
+          <SectionTitle step="02" title="오늘의 요약" ko="Key Message" />
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <Card>
+              <CardHeader title="오늘 가장 중요한 변화" subtitle="상위 3건" />
+              <ol className="space-y-1.5 px-4 py-3">
+                {brief.keyMessage.length === 0 ? (
+                  <Empty />
+                ) : (
+                  brief.keyMessage.map((m, i) => (
+                    <li key={i} className="flex gap-2 text-[12.5px] leading-relaxed text-ink">
+                      <span className="font-semibold text-blue-accent tabular">{i + 1}.</span>
+                      <span data-tr>{m}</span>
+                    </li>
+                  ))
+                )}
+              </ol>
+            </Card>
+
+            <Card>
+              <CardHeader
+                title="한국 외식기업이 오늘 확인할 3가지"
+                subtitle="적용 관점 정리"
+              />
+              <ol className="space-y-2 px-4 py-3">
+                {brief.todayThree.length === 0 ? (
+                  <Empty />
+                ) : (
+                  brief.todayThree.map((t, i) => (
+                    <li key={i} className="flex gap-2.5">
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm bg-navy-800 text-[11px] font-bold text-white">
+                        {i + 1}
+                      </span>
+                      <span data-tr className="text-[12px] leading-relaxed text-ink">
+                        {t}
+                      </span>
+                    </li>
+                  ))
+                )}
+              </ol>
+            </Card>
+          </div>
+        </section>
+
+        {/* ③ 핵심 뉴스 */}
         <section className="space-y-2">
           <SectionTitle
-            step="02"
+            step="03"
             title="오늘의 핵심 뉴스 TOP 10"
             ko="Today's Global Trend"
             action={
@@ -83,55 +157,52 @@ export default async function DashboardPage() {
           </Card>
         </section>
 
-        {/* ③ 지역별 */}
+        {/* ④ 지역별 */}
         <section className="space-y-2">
-          <SectionTitle step="03" title="지역별 현황" ko="Region Snapshot" />
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {regions.map((r) => (
-              <Card key={r.region}>
-                <div className="flex items-baseline justify-between border-b border-line px-4 py-2.5">
-                  <Link
-                    href={`/${r.region.toLowerCase()}`}
-                    className="text-[13.5px] font-bold text-navy-900 hover:text-blue-accent"
-                  >
-                    {r.region}
-                    <span className="ml-1.5 text-[11.5px] font-normal text-muted">
-                      {REGION_LABEL_KO[r.region]}
-                    </span>
-                  </Link>
-                  <span className="text-[11.5px] text-muted tabular">
-                    오늘 <b className="text-navy-800">{r.today}</b> · 30일 {r.total}
-                  </span>
-                </div>
-                <div className="px-4 py-3">
-                  {r.top5[0] ? (
+          <SectionTitle step="04" title="지역별 TOP 3" ko="Region Brief" />
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+            {regionBlocks.map((b) => (
+              <Card key={b.region}>
+                <CardHeader
+                  title={`${b.region} · ${REGION_LABEL_KO[b.region]}`}
+                  subtitle={`오늘 ${counts[b.region].today}건 · 30일 ${counts[b.region].total}건`}
+                  action={
                     <Link
-                      href={`/article/${r.top5[0].id}`}
-                      className="block text-[12.5px] font-semibold leading-snug text-navy-800 hover:text-blue-accent"
+                      href={`/${b.region.toLowerCase()}`}
+                      className="text-[11px] text-blue-accent hover:underline"
                     >
-                      <span data-tr>{r.top5[0].titleKo}</span>
+                      지역 탭 →
                     </Link>
-                  ) : (
-                    <p className="text-[12px] text-muted">해당 기간 기사 없음</p>
-                  )}
-                  {r.keywords.length ? (
-                    <div className="mt-2.5 flex flex-wrap gap-1">
-                      {r.keywords.slice(0, 4).map((k) => (
-                        <span
-                          key={k.term}
-                          className="rounded-sm border border-line px-1.5 py-0.5 text-[10.5px] text-muted"
-                        >
-                          {k.term}
-                        </span>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
+                  }
+                />
+                <ArticleBriefList articles={b.articles} rank empty="오늘 노출할 기사 없음" />
               </Card>
             ))}
           </div>
         </section>
 
+        {/* ⑤ 주제별 */}
+        <section className="space-y-2">
+          <SectionTitle step="05" title="주제별" ko="Menu · Tech · Expansion" />
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+            {topicBlocks.map((t) => (
+              <Card key={t.title}>
+                <CardHeader
+                  title={t.title}
+                  action={
+                    <Link
+                      href={t.href}
+                      className="text-[11px] text-blue-accent hover:underline"
+                    >
+                      상세 →
+                    </Link>
+                  }
+                />
+                <ArticleBriefList articles={t.articles} empty="오늘 해당 기사 없음" />
+              </Card>
+            ))}
+          </div>
+        </section>
       </div>
     </div>
   )
