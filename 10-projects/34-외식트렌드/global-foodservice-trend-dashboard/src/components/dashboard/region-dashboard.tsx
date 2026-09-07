@@ -3,8 +3,7 @@ import type { Region } from '@/lib/types'
 import { PageHeader } from '@/components/layout/page-header'
 import { RegionTabs } from '@/components/layout/region-tabs'
 import { Card, CardBody, CardHeader, Empty } from '@/components/ui/primitives'
-import { CompactList, FeedTable } from '@/components/news/article-table'
-import { CategoryBarChart } from '@/components/charts'
+import { ArticleBriefList } from '@/components/news/article-brief'
 import { getArticles } from '@/lib/repository'
 import { keywordTrends, regionSummary } from '@/lib/analytics'
 import { REGION_LABEL_KO } from '@/lib/categories'
@@ -17,7 +16,7 @@ const DESCRIPTION: Record<Region, string> = {
   AMERICAS: '미국·캐나다·브라질 QSR·패스트캐주얼·풀서비스 동향.',
 }
 
-/** §11 — Region Dashboard (4개 탭 공용 본문) */
+/** Region Dashboard (4개 탭 공용 본문) — 요약 · 원문 · 번역 3가지 위주로 단순화. */
 export async function RegionDashboard({ region }: { region: Region }) {
   const articles = await getArticles()
   const reference = now()
@@ -32,7 +31,7 @@ export async function RegionDashboard({ region }: { region: Region }) {
       <PageHeader
         eyebrow={`REGION · ${region}`}
         title={`${region} 대시보드`}
-        description={DESCRIPTION[region]}
+        description={`${DESCRIPTION[region]} 기사마다 요약과 [원문] 버튼이 있고, 상단바 '한국어 번역'으로 이 화면을 한 번에 번역합니다.`}
       />
       <RegionTabs />
 
@@ -55,13 +54,13 @@ export async function RegionDashboard({ region }: { region: Region }) {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 gap-3 xl:grid-cols-[1.4fr_1fr]">
+        <div className="grid grid-cols-1 gap-3 xl:grid-cols-[1.5fr_1fr]">
           <Card>
             <CardHeader
               title={`Today TOP 5 — ${REGION_LABEL_KO[region]}`}
               subtitle="랭킹 점수 상위 5건"
             />
-            <CompactList articles={summary.top5} />
+            <ArticleBriefList articles={summary.top5} rank />
           </Card>
 
           <Card>
@@ -93,60 +92,10 @@ export async function RegionDashboard({ region }: { region: Region }) {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 gap-3 xl:grid-cols-3">
-          <Card>
-            <CardHeader title="Top Brands Mentioned" subtitle="최근 30일" />
-            <CardBody className="px-0 py-0">
-              {summary.brands.length === 0 ? (
-                <Empty />
-              ) : (
-                <ul className="divide-y divide-line">
-                  {summary.brands.map((b) => (
-                    <li
-                      key={b.brand}
-                      className="flex items-center justify-between px-4 py-1.5 text-[11.5px]"
-                    >
-                      <Link
-                        href={`/brand-watch?brand=${encodeURIComponent(b.brand)}`}
-                        className="truncate font-medium text-navy-800 hover:text-blue-accent"
-                      >
-                        {b.brand}
-                      </Link>
-                      <span className="text-muted tabular">{b.count}건</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </CardBody>
-          </Card>
-
-          <Card className="xl:col-span-2">
-            <CardHeader title="Category Distribution" subtitle="최근 30일, 보조 카테고리 포함" />
-            <CardBody>
-              {summary.categories.length === 0 ? (
-                <Empty />
-              ) : (
-                <CategoryBarChart data={summary.categories} />
-              )}
-            </CardBody>
-          </Card>
-        </div>
-
-        <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
-          <Card>
-            <CardHeader title="New Restaurant Concepts" subtitle="디자인/콘셉트 카테고리" />
-            <CompactList articles={summary.concepts} />
-          </Card>
-          <Card>
-            <CardHeader title="Expansion / Franchise News" subtitle="출점·프랜차이즈 카테고리" />
-            <CompactList articles={summary.expansion} />
-          </Card>
-        </div>
-
         <Card>
           <CardHeader
-            title="Recent News Feed"
-            subtitle={`${region} 최근 기사 ${summary.recent.length}건`}
+            title="최근 기사"
+            subtitle={`${region} 최근 ${summary.recent.length}건`}
             action={
               <Link
                 href={`/news-feed?region=${region}`}
@@ -156,7 +105,7 @@ export async function RegionDashboard({ region }: { region: Region }) {
               </Link>
             }
           />
-          <FeedTable articles={summary.recent} />
+          <ArticleBriefList articles={summary.recent} />
         </Card>
       </div>
     </div>

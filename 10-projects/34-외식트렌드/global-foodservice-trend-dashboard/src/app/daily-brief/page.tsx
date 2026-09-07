@@ -1,13 +1,14 @@
 import Link from 'next/link'
+import { ExternalLink } from 'lucide-react'
 import type { NewsArticle } from '@/lib/types'
 import { PageHeader } from '@/components/layout/page-header'
 import { Card, CardHeader, Empty } from '@/components/ui/primitives'
-import { ActionTag, ScoreTag } from '@/components/news/bits'
 import { PrintButton } from '@/components/dashboard/print-button'
 import { ShareButton } from '@/components/dashboard/share-button'
 import { buildDailyBrief } from '@/lib/analytics'
 import { getArticles } from '@/lib/repository'
 import { formatDate, now } from '@/lib/utils'
+import { cleanSummaryLines } from '@/lib/summary'
 
 export const dynamic = 'force-dynamic'
 
@@ -38,21 +39,18 @@ function BriefSection({
                 {i + 1}
               </span>
               <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <Link
-                    href={`/article/${a.id}`}
-                    className="text-[13.5px] font-bold leading-snug text-navy-800 hover:text-blue-accent"
-                  >
-                    {a.titleKo}
-                  </Link>
-                  <ScoreTag score={a.totalScore} />
-                  <ActionTag action={a.recommendedAction} />
-                </div>
+                <Link
+                  href={`/article/${a.id}`}
+                  className="block text-[13.5px] font-bold leading-snug text-navy-800 hover:text-blue-accent"
+                >
+                  <span data-tr>{a.titleKo}</span>
+                </Link>
                 <p className="mt-0.5 text-[10.5px] text-muted">
                   {a.source} · {a.region}
-                  {a.country ? ` · ${a.country}` : ''} · {formatDate(a.publishedAt)}
+                  {a.country ? ` · ${a.country}` : ''} · {formatDate(a.publishedAt)} · 중요도{' '}
+                  {a.totalScore}
                 </p>
-                {a.koreanSummary.filter(Boolean).length > 0 ? (
+                {cleanSummaryLines(a.koreanSummary).length > 0 ? (
                   <>
                     {a.titleKo === a.title ? (
                       <p className="mt-1 text-[10.5px] font-semibold uppercase tracking-wide text-muted">
@@ -60,7 +58,7 @@ function BriefSection({
                       </p>
                     ) : null}
                     <ul className="mt-1 space-y-0.5">
-                      {a.koreanSummary.filter(Boolean).map((line, li) => (
+                      {cleanSummaryLines(a.koreanSummary).map((line, li) => (
                         <li key={li} className="text-[12.5px] leading-relaxed text-ink">
                           · <span data-tr>{line}</span>
                         </li>
@@ -68,18 +66,23 @@ function BriefSection({
                     </ul>
                   </>
                 ) : null}
-                {a.koreaImplication ? (
-                  <p className="mt-1 border-l-2 border-blue-soft pl-2 text-[11.5px] leading-relaxed text-muted">
-                    <span className="font-semibold text-navy-700">한국 적용</span> —{' '}
-                    {a.koreaImplication}
-                  </p>
-                ) : null}
-                <Link
-                  href={`/article/${a.id}`}
-                  className="no-print mt-1.5 inline-flex items-center gap-1 text-[11.5px] font-medium text-blue-accent hover:underline"
-                >
-                  원문 · 번역 보기 →
-                </Link>
+                <div className="no-print mt-1.5 flex flex-wrap items-center gap-3">
+                  <a
+                    href={a.articleUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 text-[11.5px] font-medium text-blue-accent hover:underline"
+                  >
+                    원문 열기
+                    <ExternalLink className="h-3 w-3" aria-hidden />
+                  </a>
+                  <Link
+                    href={`/article/${a.id}`}
+                    className="text-[11.5px] font-medium text-muted hover:text-navy-800"
+                  >
+                    요약 · 번역 보기 →
+                  </Link>
+                </div>
               </div>
             </li>
           ))}
@@ -99,7 +102,7 @@ export default async function DailyBriefPage() {
       <PageHeader
         eyebrow="EXECUTIVE DAILY BRIEF"
         title={`GLOBAL FOODSERVICE DAILY BRIEF — ${brief.date}`}
-        description="매일 자동 생성. 지역별 3건 + 글로벌 2건, 총 10~12건."
+        description="매일 자동 생성. 각 기사는 요약 · [원문 열기] 로만 정리했고, 상단바 '한국어 번역'으로 화면 전체를 번역합니다."
         action={
           <div className="flex items-center gap-2">
             <ShareButton

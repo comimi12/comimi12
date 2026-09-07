@@ -1,38 +1,13 @@
 import Link from 'next/link'
 import { PageHeader } from '@/components/layout/page-header'
 import { KpiCards } from '@/components/dashboard/kpi-cards'
-import { TopTable } from '@/components/news/article-table'
-import {
-  Card,
-  CardBody,
-  CardHeader,
-  Empty,
-  SectionTitle,
-  Table,
-  TableWrap,
-  Td,
-  Th,
-} from '@/components/ui/primitives'
-import {
-  CategoryBarChart,
-  KeywordTimelineChart,
-  RegionBarChart,
-  ScoreDistributionChart,
-} from '@/components/charts'
-import {
-  categoryCounts,
-  computeKpis,
-  keywordTimeline,
-  keywordTrends,
-  regionCounts,
-  regionSummary,
-  scoreDistribution,
-  todayTop,
-} from '@/lib/analytics'
+import { ArticleBriefList } from '@/components/news/article-brief'
+import { Card, SectionTitle } from '@/components/ui/primitives'
+import { computeKpis, regionSummary, todayTop } from '@/lib/analytics'
 import { dataSourceMeta, getArticles } from '@/lib/repository'
 import { REGION_LABEL_KO, REGION_ORDER } from '@/lib/categories'
 import { DEMO_NOTICE } from '@/lib/data/demo'
-import { formatDate, now, pct } from '@/lib/utils'
+import { formatDate, now } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -42,8 +17,6 @@ export default async function DashboardPage() {
 
   const kpis = computeKpis(articles, reference)
   const top10 = todayTop(articles, 10, reference)
-  const radar = keywordTrends(articles, reference).slice(0, 8)
-  const timeline = keywordTimeline(articles, reference)
   const regions = REGION_ORDER.map((r) => regionSummary(articles, r, reference))
   const meta = dataSourceMeta()
   // 무료 수집 모드: 실기사이지만 AI 번역이 없는 상태
@@ -55,7 +28,7 @@ export default async function DashboardPage() {
       <PageHeader
         eyebrow="EXECUTIVE DASHBOARD"
         title="오늘의 글로벌 외식 인텔리전스"
-        description="위에서 아래로 읽으면 3분. KPI → 핵심 뉴스 → 트렌드 → 지역 → 분포."
+        description="KPI → 핵심 뉴스 → 지역 순으로 3분. 기사마다 요약과 [원문] 버튼이 있고, 상단바 '한국어 번역'으로 화면 전체를 번역합니다."
         action={
           <Link
             href="/daily-brief"
@@ -106,93 +79,13 @@ export default async function DashboardPage() {
             }
           />
           <Card>
-            <TopTable articles={top10} />
+            <ArticleBriefList articles={top10} rank />
           </Card>
         </section>
 
-        {/* ③ 트렌드 */}
+        {/* ③ 지역별 */}
         <section className="space-y-2">
-          <SectionTitle
-            step="03"
-            title="지금 뜨는 트렌드"
-            ko="Trend Radar"
-            action={
-              <Link
-                href="/trend-radar"
-                className="text-[12px] font-medium text-blue-accent hover:underline"
-              >
-                레이더 상세 →
-              </Link>
-            }
-          />
-          <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.25fr_1fr]">
-            <Card>
-              <CardHeader
-                title="급상승 키워드"
-                subtitle="최근 30일 언급량, 직전 기간 대비 증감"
-              />
-              {radar.length === 0 ? (
-                <Empty />
-              ) : (
-                <TableWrap>
-                  <Table>
-                    <thead>
-                      <tr>
-                        <Th>키워드</Th>
-                        <Th className="w-20 text-right">30일</Th>
-                        <Th className="w-20 text-right">7일</Th>
-                        <Th className="w-24 text-right">7일 성장</Th>
-                        <Th className="w-[150px]">지역 분포</Th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {radar.map((k) => (
-                        <tr key={k.keyword}>
-                          <Td>
-                            <span className="block text-[12.5px] font-semibold text-navy-800">
-                              {k.keyword}
-                            </span>
-                            <span className="block text-[11px] text-muted">{k.labelKo}</span>
-                          </Td>
-                          <Td className="text-right text-[12.5px]">{k.mentions30d}</Td>
-                          <Td className="text-right text-[12.5px]">{k.mentions7d}</Td>
-                          <Td
-                            className={
-                              k.growth7d > 0
-                                ? 'text-right text-[12.5px] font-semibold text-navy-800'
-                                : 'text-right text-[12.5px] text-muted'
-                            }
-                          >
-                            {pct(k.growth7d)}
-                          </Td>
-                          <Td className="text-[11px] leading-snug text-muted">
-                            {REGION_ORDER.filter((r) => k.regionDistribution[r] > 0)
-                              .map((r) => `${r} ${k.regionDistribution[r]}`)
-                              .join(' · ') || '—'}
-                          </Td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </Table>
-                </TableWrap>
-              )}
-            </Card>
-
-            <Card>
-              <CardHeader
-                title="30일 키워드 변화"
-                subtitle="상위 5개 키워드, 주간 언급량"
-              />
-              <CardBody>
-                <KeywordTimelineChart keys={timeline.keys} rows={timeline.rows} />
-              </CardBody>
-            </Card>
-          </div>
-        </section>
-
-        {/* ④ 지역별 */}
-        <section className="space-y-2">
-          <SectionTitle step="04" title="지역별 현황" ko="Region Snapshot" />
+          <SectionTitle step="03" title="지역별 현황" ko="Region Snapshot" />
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
             {regions.map((r) => (
               <Card key={r.region}>
@@ -216,7 +109,7 @@ export default async function DashboardPage() {
                       href={`/article/${r.top5[0].id}`}
                       className="block text-[12.5px] font-semibold leading-snug text-navy-800 hover:text-blue-accent"
                     >
-                      {r.top5[0].titleKo}
+                      <span data-tr>{r.top5[0].titleKo}</span>
                     </Link>
                   ) : (
                     <p className="text-[12px] text-muted">해당 기간 기사 없음</p>
@@ -239,30 +132,6 @@ export default async function DashboardPage() {
           </div>
         </section>
 
-        {/* ⑤ 분포 */}
-        <section className="space-y-2">
-          <SectionTitle step="05" title="분포 한눈에" ko="Distribution" />
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-            <Card>
-              <CardHeader title="지역별 기사량" subtitle="최근 30일" />
-              <CardBody>
-                <RegionBarChart data={regionCounts(articles, reference)} />
-              </CardBody>
-            </Card>
-            <Card>
-              <CardHeader title="중요도 분포" subtitle="Trend Score 구간별 기사 수" />
-              <CardBody>
-                <ScoreDistributionChart data={scoreDistribution(articles)} />
-              </CardBody>
-            </Card>
-            <Card>
-              <CardHeader title="카테고리별 기사량" subtitle="최근 30일, 상위 9개" />
-              <CardBody>
-                <CategoryBarChart data={categoryCounts(articles, reference).slice(0, 9)} />
-              </CardBody>
-            </Card>
-          </div>
-        </section>
       </div>
     </div>
   )

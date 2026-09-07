@@ -82,26 +82,47 @@ async function getTranslator(onProgress?: (pct: number) => void): Promise<Transl
 /** 같은 문장을 두 번 번역하지 않는다. */
 const memo = new Map<string, string>()
 
+/** 브라우저 번역은 문장 단위 호출이라, 목록 화면에서는 몇 개씩 동시에 돌린다. */
+const CONCURRENCY = 4
+
 export async function translateMany(
   inputs: string[],
   onProgress?: (pct: number) => void,
 ): Promise<string[]> {
   const translator = await getTranslator(onProgress)
-  const out: string[] = []
-  for (const text of inputs) {
-    const key = text.trim()
-    if (!key) {
-      out.push('')
-      continue
+  const out: string[] = new Array(inputs.length).fill('')
+  let cursor = 0
+  let failed = 0
+
+  async function worker() {
+    for (;;) {
+      const i = cursor++
+      if (i >= inputs.length) return
+      const key = inputs[i].trim()
+      if (!key) continue
+      const hit = memo.get(key)
+      if (hit !== undefined) {
+        out[i] = hit
+        continue
+      }
+      try {
+        const result = await translator.translate(key)
+        memo.set(key, result)
+        out[i] = result
+      } catch {
+        // 한 문장이 실패해도 나머지는 계속 번역한다(호출부는 빈 값을 무시).
+        failed += 1
+      }
     }
-    const hit = memo.get(key)
-    if (hit !== undefined) {
-      out.push(hit)
-      continue
-    }
-    const result = await translator.translate(key)
-    memo.set(key, result)
-    out.push(result)
+  }
+
+  await Promise.all(
+    Array.from({ length: Math.min(CONCURRENCY, inputs.length) }, () => worker()),
+  )
+
+  // 전부 실패하면 호출부가 안내를 띄울 수 있게 오류로 올린다.
+  if (inputs.length > 0 && failed === inputs.length) {
+    throw new Error('번역에 실패했습니다.')
   }
   return out
 }

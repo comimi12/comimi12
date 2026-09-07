@@ -57,7 +57,7 @@ export function OriginalTranslation({
         .slice(0, 6)
 
       const results = await translateMany([title, ...bodyLines], setProgress)
-      setLive({ title: results[0], lines: results.slice(1).filter(Boolean) })
+      setLive({ title: results[0] || titleKo, lines: results.slice(1).filter(Boolean) })
       setStatus('ready')
     } catch {
       setStatus('error')
