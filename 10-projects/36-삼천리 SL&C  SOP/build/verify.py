@@ -24,6 +24,7 @@ VIEWS = [
     ("page-wasa-chef", "#/p/wasa-manual/22", 390),
     ("menu", "#/menu", 390),
     ("menu-cat", "#/menu/ksc-menu/SOUP", 390),
+    ("menu-all", "#/menu/ksc-menu/__all", 390),
     ("grill", "#/grill", 390),
     ("check", "#/check", 390),
     ("cert", "#/cert", 390),

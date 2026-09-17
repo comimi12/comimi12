@@ -512,15 +512,62 @@
   }
 
   /* ── 메뉴 ─────────────────────────────────────────── */
+  var CAT_KR = {
+    'SET': '세트', 'SOUP': '탕 · 찌개', 'NOODLES': '면', 'RICE': '밥',
+    'SIDES': '사이드', 'EXPERIENCES (COMBO)': '코스 세트', 'SPECIAL FAMILY SET': '가족 세트',
+    'SHAREABLES': '함께 나눔', 'HOUSE-MADE KIMCHI': '수제 김치', 'ART OF KALBI': '갈비',
+    'A LA CARTE': '단품', 'KOREAN CLASSICS · RICE': '한식 · 밥',
+    'KOREAN CLASSICS · NOODLES': '한식 · 면', 'KOREAN CLASSICS · SOUP': '한식 · 탕',
+    'DESSERT': '디저트', 'KID’S MENU': '아이 메뉴', 'KIDS MENU': '아이 메뉴',
+    'COLD STARTERS': '차가운 전채', 'HOT STARTERS': '따뜻한 전채', 'ROBATA': '로바타 구이',
+    'ROLLS': '롤', 'SPECIALTY ROLLS': '스페셜 롤', 'NIGIRI': '초밥', 'SASHIMI': '회',
+    'WASA SASHIMI': '와사 시그니처 회', 'ENTREE': '식사', 'SETS': '세트'
+  };
+
+  /** 메뉴 탭 첫 화면 — 카테고리 목록.
+   *  카드 90장 속에 완료 버튼이 숨어 있으면 어디를 눌러야 할지 알 수 없어서,
+   *  SOP 탭과 같은 "목록 → 내용 → 완료" 흐름으로 맞춘다. */
+  function viewMenuList() {
+    var deck = menuDeck(S.brand);
+    if (!deck) return '<div class="empty">No menu data · 메뉴 자료가 없습니다.</div>';
+    var cats = catsOf(deck), dn = 0;
+    cats.forEach(function (c) { if (isDone('menu:' + deck.id + ':' + c)) dn++; });
+
+    var h = '<div class="card pad"><div class="prog">'
+      + ring(cats.length ? Math.round(dn / cats.length * 100) : 0)
+      + '<div class="meta"><b>' + L('MENU SOP', '메뉴 학습') + '</b>'
+      + '<span>' + dn + ' / ' + cats.length + ' categories · 분류 완료</span>'
+      + '<span>' + deck.items.length + ' items · 전체 메뉴</span></div></div>'
+      + '<div class="note" style="margin-top:14px">'
+      + 'Open a category, look through it, then press the button at the bottom.<br>'
+      + '분류를 열어 훑어본 뒤 맨 아래 <b>학습 완료</b>를 누르세요.</div></div>';
+
+    h += '<h2 class="sect">CATEGORIES · 분류</h2><div class="list">';
+    cats.forEach(function (c, i) {
+      var n = deck.items.filter(function (it) { return it.chip === c; }).length;
+      h += rowHtml('#/menu/' + deck.id + '/' + encodeURIComponent(c), String(i + 1),
+        isDone('menu:' + deck.id + ':' + c), c,
+        (CAT_KR[c] ? CAT_KR[c] + ' · ' : '') + n + '종');
+    });
+    h += '</div>';
+
+    h += '<h2 class="sect">BROWSE ALL · 전체 보기</h2><div class="list">'
+      + rowHtml('#/menu/' + deck.id + '/__all', '☰', false,
+        'ALL MENU', '전체 메뉴 ' + deck.items.length + '종 한눈에 보기')
+      + '</div>';
+    return h;
+  }
+
   function viewMenu(cat) {
     var deck = menuDeck(S.brand);
     if (!deck) return '<div class="empty">No menu data · 메뉴 자료가 없습니다.</div>';
+    var all = cat === '__all';
     var cats = catsOf(deck);
     var items = deck.items.map(function (it, i) { return { it: it, i: i }; });
-    if (cat) items = items.filter(function (x) { return x.it.chip === cat; });
+    if (!all) items = items.filter(function (x) { return x.it.chip === cat; });
 
-    var h = '<div class="chips"><button data-cat=""' + (cat ? '' : ' aria-pressed="true"') + '>ALL 전체 '
-      + deck.items.length + '</button>'
+    // 분류 사이를 바로 옮겨 다닐 수 있게 칩은 남긴다
+    var h = '<div class="chips">'
       + cats.map(function (c) {
         var n = deck.items.filter(function (it) { return it.chip === c; }).length;
         var ok = isDone('menu:' + deck.id + ':' + c);
@@ -540,13 +587,25 @@
         + (it.price ? '<i>' + esc(it.price) + '</i>' : '') + '</span></button>';
     }).join('') + '</div>';
 
-    if (cat) {
-      var k = 'menu:' + deck.id + ':' + cat, on = isDone(k);
-      h += '<button class="done" data-done="' + esc(k) + '" aria-pressed="' + on + '">'
-        + ico(on ? I.tick : I.check)
-        + (on ? L(cat + ' completed', '학습 완료') : L('I have studied ' + cat, '이 메뉴를 학습했습니다'))
-        + '</button>';
+    if (all) {
+      h += '<a class="btn sec2" style="margin-top:18px" href="#/menu">'
+        + L('Back to categories', '분류 목록으로') + '</a>';
+      return h;
     }
+
+    var k = 'menu:' + deck.id + ':' + cat, on = isDone(k);
+    h += '<button class="done" data-done="' + esc(k) + '" aria-pressed="' + on + '">'
+      + ico(on ? I.tick : I.check)
+      + (on ? L(cat + ' completed', '학습 완료') : L('I have studied ' + cat, '이 분류를 학습했습니다'))
+      + '</button>';
+
+    // 아직 안 끝낸 다음 분류로 이어서
+    var nx = null;
+    cats.forEach(function (c) { if (!nx && c !== cat && !isDone('menu:' + deck.id + ':' + c)) nx = c; });
+    if (nx) h += '<a class="btn sec2" style="margin-top:10px" href="#/menu/' + deck.id + '/'
+      + encodeURIComponent(nx) + '">' + L('Next · ' + nx, '다음 분류') + '</a>';
+    else h += '<a class="btn sec2" style="margin-top:10px" href="#/menu">'
+      + L('All categories done', '분류 목록으로') + '</a>';
     return h;
   }
 
@@ -894,10 +953,14 @@
       opts.brands = false;   // 본문에서는 제목에 폭을 양보
     }
     else if (tab === 'menu') {
-      body = viewMenu(r.b ? decodeURIComponent(r.b) : '');
-      title = r.b ? decodeURIComponent(r.b) : 'MENU SOP';
-      opts.kicker = r.b ? '메뉴' : '메뉴 SOP';
-      if (r.b) opts.back = 'menu';
+      var mc = r.b ? decodeURIComponent(r.b) : '';
+      if (!mc) { body = viewMenuList(); title = 'MENU SOP'; opts.kicker = '메뉴 학습'; }
+      else {
+        body = viewMenu(mc);
+        title = mc === '__all' ? 'ALL MENU' : mc;
+        opts.kicker = mc === '__all' ? '전체 메뉴' : (CAT_KR[mc] || '메뉴');
+        opts.back = 'menu';
+      }
     }
     else if (tab === 'grill') {
       body = viewGrill(); title = 'GRILL VIDEO'; opts.kicker = '그릴 영상';
