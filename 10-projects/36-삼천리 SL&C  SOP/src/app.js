@@ -154,12 +154,15 @@
     { g: '안전 · 법규', t: '근로 · 운영 법규', m: 'CALIFORNIA COMPLIANCE' },
     { g: '체크리스트', t: '오픈 체크리스트', m: 'OPENING CHECKLIST' },
     { g: '체크리스트', t: '마감 체크리스트', m: 'CLOSING CHECKLIST' },
-    { g: '체크리스트', t: '메뉴별 알러지 표', m: 'ALLERGEN MATRIX' }
+    { g: '체크리스트', t: '메뉴별 알러지 표', m: 'ALLERGEN MATRIX' },
+    // 아래 둘은 WASA에만 있는 장 (KSC에서 지운 항목과 대응되지 않으므로 남긴다)
+    { g: '체크리스트', t: '메뉴 지식 ① 스시 · 회 · 온요리', m: 'MENU KNOWLEDGE ①' },
+    { g: '체크리스트', t: '메뉴 지식 ② 이자카야 · 식사', m: 'MENU KNOWLEDGE ②' }
   ];
 
   /** 간소화 과정의 페이지 목록 (순서 = COURSE 순서) */
   function coursePages(b) {
-    var deck = mainManual(b), out = [];
+    var deck = mainManual(b), out = [], used = {};
     if (!deck) return out;
     COURSE.forEach(function (c) {
       if (c.role) {
@@ -171,10 +174,14 @@
       }
       var hit = null;
       deck.pages.forEach(function (p) {
-        if (!hit && !p.divider && titleMain(p.title).toUpperCase().indexOf(c.m) === 0) hit = p;
+        if (hit || p.divider || used[p.n]) return;
+        if (titleMain(p.title).toUpperCase().indexOf(c.m.toUpperCase()) === 0) hit = p;
       });
-      if (hit) out.push({ k: deck.id + ':' + hit.n, kind: 'page', g: c.g, label: c.t,
-                          sub: titleMain(hit.title), deck: deck.id, n: hit.n });
+      if (hit) {
+        used[hit.n] = 1;
+        out.push({ k: deck.id + ':' + hit.n, kind: 'page', g: c.g, label: c.t,
+                   sub: titleMain(hit.title), deck: deck.id, n: hit.n });
+      }
     });
     return out;
   }
@@ -226,15 +233,14 @@
   function route() {
     var h = location.hash.replace(/^#\/?/, '');
     var parts = h.split('/').filter(Boolean).map(decodeURIComponent);
-    return { t: parts[0] || 'home', a: parts[1] || '', b: parts[2] || '', c: parts[3] || '' };
+    return { t: parts[0] || 'sop', a: parts[1] || '', b: parts[2] || '', c: parts[3] || '' };
   }
   function go(p) { location.hash = '#/' + p; }
 
   var TABS = [
-    { id: 'home', label: '홈', ic: I.home },
     { id: 'sop', label: 'SOP', ic: I.book },
     { id: 'menu', label: '메뉴', ic: I.dish },
-    { id: 'check', label: '체크', ic: I.check },
+    { id: 'check', label: '체크리스트', ic: I.check },
     { id: 'cert', label: '수료', ic: I.award },
     { id: 'admin', label: '이수확인', ic: I.team }
   ];
@@ -262,11 +268,8 @@
     if (opts.back) h += '<a class="back" href="#/' + opts.back + '" aria-label="뒤로">' + ico(I.left) + '</a>';
     h += '<div class="ti"><b>' + esc(title) + '</b>'
       + (opts.kicker ? '<span>' + esc(opts.kicker) + '</span>' : '') + '</div>';
-    h += '<div class="lng">' + [['kr', '한'], ['both', '한+EN'], ['en', 'EN']].map(function (x) {
-      return '<button data-lang="' + x[0] + '"'
-        + (S.lang === x[0] ? ' aria-current="true"' : '') + '>' + x[1] + '</button>';
-    }).join('') + '</div>';
     h += '<a class="ic" href="#/search" aria-label="검색">' + ico(I.search) + '</a></div>';
+    h += '<div class="hd-sub">';
     if (opts.brands !== false) {
       h += '<div class="bsw">' + BRANDS.map(function (b) {
         var m = BRAND_META[b] || {};
@@ -276,6 +279,12 @@
           + '<span>' + esc(m.tag || '') + '</span></button>';
       }).join('') + '</div>';
     }
+    // 브랜드 선택 다음에 언어 선택
+    h += '<div class="lng">' + [['kr', '한국어'], ['both', '한+EN'], ['en', 'ENGLISH']]
+      .map(function (x) {
+        return '<button data-lang="' + x[0] + '"'
+          + (S.lang === x[0] ? ' aria-current="true"' : '') + '>' + x[1] + '</button>';
+      }).join('') + '</div></div>';
     $hd.innerHTML = h;
   }
 
@@ -297,17 +306,29 @@
   }
 
   /* ── 홈 ───────────────────────────────────────────── */
-  function viewHome() {
-    var p = progress(S.brand), m = BRAND_META[S.brand];
-    var next = null;
+  function hrefOf(x) {
+    return x.kind === 'menu'
+      ? '#/menu/' + x.deck + '/' + encodeURIComponent(x.cat)
+      : '#/p/' + x.deck + '/' + x.n;
+  }
+
+  /* ── SOP ──────────────────────────────────────────── */
+  /** SOP = 시작 화면. 내 정보·진도와 학습 목록을 한 화면에 함께 보여준다. */
+  function viewSopList() {
+    var pages = coursePages(S.brand), h = '', g = '', i = 0;
+    if (!pages.length) return '<div class="empty">과정을 불러오지 못했습니다.</div>';
+
+    var p = progress(S.brand), next = null;
     p.items.forEach(function (x) { if (!next && !S.done[x.k]) next = x; });
 
-    var h = '<div class="card pad"><div class="prog">' + ring(p.pct)
+    h += '<div class="card pad"><div class="prog">' + ring(p.pct)
       + '<div class="meta"><b>' + esc(S.me.name || '이름을 등록해 주세요') + '</b>'
-      + '<span>' + esc(S.me.posLabel || '포지션 미설정') + '</span>'
-      + '<span>' + p.done + ' / ' + p.total + ' 항목 완료</span></div></div>';
+      + '<span>' + esc(S.me.posLabel || '포지션 미설정')
+      + (S.me.phone ? ' · ' + esc(S.me.phone) : '') + '</span>'
+      + '<span>' + esc(BRAND_META[S.brand].name) + ' · ' + p.done + ' / ' + p.total + ' 항목 완료</span>'
+      + '</div></div>';
     if (!S.me.name || !S.me.pos) {
-      h += '<a class="btn" href="#/cert" style="margin-top:14px">내 정보 등록하기</a>';
+      h += '<a class="btn" href="#/cert" style="margin-top:14px">이름 · 포지션 등록하기</a>';
     } else if (next) {
       h += '<a class="btn" href="' + hrefOf(next) + '" style="margin-top:14px">'
         + '이어서 학습 · ' + esc(next.label) + '</a>';
@@ -316,47 +337,9 @@
     }
     h += '</div>';
 
-    h += '<h2 class="sect">' + esc(m.name) + '</h2>'
-      + '<div class="card pad"><div class="note">' + esc(m.kr)
-      + ' — 매장 교육자료를 목차 순서 그대로 담았습니다. 읽은 항목은 아래쪽 <b>학습 완료</b> 버튼으로 표시하세요. '
-      + '기록은 이 휴대폰에만 저장되며, 마지막에 트레이너 서명을 받아 수료코드를 만듭니다.</div></div>';
-
-    var deck = mainManual(S.brand);
-    h += '<h2 class="sect">챕터별 진도</h2><div class="list">';
-    chaptersOf(deck).forEach(function (c) {
-      if (['03', '04', '05'].indexOf(c.ch) >= 0) return;
-      var tot = c.pages.length, dn = 0;
-      c.pages.forEach(function (pg) { if (isDone(deck.id + ':' + pg.n)) dn++; });
-      h += rowHtml('#/sop/' + deck.id + '/' + c.ch, c.ch, dn === tot,
-        c.name, dn + ' / ' + tot + ' 완료');
-    });
-    h += '</div>';
-    return h;
-  }
-  function hrefOf(x) {
-    return x.kind === 'menu'
-      ? '#/menu/' + x.deck + '/' + encodeURIComponent(x.cat)
-      : '#/p/' + x.deck + '/' + x.n;
-  }
-
-  /* ── SOP ──────────────────────────────────────────── */
-  function viewSopList() {
-    var pages = coursePages(S.brand), h = '', g = '', i = 0;
-    if (!pages.length) return '<div class="empty">과정을 불러오지 못했습니다.</div>';
-
     var dn = 0;
     pages.forEach(function (x) { if (isDone(x.k)) dn++; });
-    h += '<div class="card pad"><div class="prog">'
-      + ring(Math.round(dn / pages.length * 100))
-      + '<div class="meta"><b>입문 매뉴얼 (간소화)</b>'
-      + '<span>' + pages.length + '개 항목 · ' + dn + '개 완료</span>'
-      + '<span>순서대로 읽고 완료를 눌러 주세요</span></div></div></div>';
-
-    if (!S.me.pos) {
-      h += '<div class="card pad" style="margin-top:12px"><div class="note">'
-        + '<b>포지션을 정하면</b> 내 직급 표준 절차가 과정에 추가됩니다.</div>'
-        + '<a class="btn" style="margin-top:12px" href="#/cert">포지션 선택하기</a></div>';
-    }
+    h += '<h2 class="sect">입문 매뉴얼 (간소화) · ' + dn + '/' + pages.length + '</h2>';
 
     pages.forEach(function (x) {
       if (x.g !== g) {
@@ -863,8 +846,7 @@
     else delete document.documentElement.dataset.theme;
 
     var tab = r.t, body = '', title = '', opts = {};
-    if (tab === 'home') { body = viewHome(); title = BRAND_META[S.brand].name; }
-    else if (tab === 'sop') {
+    if (tab === 'sop') {
       body = viewSopList(); title = '입문 매뉴얼'; opts.kicker = '간소화';
     }
     else if (tab === 'p') {
@@ -880,7 +862,7 @@
       title = r.b ? decodeURIComponent(r.b) : '메뉴 SOP';
       if (r.b) opts.back = 'menu';
     }
-    else if (tab === 'check') { body = viewCheck(); title = '오픈 · 마감 체크'; }
+    else if (tab === 'check') { body = viewCheck(); title = '오픈 · 마감 체크리스트'; }
     else if (tab === 'cert') { body = viewCert(); title = '내 교육 수료'; }
     else if (tab === 'admin') {
       if (!S.adminOn) { S.adminOn = 1; save(); }
@@ -890,7 +872,7 @@
       if (r.a) S.q = decodeURIComponent(r.a);   // #/search/갈비 처럼 바로 열 수 있게
       body = viewSearch(); title = '검색';
     }
-    else { body = viewHome(); tab = 'home'; title = BRAND_META[S.brand].name; }
+    else { body = viewSopList(); tab = 'sop'; title = '입문 매뉴얼'; opts.kicker = '간소화'; }
 
     renderRail(tab === 'p' ? 'sop' : tab);
     renderHead(title, opts);
@@ -942,8 +924,8 @@
     if (t = e.target.closest('[data-setbrand]')) {
       S.brand = t.dataset.setbrand; save();
       var was = location.hash;
-      go('home');
-      if (location.hash === was) render();   // 이미 홈이면 hashchange가 안 온다
+      go('sop');
+      if (location.hash === was) render();   // 이미 같은 화면이면 hashchange가 안 온다
       return;
     }
     if (e.target.closest('#themeTog')) {

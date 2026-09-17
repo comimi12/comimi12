@@ -15,7 +15,7 @@ if ARG.startswith("http"):
     SHOTS = os.path.join(HERE, "shots-live")
 
 VIEWS = [
-    ("home", "#/home", 390),
+    ("start", "#/", 390),
     ("sop-list", "#/sop", 390),
     ("sop-wasa", "#/sop", 390),
     ("page-server", "#/p/ksc-manual/15", 390),
@@ -55,7 +55,7 @@ def main():
               broken: [...document.images].filter(i => i.complete && i.naturalWidth === 0).length,
               blocks: document.querySelectorAll('.blk,.mc,.grp,.tbl,.res a,.row,.card,.cert').length
             })""")
-            if stats["rail"] < 6 and "wide" not in name:
+            if stats["rail"] != 5 and "wide" not in name:
                 problems.append("%s: 왼쪽 레일 탭 %d개 (5개여야 함)" % (name, stats["rail"]))
             if errs:
                 problems.append("%s: 콘솔 오류 %s" % (name, errs[:2]))
