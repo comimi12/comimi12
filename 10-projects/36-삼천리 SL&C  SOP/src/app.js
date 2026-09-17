@@ -14,8 +14,10 @@
   var $sheetBody = document.getElementById('sheetBody');
 
   var BRAND_META = {
-    KSC: { name: 'KALBI SOCIAL CLUB', kr: '칼비 소셜 클럽 · 코리안 바비큐' },
-    WASA: { name: 'ROBATA WASA', kr: '로바타 와사 · 이자카야 · 스시' }
+    KSC: { name: 'KALBI SOCIAL CLUB', kr: '칼비 소셜 클럽 · 코리안 바비큐',
+           mark: 'KALBI', tag: '코리안 바비큐' },
+    WASA: { name: 'ROBATA WASA', kr: '로바타 와사 · 이자카야 · 스시',
+            mark: 'WASA', tag: '이자카야 · 스시' }
   };
 
   /* ── 저장소 ───────────────────────────────────────── */
@@ -225,16 +227,20 @@
 
   function renderHead(title, opts) {
     opts = opts || {};
-    var h = '';
+    var h = '<div class="hd-row">';
     if (opts.back) h += '<a class="back" href="#/' + opts.back + '" aria-label="뒤로">' + ico(I.left) + '</a>';
     h += '<div class="ti"><b>' + esc(title) + '</b>'
       + (opts.kicker ? '<span>' + esc(opts.kicker) + '</span>' : '') + '</div>';
+    h += '<a class="ic" href="#/search" aria-label="검색">' + ico(I.search) + '</a></div>';
     if (opts.brands !== false) {
       h += '<div class="bsw">' + BRANDS.map(function (b) {
-        return '<button data-setbrand="' + b + '"' + (b === S.brand ? ' aria-current="true"' : '') + '>' + b + '</button>';
+        var m = BRAND_META[b] || {};
+        return '<button class="b-' + b + '" data-setbrand="' + b + '"'
+          + (b === S.brand ? ' aria-current="true"' : '') + '>'
+          + '<i class="sw"></i><b>' + esc(m.mark || b) + '</b>'
+          + '<span>' + esc(m.tag || '') + '</span></button>';
       }).join('') + '</div>';
     }
-    h += '<a class="ic" href="#/search" aria-label="검색">' + ico(I.search) + '</a>';
     $hd.innerHTML = h;
   }
 
@@ -873,7 +879,11 @@
     var t;
     // 주의: <html>에도 data-brand가 있다(CSS용). 클릭 판정은 반드시 data-setbrand로.
     if (t = e.target.closest('[data-setbrand]')) {
-      S.brand = t.dataset.setbrand; save(); go('home'); return;
+      S.brand = t.dataset.setbrand; save();
+      var was = location.hash;
+      go('home');
+      if (location.hash === was) render();   // 이미 홈이면 hashchange가 안 온다
+      return;
     }
     if (e.target.closest('#themeTog')) {
       var cur = S.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
