@@ -426,3 +426,19 @@ textarea.ta{ height:130px; padding:13px 15px; line-height:1.55; resize:vertical;
 .vid figcaption span{ display:block; font-size:13.5px; color:var(--pri-t); font-weight:700; margin-top:2px }
 .vid figcaption p{ margin:9px 0 0; font-size:13.5px; color:var(--mut); line-height:1.65 }
 @media (min-width:760px){ .vids{ grid-template-columns:repeat(2,minmax(0,1fr)) } }
+
+/* 분류마다 붙는 완료 버튼은 본문용보다 작게 */
+.done.sm{ margin-top:12px; padding:14px; font-size:14px; border-width:1.5px }
+.done.sm svg{ width:18px; height:18px }
+/* 칩으로 뛰어갈 때 상단 고정 헤더에 가리지 않도록 */
+h2.sect[id]{ scroll-margin-top:72px }
+
+/* 메뉴 탭 진도 — 사진에 자리를 양보하는 얇은 줄 */
+.mprog{ padding:2px 2px 0 }
+.mprog .t{ display:flex; align-items:baseline; gap:6px; font-size:12.5px; color:var(--mut) }
+.mprog .t b{ font-size:15px; color:var(--ink); font-family:'Archivo',sans-serif }
+.mprog .t i{ margin-left:auto; font-style:normal; font-size:12px; color:var(--mut2) }
+.mprog .bar{ margin-top:7px }
+.mprog + .chips{ margin-top:10px }
+/* 첫 분류 제목은 칩 바로 아래라 여백을 줄인다 */
+.chips + h2.sect{ margin-top:6px }

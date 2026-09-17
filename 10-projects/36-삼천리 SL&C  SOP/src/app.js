@@ -524,37 +524,53 @@
     'WASA SASHIMI': '와사 시그니처 회', 'ENTREE': '식사', 'SETS': '세트'
   };
 
-  /** 메뉴 탭 첫 화면 — 카테고리 목록.
-   *  카드 90장 속에 완료 버튼이 숨어 있으면 어디를 눌러야 할지 알 수 없어서,
-   *  SOP 탭과 같은 "목록 → 내용 → 완료" 흐름으로 맞춘다. */
-  function viewMenuList() {
+  function cardHtml(deck, it, i) {
+    return '<button class="mc" data-item="' + i + '">'
+      + '<span class="im">' + (it.img
+        ? '<img src="' + esc(thumb(it.img)) + '" alt="' + esc(it.en)
+          + '" loading="lazy" decoding="async">'
+        : '<span class="no">PHOTO<br>준비 중</span>') + '</span>'
+      + '<span class="bd"><b>' + esc(it.en) + '</b>'
+      + (it.kr ? '<span>' + esc(it.kr) + '</span>' : '')
+      + (it.price ? '<i>' + esc(it.price) + '</i>' : '') + '</span></button>';
+  }
+
+  /** 메뉴 탭 첫 화면 — 사진이 바로 보이도록 전 분류를 한 페이지에 펼친다.
+   *  대신 완료 버튼을 각 분류 카드 바로 아래에 두어 무엇에 대한 이수인지 분명하게. */
+  function viewMenuAll() {
     var deck = menuDeck(S.brand);
     if (!deck) return '<div class="empty">No menu data · 메뉴 자료가 없습니다.</div>';
     var cats = catsOf(deck), dn = 0;
     cats.forEach(function (c) { if (isDone('menu:' + deck.id + ':' + c)) dn++; });
 
-    var h = '<div class="card pad"><div class="prog">'
-      + ring(cats.length ? Math.round(dn / cats.length * 100) : 0)
-      + '<div class="meta"><b>' + L('MENU SOP', '메뉴 학습') + '</b>'
-      + '<span>' + dn + ' / ' + cats.length + ' categories · 분류 완료</span>'
-      + '<span>' + deck.items.length + ' items · 전체 메뉴</span></div></div>'
-      + '<div class="note" style="margin-top:14px">'
-      + 'Open a category, look through it, then press the button at the bottom.<br>'
-      + '분류를 열어 훑어본 뒤 맨 아래 <b>학습 완료</b>를 누르세요.</div></div>';
+    // 사진이 첫 화면에 바로 들어오도록 진도는 얇은 한 줄로
+    var pct = cats.length ? Math.round(dn / cats.length * 100) : 0;
+    var h = '<div class="mprog"><div class="t">'
+      + '<b>' + dn + ' / ' + cats.length + '</b> categories done · 분류 완료'
+      + '<i>' + deck.items.length + '종</i></div>'
+      + '<div class="bar"><i style="width:' + pct + '%"></i></div></div>';
 
-    h += '<h2 class="sect">CATEGORIES · 분류</h2><div class="list">';
-    cats.forEach(function (c, i) {
+    // 칩을 누르면 해당 분류로 바로 내려간다
+    h += '<div class="chips">' + cats.map(function (c, i) {
       var n = deck.items.filter(function (it) { return it.chip === c; }).length;
-      h += rowHtml('#/menu/' + deck.id + '/' + encodeURIComponent(c), String(i + 1),
-        isDone('menu:' + deck.id + ':' + c), c,
-        (CAT_KR[c] ? CAT_KR[c] + ' · ' : '') + n + '종');
-    });
-    h += '</div>';
+      return '<button data-jump="cat' + i + '">'
+        + (isDone('menu:' + deck.id + ':' + c) ? '✓ ' : '') + esc(c) + ' ' + n + '</button>';
+    }).join('') + '</div>';
 
-    h += '<h2 class="sect">BROWSE ALL · 전체 보기</h2><div class="list">'
-      + rowHtml('#/menu/' + deck.id + '/__all', '☰', false,
-        'ALL MENU', '전체 메뉴 ' + deck.items.length + '종 한눈에 보기')
-      + '</div>';
+    cats.forEach(function (c, i) {
+      var list = [];
+      deck.items.forEach(function (it, idx) { if (it.chip === c) list.push({ it: it, i: idx }); });
+      var k = 'menu:' + deck.id + ':' + c, on = isDone(k);
+      h += '<h2 class="sect" id="cat' + i + '">' + esc(c)
+        + (CAT_KR[c] ? ' · ' + esc(CAT_KR[c]) : '') + ' &nbsp;' + list.length + '종</h2>'
+        + '<div class="mg">'
+        + list.map(function (x) { return cardHtml(deck, x.it, x.i); }).join('')
+        + '</div>'
+        + '<button class="done sm" data-done="' + esc(k) + '" aria-pressed="' + on + '">'
+        + ico(on ? I.tick : I.check)
+        + (on ? L(c + ' completed', '학습 완료') : L('I have studied ' + c, '이 분류를 학습했습니다'))
+        + '</button>';
+    });
     return h;
   }
 
@@ -575,17 +591,8 @@
           + (ok ? '✓ ' : '') + esc(c) + ' ' + n + '</button>';
       }).join('') + '</div>';
 
-    h += '<div class="mg">' + items.map(function (x) {
-      var it = x.it;
-      return '<button class="mc" data-item="' + x.i + '">'
-        + '<span class="im">' + (it.img
-          ? '<img src="' + esc(thumb(it.img)) + '" alt="' + esc(it.en)
-            + '" loading="lazy" decoding="async">'
-          : '<span class="no">PHOTO<br>준비 중</span>') + '</span>'
-        + '<span class="bd"><b>' + esc(it.en) + '</b>'
-        + (it.kr ? '<span>' + esc(it.kr) + '</span>' : '')
-        + (it.price ? '<i>' + esc(it.price) + '</i>' : '') + '</span></button>';
-    }).join('') + '</div>';
+    h += '<div class="mg">'
+      + items.map(function (x) { return cardHtml(deck, x.it, x.i); }).join('') + '</div>';
 
     if (all) {
       h += '<a class="btn sec2" style="margin-top:18px" href="#/menu">'
@@ -954,11 +961,11 @@
     }
     else if (tab === 'menu') {
       var mc = r.b ? decodeURIComponent(r.b) : '';
-      if (!mc) { body = viewMenuList(); title = 'MENU SOP'; opts.kicker = '메뉴 학습'; }
+      if (!mc || mc === '__all') { body = viewMenuAll(); title = 'MENU SOP'; opts.kicker = '메뉴 학습'; }
       else {
         body = viewMenu(mc);
-        title = mc === '__all' ? 'ALL MENU' : mc;
-        opts.kicker = mc === '__all' ? '전체 메뉴' : (CAT_KR[mc] || '메뉴');
+        title = mc;
+        opts.kicker = CAT_KR[mc] || '메뉴';
         opts.back = 'menu';
       }
     }
@@ -1047,6 +1054,11 @@
         if (S.daily[k]) delete S.daily[k]; else S.daily[k] = 1;
         save();
       });
+      return;
+    }
+    if (t = e.target.closest('[data-jump]')) {
+      var el = document.getElementById(t.dataset.jump);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
     if (t = e.target.closest('[data-cat]')) {
