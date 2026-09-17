@@ -45,6 +45,51 @@ RENAME = [("ROBATA WASA", "IZAKAYA WASA"),
           ("이랏샤이마세", "안녕하십니까"),
           ("이라샤이마세", "안녕하십니까")]
 
+# 생선은 일본어 음차 대신 한국 이름으로 (WASA 메뉴).
+# 조사가 붙는 자리는 받침이 달라지므로 긴 형태를 먼저 둔다.
+FISH = [("아부리 토로", "참치 뱃살 구이"),
+        ("생토로보다", "굽지 않은 참치 뱃살보다"),
+        ("토로 (참치 뱃살)", "참치 뱃살"),
+        ("토로는", "참치 뱃살은"),
+        ("토로를", "참치 뱃살을"),
+        ("토로", "참치 뱃살"),
+        ("연어 뱃살 (아부리)", "연어 뱃살 구이"),
+        ("하마치 (방어)", "방어"),
+        ("하마치", "방어"),
+        ("우니 (성게알)", "성게알"),
+        ("우니는", "성게알은"),
+        ("우니", "성게알"),
+        ("이쿠라 (연어알)", "연어알"),
+        ("이쿠라", "연어알"),
+        ("에비 (새우)", "새우"),
+        ("에비", "새우"),
+        ("타마고 (계란)", "계란"),
+        ("타마고", "계란"),
+        ("우나기동", "장어덮밥"),
+        ("우나기 (장어)", "장어"),
+        ("우나기", "장어"),
+        ("알바코어 (날개다랑어)", "날개다랑어"),
+        ("알바코어", "날개다랑어"),
+        ("참다랑어 (아카미)", "참다랑어 (붉은살)"),
+        ("아카미", "붉은살"),
+        ("살몬", "연어"),
+        ("튜나", "참치"),
+        ("옐로우테일", "방어"),
+        ("미소 블랙코드 (은대구 미소구이)", "은대구 미소구이")]
+
+
+def fix_fish(o):
+    """WASA 덱에만 적용 — KSC에는 해당 표기가 없다."""
+    if isinstance(o, str):
+        for a, b in FISH:
+            o = o.replace(a, b)
+        return o
+    if isinstance(o, list):
+        return [fix_fish(x) for x in o]
+    if isinstance(o, dict):
+        return dict((k, fix_fish(v)) for k, v in o.items())
+    return o
+
 
 def fix_names(o):
     if isinstance(o, str):
@@ -447,6 +492,9 @@ def main():
             print("  %-16s 페이지 %d / %dp" % (d["id"], len(pages), len(prs.slides)))
         out.append(deck)
     out = fix_names(out)
+    for deck in out:
+        if deck.get("brand") == "WASA":
+            deck.update(fix_fish({k: v for k, v in deck.items() if k != "brand"}))
     dst = os.path.join(ROOT, "src", "data.json")
     with open(dst, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, separators=(",", ":"))

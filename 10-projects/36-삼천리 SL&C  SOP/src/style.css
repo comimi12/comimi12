@@ -297,8 +297,11 @@ tbody tr.sep td{ background:var(--pri); color:var(--pri-on); font-weight:800; fo
 .mg{ display:grid; grid-template-columns:repeat(2,1fr); gap:11px }
 .mc{ display:flex; flex-direction:column; text-align:left; padding:0; overflow:hidden;
   background:var(--surf); border-radius:var(--r2); box-shadow:var(--sh) }
+/* 사진은 세로·가로 원본이 섞여 있다. 카드 비율은 4:3으로 고정하되
+   contain 으로 담아 음식이 잘리지 않게 한다. 남는 자리는 배경색. */
 .mc .im{ position:relative; aspect-ratio:4/3; background:var(--surf2); overflow:hidden }
-.mc .im img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover }
+.mc .im img{ position:absolute; inset:0; width:100%; height:100%;
+  object-fit:contain; object-position:center; padding:4px }
 .mc .im .no{ position:absolute; inset:0; display:grid; place-content:center; color:var(--mut2);
   font-size:10.5px; letter-spacing:.08em; text-align:center; font-family:'Archivo',sans-serif }
 .mc .bd{ padding:11px 13px 13px }
@@ -319,8 +322,9 @@ tbody tr.sep td{ background:var(--pri); color:var(--pri-on); font-weight:800; fo
   border-radius:50%; background:color-mix(in srgb,var(--surf) 88%,transparent);
   backdrop-filter:blur(8px); color:var(--ink); display:grid; place-items:center; box-shadow:var(--sh) }
 .sheet .x svg{ width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2.4 }
-.sheet .hero{ position:relative; aspect-ratio:16/10; background:var(--surf2); overflow:hidden }
-.sheet .hero img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover }
+.sheet .hero{ position:relative; aspect-ratio:4/3; background:var(--surf2); overflow:hidden }
+.sheet .hero img{ position:absolute; inset:0; width:100%; height:100%;
+  object-fit:contain; object-position:center }
 .sec{ padding:17px 20px; border-top:1px solid var(--line) }
 .sec h4{ margin:0 0 8px; font-size:10.5px; font-weight:800; letter-spacing:.11em;
   color:var(--pri-t); font-family:'Archivo',sans-serif }
