@@ -14,6 +14,14 @@ OUT = os.path.join(ROOT, "src", "video")
 SRC = r"C:\Users\owner\Desktop\교육팀\9. AI영상\미국\KSC\완료"
 FF = imageio_ffmpeg.get_ffmpeg_exe()
 
+# 휴대폰에서 끊기지 않게: 순수 CRF는 구간마다 3.4Mbps까지 튀어 약한 회선에서 멈춘다.
+# maxrate/bufsize로 천장을 두고, GOP 2초로 시작·탐색을 빠르게.
+ENC = ["-vf", "scale=-2:720", "-r", "30",
+       "-c:v", "libx264", "-preset", "medium", "-crf", "27",
+       "-maxrate", "1800k", "-bufsize", "3600k",
+       "-g", "60", "-keyint_min", "30", "-sc_threshold", "0",
+       "-profile:v", "main", "-level", "3.1", "-pix_fmt", "yuv420p"]
+
 VIDEOS = [
     # 아래 항목은 build/woodae.py 가 만든다 (HTML 합성물 -> mp4). 여기서는 목록에만 올린다.
     dict(id="woodae-galbi", file=None,
@@ -55,10 +63,7 @@ def main():
                 continue
         if src and not os.path.exists(mp4):
             print("  변환 중: %s (%.0f MB)" % (v["file"], os.path.getsize(src) / 1e6))
-            run([FF, "-y", "-i", src,
-                 "-vf", "scale=-2:720", "-r", "30",
-                 "-c:v", "libx264", "-preset", "medium", "-crf", "26",
-                 "-profile:v", "main", "-pix_fmt", "yuv420p",
+            run([FF, "-y", "-i", src] + ENC + [
                  "-c:a", "aac", "-b:a", "96k", "-ac", "2",
                  "-movflags", "+faststart", mp4])
         if not os.path.exists(jpg):
