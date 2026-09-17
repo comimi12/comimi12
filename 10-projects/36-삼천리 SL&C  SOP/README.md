@@ -1,7 +1,7 @@
 # 삼천리 SL&C 브랜드별 SOP — 직원 교육 앱
 
 매장 교육자료(PPTX)를 **목차 순서 그대로** 옮긴 웹앱. 직원이 **개인 스마트폰**으로 학습하고 이수를 표시한다.
-1차 대상은 **KSC(Kalbi Social Club)** 와 **WASA(Robata Wasa)**.
+1차 대상은 **KSC(Kalbi Social Club)** 와 **WASA(Izakaya Wasa)**.
 
 배포: https://comimi12.github.io/slnc-sop-dashboard/
 
@@ -27,8 +27,8 @@
 | **수료** | 내 정보(이름·연락처·포지션) · 남은 항목 · 트레이너 서명 · 확인코드 |
 | **이수확인** | 팀 수료 현황 (관리자용, 항상 노출) |
 
-- 헤더 = 제목 줄(스크롤해도 고정) + 브랜드 선택 → 언어 선택 줄(스크롤과 함께 올라감)
-- 언어는 **한국어 / 한+EN / ENGLISH** 전환 (기본 한국어)
+- 헤더 = 제목 줄(스크롤해도 고정) + 브랜드 선택 줄(스크롤과 함께 올라감)
+- 본문은 **영문 먼저, 국문 번역이 그 아래**로 항상 함께 표시 (언어 전환 없음)
 - 검색은 헤더 돋보기 — 간소화 과정에 있는 내용만 검색된다
 - 다크 모드 자동 + 수동 토글 (레일 하단)
 - 홈 화면에 추가하면 앱처럼 실행 (PWA), 오프라인 동작
@@ -53,8 +53,14 @@
 KSC에만 있는 장을 지운 것이 WASA의 같은 번호 장에 잘못 적용되지 않도록,
 삭제는 순번이 아니라 **원본 제목**으로 판단한다.
 
-본문도 간소화했다 — 기본 한국어만 보이고, 제목 없는 긴 도입 문단은 뺀다.
-영문이 필요하면 헤더에서 `한+EN` 또는 `EN`으로 바꾼다.
+본문에서는 제목 없는 긴 도입 문단만 뺀다. 영문·국문은 항상 함께 보여준다
+(미국 매장이라 두 언어가 모두 필요하다).
+
+### 브랜드명
+
+**로바타 와사는 1호점이고, 이 SOP의 매장은 이자카야 와사(IZAKAYA WASA)다.**
+원본 교육자료의 `ROBATA WASA` 표기는 `build/extract.py`의 `RENAME`에서 일괄 정정한다.
+조리 방식·메뉴 분류로 쓰인 `ROBATA` / `로바타`(로바타에 구운 …)는 그대로 둔다.
 
 ## 교육 이수 시스템
 
@@ -108,6 +114,19 @@ KSC에만 있는 장을 지운 것이 WASA의 같은 번호 장에 잘못 적용
 - `KSC_US\교육 자료\KSC_menu_sop_메뉴교육자료.pptx`
 - `WASA\WASA_BREA_Training_Manual_A4.pptx`
 - `WASA\WASA_menu_manual_전체90종.pptx`
+
+## 원본이 DRM으로 잠겼을 때
+
+이 PC는 Fasoo DRM이 걸려 있어 원본 PPTX가 재암호화되면 `extract.py`가
+`PackageNotFoundError`로 실패한다. 이때 텍스트 치환 같은 후처리는 이미 뽑아둔
+`src/data.json`에 직접 적용하면 된다:
+
+```python
+import json, io, sys; sys.path.insert(0, 'build')
+from extract import fix_names
+d = fix_names(json.load(io.open('src/data.json', encoding='utf-8')))
+io.open('src/data.json', 'w', encoding='utf-8').write(json.dumps(d, ensure_ascii=False, separators=(',', ':')))
+```
 
 ## 갱신 방법
 

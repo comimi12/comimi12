@@ -32,6 +32,26 @@ DECKS = [
 
 _seen = {}
 
+# 브랜드명 정정: 로바타 와사는 1호점이고, 이 SOP의 매장은 이자카야 와사다.
+# 조리 방식·메뉴 분류로 쓰인 "ROBATA" / "로바타"(로바타에 구운 …)는 건드리지 않는다.
+RENAME = [("ROBATA WASA", "IZAKAYA WASA"),
+          ("Robata Wasa", "Izakaya Wasa"),
+          ("robata wasa", "izakaya wasa"),
+          ("로바타 와사", "이자카야 와사"),
+          ("로바타와사", "이자카야 와사")]
+
+
+def fix_names(o):
+    if isinstance(o, str):
+        for a, b in RENAME:
+            o = o.replace(a, b)
+        return o
+    if isinstance(o, list):
+        return [fix_names(x) for x in o]
+    if isinstance(o, dict):
+        return dict((k, fix_names(v)) for k, v in o.items())
+    return o
+
 
 def _has_alpha(im):
     if im.mode == "P":
@@ -421,6 +441,7 @@ def main():
             deck["pages"] = pages
             print("  %-16s 페이지 %d / %dp" % (d["id"], len(pages), len(prs.slides)))
         out.append(deck)
+    out = fix_names(out)
     dst = os.path.join(ROOT, "src", "data.json")
     with open(dst, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, separators=(",", ":"))

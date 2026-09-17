@@ -16,14 +16,14 @@
   var BRAND_META = {
     KSC: { name: 'KALBI SOCIAL CLUB', kr: '칼비 소셜 클럽 · 코리안 바비큐',
            mark: 'KALBI', tag: '코리안 바비큐' },
-    WASA: { name: 'ROBATA WASA', kr: '로바타 와사 · 이자카야 · 스시',
+    WASA: { name: 'IZAKAYA WASA', kr: '이자카야 와사 · 스시 · 로바타',
             mark: 'WASA', tag: '이자카야 · 스시' }
   };
 
   /* ── 저장소 ───────────────────────────────────────── */
   var KEY = 'slnc-sop-v1';
   var S = {
-    brand: 'KSC', theme: '', lang: 'kr',   // kr | both | en
+    brand: 'KSC', theme: '',
     me: { name: '', phone: '', pos: '', posLabel: '', start: '' },
     done: {},      // "deckId:n" | "menu:deckId:chip"  ->  ISO 날짜
     daily: {},     // "YYYY-MM-DD|deckId:n|g|i"        ->  true
@@ -43,7 +43,7 @@
   function save() {
     try {
       localStorage.setItem(KEY, JSON.stringify({
-        brand: S.brand, theme: S.theme, lang: S.lang, me: S.me,
+        brand: S.brand, theme: S.theme, me: S.me,
         done: S.done, daily: S.daily, sign: S.sign,
         team: S.team, adminOn: S.adminOn
       }));
@@ -179,8 +179,9 @@
       });
       if (hit) {
         used[hit.n] = 1;
-        out.push({ k: deck.id + ':' + hit.n, kind: 'page', g: c.g, label: c.t,
-                   sub: titleMain(hit.title), deck: deck.id, n: hit.n });
+        // 어디서든 영문 먼저, 국문 번역이 그 아래
+        out.push({ k: deck.id + ':' + hit.n, kind: 'page', g: c.g,
+                   label: titleMain(hit.title), sub: c.t, deck: deck.id, n: hit.n });
       }
     });
     return out;
@@ -269,22 +270,16 @@
     h += '<div class="ti"><b>' + esc(title) + '</b>'
       + (opts.kicker ? '<span>' + esc(opts.kicker) + '</span>' : '') + '</div>';
     h += '<a class="ic" href="#/search" aria-label="검색">' + ico(I.search) + '</a></div>';
-    h += '<div class="hd-sub">';
     if (opts.brands !== false) {
+      h += '<div class="hd-sub">';
       h += '<div class="bsw">' + BRANDS.map(function (b) {
         var m = BRAND_META[b] || {};
         return '<button class="b-' + b + '" data-setbrand="' + b + '"'
           + (b === S.brand ? ' aria-current="true"' : '') + '>'
           + '<i class="sw"></i><b>' + esc(m.mark || b) + '</b>'
           + '<span>' + esc(m.tag || '') + '</span></button>';
-      }).join('') + '</div>';
-    }
-    // 브랜드 선택 다음에 언어 선택
-    h += '<div class="lng">' + [['kr', '한국어'], ['both', '한+EN'], ['en', 'ENGLISH']]
-      .map(function (x) {
-        return '<button data-lang="' + x[0] + '"'
-          + (S.lang === x[0] ? ' aria-current="true"' : '') + '>' + x[1] + '</button>';
       }).join('') + '</div></div>';
+    }
     $hd.innerHTML = h;
   }
 
@@ -385,29 +380,14 @@
     return out;
   }
 
+  /** 영문 위 / 국문 아래로 항상 함께 보여준다 */
   function itemHtml(pair, step, forceInk) {
     var en = pair[0], kr = pair[1];
-    // 한쪽 언어만 보기 — 짝이 없으면 있는 쪽을 그대로 쓴다
-    if (S.lang === 'kr' && kr) en = '';
-    if (S.lang === 'en' && en) kr = '';
     var inner = '';
     if (en) inner += '<span class="en">' + esc(en) + '</span>';
     if (kr) inner += '<span class="' + (en && !forceInk ? 'kr' : 'en') + '">' + esc(kr) + '</span>';
     if (!inner) return '';
     return step ? '<li><div>' + inner + '</div></li>' : '<li>' + inner + '</li>';
-  }
-
-  /** 소제목도 보기 언어에 맞춘다. 앞의 기호(①·✓·⚠ 등)는 남긴다.
-   *  "① OPENING / PRE-SHIFT · 오픈 · 근무 전"  →  "① 오픈 · 근무 전" */
-  function headText(t) {
-    if (S.lang === 'both' || !t) return t;
-    var mark = (t.match(/^[^A-Za-z가-힣]+/) || [''])[0];
-    var parts = t.slice(mark.length).split(/\s*[|/·]\s*/)
-      .map(function (x) { return x.trim(); }).filter(Boolean);
-    var want = parts.filter(function (x) {
-      return S.lang === 'kr' ? HANGUL.test(x) : !HANGUL.test(x);
-    });
-    return want.length ? (mark + want.join(' · ')).trim() : t;
   }
 
   var STEP_RX = /^[①②③④⑤⑥⑦⑧⑨]|^\d\s*[).]/;
@@ -423,7 +403,7 @@
     if (step) cls += ' step';
     var meta = b.kind === 'meta';
     var h = '<section class="' + cls + '">';
-    if (b.head) h += '<h3>' + esc(headText(b.head)) + '</h3>';
+    if (b.head) h += '<h3>' + esc(b.head) + '</h3>';
     if (b.lines.length) {
       h += '<ul>' + pairLines(b.lines).map(function (p) {
         return itemHtml(p, step, meta);
@@ -931,10 +911,6 @@
     if (e.target.closest('#themeTog')) {
       var cur = S.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
       S.theme = cur === 'dark' ? 'light' : 'dark'; save(); render(); return;
-    }
-    if (t = e.target.closest('[data-lang]')) {
-      S.lang = t.dataset.lang; save();
-      var ly = window.scrollY; render(); window.scrollTo(0, ly); return;
     }
     if (t = e.target.closest('[data-done]')) { keepScroll(function () { toggleDone(t.dataset.done); }); return; }
     if (t = e.target.closest('[data-daily]')) {

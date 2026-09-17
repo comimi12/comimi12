@@ -385,8 +385,6 @@ mark{ background:var(--warn-soft); color:inherit; padding:0 2px; border-radius:3
            justify-content:flex-end; background:transparent }
   .hd .bsw{ grid-template-columns:repeat(2,auto) }
   .hd .bsw button{ min-width:132px }
-  .hd .lng{ grid-template-columns:repeat(3,auto) }
-  .hd .lng button{ min-width:66px; padding:8px 12px }
   .ph{ font-size:34px }
   .ph .kr{ font-size:19px }
   .mg{ grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:14px }
@@ -404,9 +402,4 @@ mark{ background:var(--warn-soft); color:inherit; padding:0 2px; border-radius:3
 textarea.ta{ height:130px; padding:13px 15px; line-height:1.55; resize:vertical; margin-top:6px }
 
 /* 언어 보기 전환 (한 / 한+EN / EN) */
-.hd .lng{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:5px }
-.hd .lng button{
-  min-height:42px; padding:8px 6px; border-radius:12px; background:var(--surf2);
-  color:var(--mut); font-size:13px; font-weight:800; letter-spacing:-.01em;
-}
-.hd .lng button[aria-current="true"]{ background:var(--pri); color:var(--pri-on) }
+
