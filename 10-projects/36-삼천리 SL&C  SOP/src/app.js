@@ -157,17 +157,9 @@
     { g: 'MY POSITION', gk: '내 포지션', t: '내 포지션 표준 절차', role: true },
     { g: 'SERVICE', gk: '서비스', t: '서비스 10단계', m: 'STEPS OF SERVICE' },
     { g: 'SERVICE', gk: '서비스', t: '상황별 응대', m: 'SITUATIONAL PLAYBOOK' },
-    { g: 'SERVICE', gk: '서비스', t: '컴플레인 응대', m: 'RECOVERY & COMPLAINT' },
-    { g: 'SAFETY & LAW', gk: '안전 · 법규', t: '주류 서비스 규정', m: 'ALCOHOL SERVICE' },
-    { g: 'SAFETY & LAW', gk: '안전 · 법규', t: '알러지 · 식이 응대', m: 'ALLERGENS & DIETARY' },
-    { g: 'SAFETY & LAW', gk: '안전 · 법규', t: '위생 · 안전 관리', m: 'FOOD SAFETY' },
-    { g: 'SAFETY & LAW', gk: '안전 · 법규', t: '비상 · 사고 대응', m: 'EMERGENCY & INCIDENT' },
-    { g: 'SAFETY & LAW', gk: '안전 · 법규', t: '근로 · 운영 법규', m: 'CALIFORNIA COMPLIANCE' },
-    // 오픈/마감 체크리스트는 별도 '체크리스트' 탭에 있으므로 여기서는 뺀다
-    { g: 'REFERENCE', gk: '참고 자료', t: '메뉴별 알러지 표', m: 'ALLERGEN MATRIX' },
-    // 아래 둘은 WASA에만 있는 장 (KSC에서 지운 항목과 대응되지 않으므로 남긴다)
-    { g: 'REFERENCE', gk: '참고 자료', t: '메뉴 지식 ① 스시 · 회 · 온요리', m: 'MENU KNOWLEDGE ①' },
-    { g: 'REFERENCE', gk: '참고 자료', t: '메뉴 지식 ② 이자카야 · 식사', m: 'MENU KNOWLEDGE ②' }
+    { g: 'SERVICE', gk: '서비스', t: '컴플레인 응대', m: 'RECOVERY & COMPLAINT' }
+    // 안전·법규(주류/알러지/위생/비상/근로)와 참고 자료(알러지 표·메뉴 지식)는
+    // 사용자 요청으로 과정에서 제외. 오픈·마감 체크리스트는 '체크리스트' 탭에 있다.
   ];
 
   /** 간소화 과정의 페이지 목록 (순서 = COURSE 순서) */

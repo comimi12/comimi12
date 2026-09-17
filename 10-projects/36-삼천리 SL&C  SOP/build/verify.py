@@ -20,7 +20,7 @@ VIEWS = [
     ("sop-wasa", "#/sop", 390),
     ("page-server", "#/p/ksc-manual/15", 390),
     ("page-brand", "#/p/ksc-manual/6", 390),
-    ("page-allergen", "#/p/ksc-manual/47", 390),
+    
     ("page-wasa-chef", "#/p/wasa-manual/22", 390),
     ("menu", "#/menu", 390),
     ("menu-cat", "#/menu/ksc-menu/SOUP", 390),
