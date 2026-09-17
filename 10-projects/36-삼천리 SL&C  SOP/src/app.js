@@ -95,6 +95,7 @@
     share: '<path d="M12 15V3"/><path d="m8 7 4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/>',
     copy: '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>',
     reset: '<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/>',
+    play: '<path d="M4.5 5.5a2 2 0 0 1 3-1.7l10 6.5a2 2 0 0 1 0 3.4l-10 6.5a2 2 0 0 1-3-1.7z"/>',
     team: '<circle cx="9" cy="8" r="3.4"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16.5 5.2a3.4 3.4 0 0 1 0 5.6"/><path d="M18 14.4a6.5 6.5 0 0 1 3.5 5.6"/>'
   };
 
@@ -252,6 +253,7 @@
   var TABS = [
     { id: 'sop', en: 'SOP', kr: '매뉴얼', ic: I.book },
     { id: 'menu', en: 'MENU', kr: '메뉴', ic: I.dish },
+    { id: 'grill', en: 'GRILL', kr: '그릴영상', ic: I.play, only: 'KSC' },
     { id: 'check', en: 'CHECK', kr: '체크리스트', ic: I.check },
     { id: 'cert', en: 'CERT', kr: '수료', ic: I.award },
     { id: 'admin', en: 'TEAM', kr: '이수확인', ic: I.team }
@@ -260,7 +262,8 @@
   /* ── 레일 / 헤더 ──────────────────────────────────── */
   function renderRail(active) {
     var p = progress(S.brand);
-    var tabs = TABS.slice();
+    // 그릴 영상은 KSC 전용 탭이라 다른 브랜드에서는 숨긴다
+    var tabs = TABS.filter(function (t) { return !t.only || t.only === S.brand; });
     $rail.innerHTML =
       '<div class="mark">SL&amp;C</div>'
       + tabs.map(function (t) {
@@ -581,6 +584,31 @@
     $sheet.hidden = true; $sheetBody.innerHTML = ''; document.body.style.overflow = '';
   }
 
+  /* ── 그릴 영상 (KSC 전용) ─────────────────────────── */
+  var VIDEOS = null;   // video/index.json 을 처음 열 때 한 번 읽는다
+
+  function viewGrill() {
+    if (S.brand !== 'KSC') {
+      return '<div class="empty">Grill videos are for KSC only<br>그릴 영상은 KSC 전용입니다.</div>';
+    }
+    if (!VIDEOS) return '<div class="empty">Loading · 불러오는 중…</div>';
+    if (!VIDEOS.length) return '<div class="empty">No videos · 영상이 없습니다.</div>';
+
+    var h = '<div class="card pad"><div class="note">'
+      + 'How each cut is grilled. Watch before your first shift, and again at the table.<br>'
+      + '부위별 굽는 방법입니다. 첫 근무 전에 보고, 테이블에서 다시 확인하세요.</div></div>';
+
+    h += '<div class="vids">' + VIDEOS.map(function (v) {
+      return '<figure class="vid">'
+        + '<video controls playsinline preload="none" poster="video/' + esc(v.id) + '.jpg">'
+        + '<source src="video/' + esc(v.id) + '.mp4" type="video/mp4">'
+        + '</video>'
+        + '<figcaption><b>' + esc(v.en) + '</b><span>' + esc(v.kr) + '</span>'
+        + '<p>' + esc(v.note) + '</p></figcaption></figure>';
+    }).join('') + '</div>';
+    return h;
+  }
+
   /* ── 체크리스트 탭 ─────────────────────────────────── */
   function viewCheck() {
     var deck = mainManual(S.brand);
@@ -878,6 +906,14 @@
       title = r.b ? decodeURIComponent(r.b) : 'MENU SOP';
       opts.kicker = r.b ? '메뉴' : '메뉴 SOP';
       if (r.b) opts.back = 'menu';
+    }
+    else if (tab === 'grill') {
+      body = viewGrill(); title = 'GRILL VIDEO'; opts.kicker = '그릴 영상';
+      if (!VIDEOS) {
+        fetch('video/index.json').then(function (r) { return r.json(); })
+          .then(function (j) { VIDEOS = j; render(); })
+          .catch(function () { VIDEOS = []; render(); });
+      }
     }
     else if (tab === 'check') { body = viewCheck(); title = 'CHECKLIST'; opts.kicker = '오픈 · 마감 체크리스트'; }
     else if (tab === 'cert') { body = viewCert(); title = 'MY CERTIFICATE'; opts.kicker = '내 교육 수료'; }

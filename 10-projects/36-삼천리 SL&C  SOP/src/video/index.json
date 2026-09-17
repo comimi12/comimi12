@@ -1,0 +1,23 @@
+[
+ {
+  "id": "brisket",
+  "en": "PRIME BRISKET",
+  "kr": "차돌",
+  "note": "차돌 굽는 법 — 얇은 고기를 빠르게, 한 번만 뒤집어 굽습니다.",
+  "mb": 17.5
+ },
+ {
+  "id": "la-kalbi",
+  "en": "LA KALBI",
+  "kr": "LA 갈비",
+  "note": "LA 갈비 굽는 법 — 뼈 쪽을 먼저 세워 굽고, 양념이 타지 않게 자리를 옮깁니다.",
+  "mb": 19.1
+ },
+ {
+  "id": "non-marinated-kalbi",
+  "en": "NON-MARINATED KALBI",
+  "kr": "생갈비",
+  "note": "생갈비 굽는 법 — 양념이 없어 불 조절과 굽기 정도가 맛을 좌우합니다.",
+  "mb": 14.7
+ }
+]

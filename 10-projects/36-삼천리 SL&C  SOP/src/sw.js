@@ -28,6 +28,8 @@ self.addEventListener('fetch', function (e) {
     }).catch(function () { return caches.match(req); }));
     return;
   }
+  // 영상은 Range 요청(206)이라 캐시에 넣을 수 없다 — 브라우저에 맡긴다
+  if (req.url.indexOf('/video/') >= 0 && !/\.json$/.test(req.url)) return;
   // 사진은 캐시 우선
   e.respondWith(caches.match(req).then(function (hit) {
     return hit || fetch(req).then(function (r) {

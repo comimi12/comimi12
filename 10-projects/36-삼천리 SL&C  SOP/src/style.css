@@ -411,3 +411,14 @@ textarea.ta{ height:130px; padding:13px 15px; line-height:1.55; resize:vertical;
 .l .l-kr{ display:block; font-size:.8em; font-weight:700; opacity:.74; margin-top:3px }
 .prog .meta b .l .l-en{ font-size:17px }
 .prog .meta b .l .l-kr{ font-size:13.5px; font-weight:600; opacity:.85 }
+
+/* 그릴 영상 */
+.vids{ display:grid; gap:14px; margin-top:14px }
+.vid{ margin:0; background:var(--surf); border-radius:var(--r); box-shadow:var(--sh); overflow:hidden }
+.vid video{ display:block; width:100%; aspect-ratio:16/9; background:#000; object-fit:cover }
+.vid figcaption{ padding:14px 16px 16px }
+.vid figcaption b{ display:block; font-size:16px; font-weight:800; letter-spacing:-.01em;
+  font-family:'Archivo',sans-serif }
+.vid figcaption span{ display:block; font-size:13.5px; color:var(--pri-t); font-weight:700; margin-top:2px }
+.vid figcaption p{ margin:9px 0 0; font-size:13.5px; color:var(--mut); line-height:1.65 }
+@media (min-width:760px){ .vids{ grid-template-columns:repeat(2,minmax(0,1fr)) } }

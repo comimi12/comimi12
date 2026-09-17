@@ -24,6 +24,7 @@ VIEWS = [
     ("page-wasa-chef", "#/p/wasa-manual/22", 390),
     ("menu", "#/menu", 390),
     ("menu-cat", "#/menu/ksc-menu/SOUP", 390),
+    ("grill", "#/grill", 390),
     ("check", "#/check", 390),
     ("cert", "#/cert", 390),
     ("search", "#/search/kalbi", 390),
@@ -55,8 +56,8 @@ def main():
               broken: [...document.images].filter(i => i.complete && i.naturalWidth === 0).length,
               blocks: document.querySelectorAll('.blk,.mc,.grp,.tbl,.res a,.row,.card,.cert').length
             })""")
-            if stats["rail"] != 5 and "wide" not in name:
-                problems.append("%s: 왼쪽 레일 탭 %d개 (5개여야 함)" % (name, stats["rail"]))
+            if stats["rail"] not in (5, 6) and "wide" not in name:
+                problems.append("%s: 왼쪽 레일 탭 %d개 (5~6개여야 함)" % (name, stats["rail"]))
             if errs:
                 problems.append("%s: 콘솔 오류 %s" % (name, errs[:2]))
             if stats["main"] < 60:
