@@ -1,0 +1,15 @@
+{
+  "name": "삼천리 SL&C SOP",
+  "short_name": "SL&C SOP",
+  "description": "KALBI SOCIAL CLUB · ROBATA WASA 매장 교육 SOP",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FAF6F2",
+  "theme_color": "#8A2B1B",
+  "icons": [
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

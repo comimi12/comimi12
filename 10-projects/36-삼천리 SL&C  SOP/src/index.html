@@ -3,45 +3,39 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>삼천리 SL&amp;C · 브랜드별 SOP</title>
-<meta name="description" content="KALBI SOCIAL CLUB · ROBATA WASA 교육자료 기반 표준운영절차(SOP) 대시보드">
+<title>삼천리 SL&amp;C · SOP</title>
+<meta name="description" content="KALBI SOCIAL CLUB · ROBATA WASA 매장 교육 SOP — 개인 스마트폰용">
+<meta name="theme-color" content="#0F2F54" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#10151C" media="(prefers-color-scheme: dark)">
+<!-- 홈 화면에 추가하면 앱처럼 실행 -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="SL&amp;C SOP">
+<link rel="manifest" href="manifest.webmanifest?v=__BUILD_TOKEN__">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%98%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;800&display=swap">
 <link rel="stylesheet" href="style.css?v=__BUILD_TOKEN__">
 </head>
 <body>
 
-<header class="top">
-  <div class="top-l">
-    <button class="burger" id="burger" aria-label="목차 열기">☰</button>
-    <div class="wordmark">
-      <strong>삼천리 SL&amp;C</strong>
-      <span>브랜드별 SOP · Standard Operating Procedure</span>
-    </div>
-  </div>
+<nav class="rail" id="rail" aria-label="주요 메뉴"></nav>
 
-  <nav class="brands" id="brands" aria-label="브랜드 선택"></nav>
-
-  <div class="top-r">
-    <div class="search">
-      <input id="q" type="search" placeholder="검색 — 메뉴·포지션·규정  (/)" autocomplete="off" aria-label="검색">
-      <button id="qclear" aria-label="검색 지우기" hidden>✕</button>
-    </div>
-  </div>
-</header>
-
-<div class="shell">
-  <aside class="side" id="side" aria-label="목차">
-    <div class="side-inner" id="toc"></div>
-  </aside>
-  <div class="scrim" id="scrim" hidden></div>
-
-  <main class="main" id="main" tabindex="-1"></main>
+<div class="wrap">
+  <header class="hd" id="hd"></header>
+  <main id="main"></main>
 </div>
 
 <div class="sheet" id="sheet" hidden>
-  <div class="sheet-scrim" data-close></div>
-  <div class="sheet-panel" role="dialog" aria-modal="true" aria-label="메뉴 상세">
-    <button class="sheet-x" data-close aria-label="닫기">✕</button>
-    <div class="sheet-body" id="sheetBody"></div>
+  <div class="sc" data-close></div>
+  <div class="pn" role="dialog" aria-modal="true" aria-label="상세">
+    <button class="x" data-close aria-label="닫기">
+      <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+    <div id="sheetBody"></div>
   </div>
 </div>
 

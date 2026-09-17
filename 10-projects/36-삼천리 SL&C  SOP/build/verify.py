@@ -15,22 +15,20 @@ if ARG.startswith("http"):
     SHOTS = os.path.join(HERE, "shots-live")
 
 VIEWS = [
-    ("home-ksc", "#/KSC", 1440),
-    ("home-wasa", "#/WASA", 1440),
-    ("ksc-position", "#/KSC/ksc-manual/15", 1440),
-    ("ksc-brand", "#/KSC/ksc-manual/6", 1440),
-    ("ksc-checklist", "#/KSC/ksc-manual/45", 1440),
-    ("ksc-allergen", "#/KSC/ksc-manual/47", 1440),
-    ("ksc-divider", "#/KSC/ksc-manual/13", 1440),
-    ("ksc-menu", "#/KSC/ksc-menu", 1440),
-    ("wasa-menu", "#/WASA/wasa-menu", 1440),
-    ("wasa-position", "#/WASA/wasa-manual/22", 1440),
-    ("wasa-playbook", "#/WASA/wasa-manual/38", 1440),
-    ("search", "#/search/kalbi", 1440),
-    ("sheet-wasa", "#/WASA/wasa-menu?item=3", 1440),
-    ("sheet-ksc", "#/KSC/ksc-menu?item=1", 1440),
-    ("mobile-menu", "#/WASA/wasa-menu", 390),
-    ("mobile-page", "#/KSC/ksc-manual/15", 390),
+    ("home", "#/home", 390),
+    ("sop-list", "#/sop", 390),
+    ("chapter", "#/sop/ksc-manual/03", 390),
+    ("page-server", "#/p/ksc-manual/15", 390),
+    ("page-brand", "#/p/ksc-manual/6", 390),
+    ("page-allergen", "#/p/ksc-manual/47", 390),
+    ("page-wasa-chef", "#/p/wasa-manual/22", 390),
+    ("menu", "#/menu", 390),
+    ("menu-cat", "#/menu/ksc-menu/SOUP", 390),
+    ("check", "#/check", 390),
+    ("cert", "#/cert", 390),
+    ("search", "#/search/kalbi", 390),
+    ("wide-page", "#/p/ksc-manual/15", 1280),
+    ("wide-menu", "#/menu", 1280),
 ]
 
 
@@ -49,16 +47,18 @@ def main():
             pg.wait_for_timeout(500)
 
             stats = pg.evaluate("""() => ({
-              main: document.getElementById('main').innerText.trim().length,
-              toc: document.getElementById('toc').innerText.trim().length,
+              main: (document.getElementById('main')||{innerText:''}).innerText.trim().length,
+              rail: document.querySelectorAll('.rail .nv').length,
               overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
               imgs: [...document.images].length,
               broken: [...document.images].filter(i => i.complete && i.naturalWidth === 0).length,
-              blocks: document.querySelectorAll('.blk,.mcard,.cl,.tbl-wrap,.res a,.cards a,.divider').length
+              blocks: document.querySelectorAll('.blk,.mc,.grp,.tbl,.res a,.row,.card,.cert').length
             })""")
+            if stats["rail"] != 5 and "wide" not in name:
+                problems.append("%s: 왼쪽 레일 탭 %d개 (5개여야 함)" % (name, stats["rail"]))
             if errs:
                 problems.append("%s: 콘솔 오류 %s" % (name, errs[:2]))
-            if stats["main"] < 120:
+            if stats["main"] < 60:
                 problems.append("%s: 본문이 비어 있음 (%d자)" % (name, stats["main"]))
             if stats["overflow"] > 2:
                 problems.append("%s: 가로 스크롤 %dpx" % (name, stats["overflow"]))
