@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>삼천리 SL&amp;C · 브랜드별 SOP</title>
+<meta name="description" content="KALBI SOCIAL CLUB · ROBATA WASA 교육자료 기반 표준운영절차(SOP) 대시보드">
+<link rel="stylesheet" href="style.css?v=__BUILD_TOKEN__">
+</head>
+<body>
+
+<header class="top">
+  <div class="top-l">
+    <button class="burger" id="burger" aria-label="목차 열기">☰</button>
+    <div class="wordmark">
+      <strong>삼천리 SL&amp;C</strong>
+      <span>브랜드별 SOP · Standard Operating Procedure</span>
+    </div>
+  </div>
+
+  <nav class="brands" id="brands" aria-label="브랜드 선택"></nav>
+
+  <div class="top-r">
+    <div class="search">
+      <input id="q" type="search" placeholder="검색 — 메뉴·포지션·규정  (/)" autocomplete="off" aria-label="검색">
+      <button id="qclear" aria-label="검색 지우기" hidden>✕</button>
+    </div>
+  </div>
+</header>
+
+<div class="shell">
+  <aside class="side" id="side" aria-label="목차">
+    <div class="side-inner" id="toc"></div>
+  </aside>
+  <div class="scrim" id="scrim" hidden></div>
+
+  <main class="main" id="main" tabindex="-1"></main>
+</div>
+
+<div class="sheet" id="sheet" hidden>
+  <div class="sheet-scrim" data-close></div>
+  <div class="sheet-panel" role="dialog" aria-modal="true" aria-label="메뉴 상세">
+    <button class="sheet-x" data-close aria-label="닫기">✕</button>
+    <div class="sheet-body" id="sheetBody"></div>
+  </div>
+</div>
+
+<script src="app.js?v=__BUILD_TOKEN__"></script>
+</body>
+</html>
