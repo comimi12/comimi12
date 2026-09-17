@@ -15,6 +15,10 @@ SRC = r"C:\Users\owner\Desktop\교육팀\9. AI영상\미국\KSC\완료"
 FF = imageio_ffmpeg.get_ffmpeg_exe()
 
 VIDEOS = [
+    # 아래 항목은 build/woodae.py 가 만든다 (HTML 합성물 -> mp4). 여기서는 목록에만 올린다.
+    dict(id="woodae-galbi", file=None,
+         en="WOODAE GALBI SERVICE", kr="우대갈비 서비스 가이드",
+         note="한 대 통구이 · 커팅 · 세팅 3단계 — 홀 직원용 60초 가이드 (자막 포함)."),
     dict(id="brisket", file="Brisket.mp4",
          en="PRIME BRISKET", kr="차돌",
          note="차돌 굽는 법 — 얇은 고기를 빠르게, 한 번만 뒤집어 굽습니다."),
@@ -37,13 +41,19 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     meta = []
     for v in VIDEOS:
-        src = os.path.join(SRC, v["file"])
-        if not os.path.exists(src):
-            print("[!] 원본 없음: " + src)
-            continue
         mp4 = os.path.join(OUT, v["id"] + ".mp4")
         jpg = os.path.join(OUT, v["id"] + ".jpg")
-        if not os.path.exists(mp4):
+        if not v["file"]:                      # 별도 스크립트가 만든 영상
+            if not os.path.exists(mp4):
+                print("[!] %s.mp4 없음 — build/woodae.py 를 먼저 실행" % v["id"])
+                continue
+            src = None
+        else:
+            src = os.path.join(SRC, v["file"])
+            if not os.path.exists(src):
+                print("[!] 원본 없음: " + src)
+                continue
+        if src and not os.path.exists(mp4):
             print("  변환 중: %s (%.0f MB)" % (v["file"], os.path.getsize(src) / 1e6))
             run([FF, "-y", "-i", src,
                  "-vf", "scale=-2:720", "-r", "30",

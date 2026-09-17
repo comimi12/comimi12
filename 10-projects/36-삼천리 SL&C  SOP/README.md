@@ -75,7 +75,22 @@ KSC에만 있는 장을 지운 것이 WASA의 같은 번호 장에 잘못 적용
 python build/videos.py       # src/video/*.mp4 + *.jpg + index.json
 ```
 
-영상 목록·설명은 `build/videos.py`의 `VIDEOS` 에서 관리한다.
+**우대갈비 서비스 가이드**는 영상 파일이 아니라 HTML 합성물이 원본이다
+(`Downloads\우대갈비 영상 편집 (4)\…(오프라인 재생).html` — 1920x1080 무대에서
+클립 2개와 자막을 타임라인으로 돌린다). `build/woodae.py` 가 mp4로 만든다:
+
+```bash
+python build/woodae.py          # 소스 H.264화 → 60초 화면 녹화 → 오디오 합성 → mux
+python build/woodae.py --reuse  # 녹화본 재사용하고 다시 합치기만
+```
+
+- 크로미움이 HEVC를 못 열어 검게 녹화되므로 소스를 먼저 H.264로 바꾼다
+- 녹화는 페이지가 그려지기 전 흰 화면부터 시작하므로, 첫 실제 프레임을 찾아 잘라낸다
+- 오디오는 화면 녹화로 못 잡아 따로 만든다. HTML이 클립을 느리게 돌리므로
+  (vA 0.794배, vB 0.694배) `atempo` 로 같은 배속을 맞추고 T=20.5s 에서 교차시킨다
+
+영상 목록·설명은 `build/videos.py`의 `VIDEOS` 에서 관리한다
+(`file=None` 이면 다른 스크립트가 만든 영상으로 보고 변환을 건너뛴다).
 서비스워커는 `/video/` 를 캐시하지 않는다 — Range 요청(206)은 캐시에 넣을 수 없어서다.
 
 ### 메뉴 탭 흐름
