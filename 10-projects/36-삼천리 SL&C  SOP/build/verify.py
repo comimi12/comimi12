@@ -9,8 +9,10 @@ from playwright.sync_api import sync_playwright
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 SHOTS = os.path.join(HERE, "shots")
-PORT = sys.argv[1] if len(sys.argv) > 1 else "8765"
-BASE = "http://localhost:%s/" % PORT
+ARG = sys.argv[1] if len(sys.argv) > 1 else "8765"
+BASE = ARG.rstrip("/") + "/" if ARG.startswith("http") else "http://localhost:%s/" % ARG
+if ARG.startswith("http"):
+    SHOTS = os.path.join(HERE, "shots-live")
 
 VIEWS = [
     ("home-ksc", "#/KSC", 1440),
