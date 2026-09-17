@@ -38,7 +38,12 @@ RENAME = [("ROBATA WASA", "IZAKAYA WASA"),
           ("Robata Wasa", "Izakaya Wasa"),
           ("robata wasa", "izakaya wasa"),
           ("로바타 와사", "이자카야 와사"),
-          ("로바타와사", "이자카야 와사")]
+          ("로바타와사", "이자카야 와사"),
+          # 인사말은 일본어가 아니라 한국어 정중 인사로 통일한다
+          ("Irasshaimase", "Hello"),
+          ("irasshaimase", "hello"),
+          ("이랏샤이마세", "안녕하십니까"),
+          ("이라샤이마세", "안녕하십니까")]
 
 
 def fix_names(o):

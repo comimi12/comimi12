@@ -63,6 +63,16 @@
     if (!kr || en.split(/\s+/).length < 4) return [t, ''];
     return [en, kr];
   }
+  /** 화면 문구는 영문 위 / 국문 아래로 함께 보여준다 */
+  function L(en, kr) {
+    return '<span class="l"><span class="l-en">' + esc(en) + '</span>'
+      + '<span class="l-kr">' + esc(kr) + '</span></span>';
+  }
+  /** 한 줄로 붙여 쓸 때 */
+  function Li(en, kr) { return esc(en) + ' · ' + esc(kr); }
+  /** 메뉴 카드용 축소본 (build/thumbs.py 산출물) */
+  function thumb(src) { return src.replace(/^img\/(.+)\.[a-z]+$/, 'img/t/$1.jpg'); }
+
   function titleMain(t) { return String(t).split('|')[0].trim(); }
   function titleKr(t) { return String(t).split('|').slice(1).join(' · ').trim(); }
   function today() {
@@ -139,25 +149,24 @@
    * 휴대폰으로 훑는 교육용이라 전체 매뉴얼 대신 꼭 필요한 장만 순서대로 남긴다.
    * 남길 페이지는 원본 제목 앞부분으로 집는다 — 두 브랜드가 같은 생성기 산출물이라 제목이 같다. */
   var COURSE = [
-    { g: '브랜드 · 매장', t: '브랜드 소개', m: 'THE BRAND' },
-    { g: '브랜드 · 매장', t: '우리 매장 정보', m: 'STORE FACT SHEET' },
-    { g: '기본 기준', t: '용모 · 복장 기준', m: 'GROOMING & UNIFORM' },
-    { g: '기본 기준', t: '직급별 역할', m: 'POSITION MAP' },
-    { g: '내 포지션', t: '내 포지션 표준 절차', role: true },
-    { g: '서비스', t: '서비스 10단계', m: 'STEPS OF SERVICE' },
-    { g: '서비스', t: '상황별 응대', m: 'SITUATIONAL PLAYBOOK' },
-    { g: '서비스', t: '컴플레인 응대', m: 'RECOVERY & COMPLAINT' },
-    { g: '안전 · 법규', t: '주류 서비스 규정', m: 'ALCOHOL SERVICE' },
-    { g: '안전 · 법규', t: '알러지 · 식이 응대', m: 'ALLERGENS & DIETARY' },
-    { g: '안전 · 법규', t: '위생 · 안전 관리', m: 'FOOD SAFETY' },
-    { g: '안전 · 법규', t: '비상 · 사고 대응', m: 'EMERGENCY & INCIDENT' },
-    { g: '안전 · 법규', t: '근로 · 운영 법규', m: 'CALIFORNIA COMPLIANCE' },
-    { g: '체크리스트', t: '오픈 체크리스트', m: 'OPENING CHECKLIST' },
-    { g: '체크리스트', t: '마감 체크리스트', m: 'CLOSING CHECKLIST' },
-    { g: '체크리스트', t: '메뉴별 알러지 표', m: 'ALLERGEN MATRIX' },
+    { g: 'BRAND & STORE', gk: '브랜드 · 매장', t: '브랜드 소개', m: 'THE BRAND' },
+    { g: 'BRAND & STORE', gk: '브랜드 · 매장', t: '우리 매장 정보', m: 'STORE FACT SHEET' },
+    { g: 'STANDARDS', gk: '기본 기준', t: '용모 · 복장 기준', m: 'GROOMING & UNIFORM' },
+    { g: 'STANDARDS', gk: '기본 기준', t: '직급별 역할', m: 'POSITION MAP' },
+    { g: 'MY POSITION', gk: '내 포지션', t: '내 포지션 표준 절차', role: true },
+    { g: 'SERVICE', gk: '서비스', t: '서비스 10단계', m: 'STEPS OF SERVICE' },
+    { g: 'SERVICE', gk: '서비스', t: '상황별 응대', m: 'SITUATIONAL PLAYBOOK' },
+    { g: 'SERVICE', gk: '서비스', t: '컴플레인 응대', m: 'RECOVERY & COMPLAINT' },
+    { g: 'SAFETY & LAW', gk: '안전 · 법규', t: '주류 서비스 규정', m: 'ALCOHOL SERVICE' },
+    { g: 'SAFETY & LAW', gk: '안전 · 법규', t: '알러지 · 식이 응대', m: 'ALLERGENS & DIETARY' },
+    { g: 'SAFETY & LAW', gk: '안전 · 법규', t: '위생 · 안전 관리', m: 'FOOD SAFETY' },
+    { g: 'SAFETY & LAW', gk: '안전 · 법규', t: '비상 · 사고 대응', m: 'EMERGENCY & INCIDENT' },
+    { g: 'SAFETY & LAW', gk: '안전 · 법규', t: '근로 · 운영 법규', m: 'CALIFORNIA COMPLIANCE' },
+    // 오픈/마감 체크리스트는 별도 '체크리스트' 탭에 있으므로 여기서는 뺀다
+    { g: 'REFERENCE', gk: '참고 자료', t: '메뉴별 알러지 표', m: 'ALLERGEN MATRIX' },
     // 아래 둘은 WASA에만 있는 장 (KSC에서 지운 항목과 대응되지 않으므로 남긴다)
-    { g: '체크리스트', t: '메뉴 지식 ① 스시 · 회 · 온요리', m: 'MENU KNOWLEDGE ①' },
-    { g: '체크리스트', t: '메뉴 지식 ② 이자카야 · 식사', m: 'MENU KNOWLEDGE ②' }
+    { g: 'REFERENCE', gk: '참고 자료', t: '메뉴 지식 ① 스시 · 회 · 온요리', m: 'MENU KNOWLEDGE ①' },
+    { g: 'REFERENCE', gk: '참고 자료', t: '메뉴 지식 ② 이자카야 · 식사', m: 'MENU KNOWLEDGE ②' }
   ];
 
   /** 간소화 과정의 페이지 목록 (순서 = COURSE 순서) */
@@ -168,8 +177,9 @@
       if (c.role) {
         if (!S.me.pos || S.me.pos.indexOf(deck.id) !== 0) return;
         var rn = parseInt(S.me.pos.split(':')[1], 10), rp = pageOf(deck, rn);
-        if (rp) out.push({ k: S.me.pos, kind: 'page', g: c.g, label: titleMain(rp.title),
-                           sub: titleKr(rp.title), deck: deck.id, n: rn });
+        if (rp) out.push({ k: S.me.pos, kind: 'page', g: c.g, gk: c.gk,
+                           label: titleMain(rp.title), sub: titleKr(rp.title),
+                           deck: deck.id, n: rn });
         return;
       }
       var hit = null;
@@ -180,7 +190,7 @@
       if (hit) {
         used[hit.n] = 1;
         // 어디서든 영문 먼저, 국문 번역이 그 아래
-        out.push({ k: deck.id + ':' + hit.n, kind: 'page', g: c.g,
+        out.push({ k: deck.id + ':' + hit.n, kind: 'page', g: c.g, gk: c.gk,
                    label: titleMain(hit.title), sub: c.t, deck: deck.id, n: hit.n });
       }
     });
@@ -190,12 +200,13 @@
   /** 필수 항목: 간소화 과정 페이지 + 메뉴 카테고리 전부 */
   function course(b) {
     var out = coursePages(b).map(function (x) {
-      return { k: x.k, kind: 'page', ch: x.g, chName: x.g, label: x.label, deck: x.deck, n: x.n };
+      return { k: x.k, kind: 'page', ch: x.g, chName: x.gk || x.g,
+               label: x.label, deck: x.deck, n: x.n };
     });
     var md = menuDeck(b);
     if (md) {
       catsOf(md).forEach(function (c) {
-        out.push({ k: 'menu:' + md.id + ':' + c, kind: 'menu', ch: '메뉴', chName: '메뉴 SOP',
+        out.push({ k: 'menu:' + md.id + ':' + c, kind: 'menu', ch: 'MENU', chName: '메뉴 SOP',
                    label: c, deck: md.id, cat: c });
       });
     }
@@ -239,11 +250,11 @@
   function go(p) { location.hash = '#/' + p; }
 
   var TABS = [
-    { id: 'sop', label: 'SOP', ic: I.book },
-    { id: 'menu', label: '메뉴', ic: I.dish },
-    { id: 'check', label: '체크리스트', ic: I.check },
-    { id: 'cert', label: '수료', ic: I.award },
-    { id: 'admin', label: '이수확인', ic: I.team }
+    { id: 'sop', en: 'SOP', kr: '매뉴얼', ic: I.book },
+    { id: 'menu', en: 'MENU', kr: '메뉴', ic: I.dish },
+    { id: 'check', en: 'CHECK', kr: '체크리스트', ic: I.check },
+    { id: 'cert', en: 'CERT', kr: '수료', ic: I.award },
+    { id: 'admin', en: 'TEAM', kr: '이수확인', ic: I.team }
   ];
 
   /* ── 레일 / 헤더 ──────────────────────────────────── */
@@ -257,7 +268,8 @@
         if (t.id === 'cert' && p.total && p.done < p.total) badge = '<span class="dot">' + (p.total - p.done) + '</span>';
         if (t.id === 'admin' && (S.team || []).length) badge = '<span class="dot">' + S.team.length + '</span>';
         return '<a class="nv" href="#/' + t.id + '"' + (active === t.id ? ' aria-current="true"' : '') + '>'
-          + ico(t.ic) + '<span>' + t.label + '</span>' + badge + '</a>';
+          + ico(t.ic) + '<span class="n-en">' + t.en + '</span>'
+          + '<span class="n-kr">' + t.kr + '</span>' + badge + '</a>';
       }).join('')
       + '<div class="sp"></div>'
       + '<button class="tog" id="themeTog" aria-label="화면 모드 전환">' + ico(I.moon) + '</button>';
@@ -311,35 +323,39 @@
   /** SOP = 시작 화면. 내 정보·진도와 학습 목록을 한 화면에 함께 보여준다. */
   function viewSopList() {
     var pages = coursePages(S.brand), h = '', g = '', i = 0;
-    if (!pages.length) return '<div class="empty">과정을 불러오지 못했습니다.</div>';
+    if (!pages.length) return '<div class="empty">Could not load the course · 과정을 불러오지 못했습니다.</div>';
 
     var p = progress(S.brand), next = null;
     p.items.forEach(function (x) { if (!next && !S.done[x.k]) next = x; });
 
     h += '<div class="card pad"><div class="prog">' + ring(p.pct)
-      + '<div class="meta"><b>' + esc(S.me.name || '이름을 등록해 주세요') + '</b>'
-      + '<span>' + esc(S.me.posLabel || '포지션 미설정')
+      + '<div class="meta"><b>'
+      + (S.me.name ? esc(S.me.name) : L('Register your name', '이름을 등록해 주세요')) + '</b>'
+      + '<span>' + esc(S.me.posLabel || 'No position set · 포지션 미설정')
       + (S.me.phone ? ' · ' + esc(S.me.phone) : '') + '</span>'
-      + '<span>' + esc(BRAND_META[S.brand].name) + ' · ' + p.done + ' / ' + p.total + ' 항목 완료</span>'
-      + '</div></div>';
+      + '<span>' + esc(BRAND_META[S.brand].name) + ' · ' + p.done + ' / ' + p.total
+      + ' done · 항목 완료</span></div></div>';
     if (!S.me.name || !S.me.pos) {
-      h += '<a class="btn" href="#/cert" style="margin-top:14px">이름 · 포지션 등록하기</a>';
+      h += '<a class="btn" href="#/cert" style="margin-top:14px">'
+        + L('Register name & position', '이름 · 포지션 등록하기') + '</a>';
     } else if (next) {
       h += '<a class="btn" href="' + hrefOf(next) + '" style="margin-top:14px">'
-        + '이어서 학습 · ' + esc(next.label) + '</a>';
+        + L('Continue · ' + next.label, '이어서 학습') + '</a>';
     } else {
-      h += '<a class="btn" href="#/cert" style="margin-top:14px">수료 확인서 보기</a>';
+      h += '<a class="btn" href="#/cert" style="margin-top:14px">'
+        + L('View certificate', '수료 확인서 보기') + '</a>';
     }
     h += '</div>';
 
     var dn = 0;
     pages.forEach(function (x) { if (isDone(x.k)) dn++; });
-    h += '<h2 class="sect">입문 매뉴얼 (간소화) · ' + dn + '/' + pages.length + '</h2>';
+    h += '<h2 class="sect">ONBOARDING MANUAL · 입문 매뉴얼 &nbsp;' + dn + '/' + pages.length + '</h2>';
 
     pages.forEach(function (x) {
       if (x.g !== g) {
         g = x.g;
-        h += (i ? '</div>' : '') + '<h2 class="sect">' + esc(g) + '</h2><div class="list">';
+        h += (i ? '</div>' : '') + '<h2 class="sect">' + esc(x.g)
+          + ' · ' + esc(x.gk || '') + '</h2><div class="list">';
       }
       i++;
       h += rowHtml('#/p/' + x.deck + '/' + x.n, String(i), isDone(x.k), x.label, x.sub);
@@ -488,26 +504,27 @@
 
     var key = deck.id + ':' + p.n, on = isDone(key);
     h += '<button class="done" data-done="' + esc(key) + '" aria-pressed="' + on + '">'
-      + ico(on ? I.tick : I.check) + (on ? '학습 완료 · ' + esc(S.done[key].slice(0, 10)) : '이 내용을 학습했습니다')
-      + '</button>';
+      + ico(on ? I.tick : I.check)
+      + (on ? L('Completed · ' + S.done[key].slice(0, 10), '학습 완료')
+            : L('I have studied this', '이 내용을 학습했습니다')) + '</button>';
 
     var nx = at >= 0 ? list[at + 1] : null;
     if (nx) h += '<a class="btn sec2" style="margin-top:10px" href="#/p/' + nx.deck + '/' + nx.n + '">'
-      + '다음 · ' + esc(nx.label) + '</a>';
+      + L('Next · ' + nx.label, '다음') + '</a>';
     else if (at >= 0) h += '<a class="btn sec2" style="margin-top:10px" href="#/cert">'
-      + '과정 끝 · 수료 확인으로</a>';
+      + L('Course complete · go to certificate', '과정 끝 · 수료 확인으로') + '</a>';
     return h;
   }
 
   /* ── 메뉴 ─────────────────────────────────────────── */
   function viewMenu(cat) {
     var deck = menuDeck(S.brand);
-    if (!deck) return '<div class="empty">메뉴 자료가 없습니다.</div>';
+    if (!deck) return '<div class="empty">No menu data · 메뉴 자료가 없습니다.</div>';
     var cats = catsOf(deck);
     var items = deck.items.map(function (it, i) { return { it: it, i: i }; });
     if (cat) items = items.filter(function (x) { return x.it.chip === cat; });
 
-    var h = '<div class="chips"><button data-cat=""' + (cat ? '' : ' aria-pressed="true"') + '>전체 '
+    var h = '<div class="chips"><button data-cat=""' + (cat ? '' : ' aria-pressed="true"') + '>ALL 전체 '
       + deck.items.length + '</button>'
       + cats.map(function (c) {
         var n = deck.items.filter(function (it) { return it.chip === c; }).length;
@@ -520,8 +537,9 @@
       var it = x.it;
       return '<button class="mc" data-item="' + x.i + '">'
         + '<span class="im">' + (it.img
-          ? '<img src="' + esc(it.img) + '" alt="' + esc(it.en) + '" loading="lazy">'
-          : '<span class="no">PHOTO<br>촬영 예정</span>') + '</span>'
+          ? '<img src="' + esc(thumb(it.img)) + '" alt="' + esc(it.en)
+            + '" loading="lazy" decoding="async">'
+          : '<span class="no">PHOTO<br>준비 중</span>') + '</span>'
         + '<span class="bd"><b>' + esc(it.en) + '</b>'
         + (it.kr ? '<span>' + esc(it.kr) + '</span>' : '')
         + (it.price ? '<i>' + esc(it.price) + '</i>' : '') + '</span></button>';
@@ -531,7 +549,8 @@
       var k = 'menu:' + deck.id + ':' + cat, on = isDone(k);
       h += '<button class="done" data-done="' + esc(k) + '" aria-pressed="' + on + '">'
         + ico(on ? I.tick : I.check)
-        + (on ? esc(cat) + ' 학습 완료' : esc(cat) + ' 메뉴를 학습했습니다') + '</button>';
+        + (on ? L(cat + ' completed', '학습 완료') : L('I have studied ' + cat, '이 메뉴를 학습했습니다'))
+        + '</button>';
     }
     return h;
   }
@@ -566,9 +585,10 @@
   function viewCheck() {
     var deck = mainManual(S.brand);
     var pages = (deck.pages || []).filter(function (p) { return (p.checklist || []).length; });
-    if (!pages.length) return '<div class="empty">체크리스트가 없습니다.</div>';
-    var h = '<div class="card pad"><div class="note">오늘(' + today()
-      + ') 기준입니다. 날짜가 바뀌면 자동으로 초기화됩니다.</div></div>';
+    if (!pages.length) return '<div class="empty">No checklist · 체크리스트가 없습니다.</div>';
+    var h = '<div class="card pad"><div class="note">'
+      + 'For today (' + today() + '). Resets automatically when the date changes.<br>'
+      + '오늘(' + today() + ') 기준입니다. 날짜가 바뀌면 자동으로 초기화됩니다.</div></div>';
     pages.forEach(function (p) {
       h += '<h2 class="sect">' + esc(titleMain(p.title)) + '</h2>' + clHtml(deck.id, p.n, p.checklist);
     });
@@ -580,13 +600,14 @@
     var p = progress(S.brand), full = p.total && p.done === p.total;
     var poss = positionsOf(S.brand);
     var h = '<div class="card pad">'
-      + '<div class="fg"><label class="fl" for="nm">이름 / NAME</label>'
+      + '<div class="fg"><label class="fl" for="nm">NAME · 이름</label>'
       + '<input class="fi" id="nm" data-me="name" value="' + esc(S.me.name) + '" placeholder="홍길동"></div>'
-      + '<div class="fg"><label class="fl" for="ph">연락처 뒤 4자리</label>'
+      + '<div class="fg"><label class="fl" for="ph">LAST 4 DIGITS · 연락처 뒤 4자리</label>'
       + '<input class="fi" id="ph" data-me="phone" inputmode="numeric" maxlength="4" value="'
       + esc(S.me.phone || '') + '" placeholder="동명이인 구분용"></div>'
-      + '<div class="fg"><label class="fl" for="ps">포지션 / POSITION</label>'
-      + '<select class="fi" id="ps" data-me="pos"><option value="">선택하세요</option>';
+      + '<div class="fg"><label class="fl" for="ps">POSITION · 포지션</label>'
+      + '<select class="fi" id="ps" data-me="pos">'
+      + '<option value="">Select · 선택하세요</option>';
     ['FOH', 'BOH', 'MGMT'].forEach(function (g) {
       var sub = poss.filter(function (x) { return x.group === g; });
       if (!sub.length) return;
@@ -596,15 +617,17 @@
       }).join('') + '</optgroup>';
     });
     h += '</select></div>'
-      + '<div class="fg" style="margin-bottom:0"><label class="fl">진도</label>'
+      + '<div class="fg" style="margin-bottom:0"><label class="fl">PROGRESS · 진도</label>'
       + '<div style="display:flex;justify-content:space-between;font-size:13px">'
-      + '<span>' + p.done + ' / ' + p.total + ' 항목</span><b>' + p.pct + '%</b></div>'
+      + '<span>' + p.done + ' / ' + p.total + ' items · 항목</span><b>' + p.pct + '%</b></div>'
       + '<div class="bar"><i style="width:' + p.pct + '%"></i></div></div></div>';
 
-    h += '<h2 class="sect">남은 항목</h2>';
+    h += '<h2 class="sect">REMAINING · 남은 항목</h2>';
     var left = p.items.filter(function (x) { return !S.done[x.k]; });
     if (!left.length) {
-      h += '<div class="card pad"><div class="note">모든 필수 항목을 완료했습니다. 아래에서 트레이너 서명을 받으세요.</div></div>';
+      h += '<div class="card pad"><div class="note">All required items are complete. '
+        + 'Get your trainer signature below.<br>모든 필수 항목을 완료했습니다. '
+        + '아래에서 트레이너 서명을 받으세요.</div></div>';
     } else {
       h += '<div class="list">' + left.slice(0, 40).map(function (x) {
         return rowHtml(hrefOf(x), x.ch, false, x.label, x.chName);
@@ -612,43 +635,52 @@
       if (left.length > 40) h += '<div class="note" style="margin-top:8px">외 ' + (left.length - 40) + '개</div>';
     }
 
-    h += '<h2 class="sect">트레이너 확인</h2><div class="card pad">';
+    h += '<h2 class="sect">TRAINER SIGN-OFF · 트레이너 확인</h2><div class="card pad">';
     if (S.sign && !S.sign.stale) {
       h += '<img src="' + esc(S.sign.img) + '" alt="서명" style="width:100%;border-radius:10px;background:#fff">'
         + '<div class="note" style="margin-top:8px"><b>' + esc(S.sign.by) + '</b> · ' + esc(S.sign.at) + '</div>'
-        + '<button class="btn sec2" style="margin-top:12px" data-sigclear>서명 다시 받기</button>';
+        + '<button class="btn sec2" style="margin-top:12px" data-sigclear>'
+        + L('Sign again', '서명 다시 받기') + '</button>';
     } else {
       if (S.sign && S.sign.stale) {
         h += '<div class="note" style="color:var(--crit);margin-bottom:10px">'
+          + 'Items changed after signing, so the signature was voided. Please sign again.<br>'
           + '서명 이후 학습 항목이 변경되어 서명이 무효 처리되었습니다. 다시 받아주세요.</div>';
       }
-      h += '<div class="fg"><label class="fl" for="tn">트레이너 이름</label>'
-        + '<input class="fi" id="tn" placeholder="교육 담당자"></div>'
+      h += '<div class="fg"><label class="fl" for="tn">TRAINER NAME · 트레이너 이름</label>'
+        + '<input class="fi" id="tn" placeholder="Trainer · 교육 담당자"></div>'
         + '<div class="sigw"><canvas class="sig" id="sig"></canvas>'
-        + '<div class="hint" id="sigHint">여기에 손가락으로 서명</div></div>'
+        + '<div class="hint" id="sigHint">Sign here with your finger · 여기에 손가락으로 서명</div></div>'
         + '<div style="display:flex;gap:8px;margin-top:10px">'
-        + '<button class="btn sec2" data-sigreset>지우기</button>'
-        + '<button class="btn" data-sigsave' + (full ? '' : ' disabled') + '>서명 저장</button></div>'
-        + (full ? '' : '<div class="note" style="margin-top:8px">모든 항목을 완료해야 서명할 수 있습니다.</div>');
+        + '<button class="btn sec2" data-sigreset>' + L('Clear', '지우기') + '</button>'
+        + '<button class="btn" data-sigsave' + (full ? '' : ' disabled') + '>'
+        + L('Save signature', '서명 저장') + '</button></div>'
+        + (full ? '' : '<div class="note" style="margin-top:8px">Complete every item before signing.<br>'
+          + '모든 항목을 완료해야 서명할 수 있습니다.</div>');
     }
     h += '</div>';
 
     if (S.sign && !S.sign.stale && full && S.me.name) {
       var code = certCode(S.brand);
-      h += '<h2 class="sect">수료 확인서</h2>'
+      h += '<h2 class="sect">CERTIFICATE · 수료 확인서</h2>'
         + '<div class="cert"><div class="ey">삼천리 SL&amp;C · ' + esc(S.brand) + ' BREA</div>'
         + '<h3>' + esc(S.me.name) + '</h3>'
-        + '<div class="who">' + esc(S.me.posLabel || '') + ' · ' + p.done + '개 항목 이수</div>'
+        + '<div class="who">' + esc(S.me.posLabel || '') + ' · ' + p.done + ' items · 항목 이수</div>'
         + '<div class="code">' + code + '</div>'
-        + '<div class="cl">확인 코드 · 매니저에게 전달</div></div>'
-        + '<button class="btn" style="margin-top:12px" data-share>' + ico(I.share) + '수료 내용 공유하기</button>'
-        + '<button class="btn sec2" style="margin-top:8px" data-copy>' + ico(I.copy) + '텍스트 복사</button>';
+        + '<div class="cl">VERIFICATION CODE · 확인 코드 — 매니저에게 전달</div></div>'
+        + '<button class="btn" style="margin-top:12px" data-share>' + ico(I.share)
+        + L('Share my completion', '수료 내용 공유하기') + '</button>'
+        + '<button class="btn sec2" style="margin-top:8px" data-copy>' + ico(I.copy)
+        + L('Copy as text', '텍스트 복사') + '</button>';
     }
 
-    h += '<h2 class="sect">기록</h2><div class="card pad">'
-      + '<div class="note">학습 기록은 이 휴대폰에만 저장됩니다. 앱 삭제·브라우저 데이터 삭제 시 사라지니, '
+    h += '<h2 class="sect">RECORD · 기록</h2><div class="card pad">'
+      + '<div class="note">Your record is stored only on this phone. Clearing browser data erases it, '
+      + 'so always send your completion to the manager when you finish.<br>'
+      + '학습 기록은 이 휴대폰에만 저장됩니다. 브라우저 데이터를 지우면 사라지니, '
       + '완료 후에는 반드시 수료 내용을 매니저에게 전달하세요.</div>'
-      + '<button class="btn sec2" style="margin-top:12px" data-reset>' + ico(I.reset) + '내 기록 초기화</button></div>';
+      + '<button class="btn sec2" style="margin-top:12px" data-reset>' + ico(I.reset)
+      + L('Reset my record', '내 기록 초기화') + '</button></div>';
 
     return h;
   }
@@ -667,15 +699,18 @@
       + (bad ? '<span style="color:var(--crit)">확인코드 불일치 ' + bad + '건</span>'
              : '<span>모든 코드 정상</span>') + '</div></div></div>';
 
-    h += '<h2 class="sect">수료 보고 받기</h2><div class="card pad">'
-      + '<div class="note">직원이 카톡으로 보낸 <b>수료 보고</b>를 그대로 붙여넣으세요. '
-      + '여러 건을 한꺼번에 붙여넣어도 됩니다. 확인코드는 자동으로 다시 계산해 위·변조를 검사합니다.</div>'
+    h += '<h2 class="sect">COLLECT REPORTS · 수료 보고 받기</h2><div class="card pad">'
+      + '<div class="note">Paste the <b>completion reports</b> staff sent you. '
+      + 'Several at once is fine — codes are recalculated to detect tampering.<br>'
+      + '직원이 보낸 <b>수료 보고</b>를 그대로 붙여넣으세요. 여러 건을 한꺼번에 붙여넣어도 됩니다. '
+      + '확인코드는 자동으로 다시 계산해 위·변조를 검사합니다.</div>'
       + '<textarea class="fi ta" id="paste" placeholder="#SLNC 교육 수료 보고&#10;브랜드: KSC&#10;이름: ..."></textarea>'
-      + '<button class="btn" style="margin-top:10px" data-import>보고서 읽어들이기</button></div>';
+      + '<button class="btn" style="margin-top:10px" data-import>'
+      + L('Import reports', '보고서 읽어들이기') + '</button></div>';
 
-    h += '<h2 class="sect">팀 현황 (' + team.length + '명)</h2>';
+    h += '<h2 class="sect">TEAM STATUS · 팀 현황 (' + team.length + ')</h2>';
     if (!team.length) {
-      h += '<div class="empty">아직 등록된 보고가 없습니다.</div>';
+      h += '<div class="empty">No reports yet · 아직 등록된 보고가 없습니다.</div>';
     } else {
       h += '<div class="tbl"><table><thead><tr>'
         + '<th>이름</th><th>연락처</th><th>포지션</th><th>진도</th><th>서명일</th><th>코드</th><th></th>'
@@ -694,14 +729,15 @@
             + '</td></tr>';
         }).join('') + '</tbody></table></div>';
       h += '<button class="btn sec2" style="margin-top:12px" data-teamcopy>' + ico(I.copy)
-        + '현황 표 복사 (엑셀 붙여넣기용)</button>';
+        + L('Copy table (for Excel)', '현황 표 복사') + '</button>';
     }
 
-    h += '<h2 class="sect">안내</h2><div class="card pad"><div class="note">'
-      + '이 현황은 <b>이 기기에만</b> 저장됩니다. 여러 매니저가 같은 현황을 실시간으로 보려면 '
-      + '공용 저장소가 필요합니다 — README의 “앞으로 가능한 확장” 참고.'
+    h += '<h2 class="sect">NOTE · 안내</h2><div class="card pad"><div class="note">'
+      + 'This status is stored <b>only on this device</b>. Sharing it live between managers '
+      + 'would need a shared store.<br>'
+      + '이 현황은 <b>이 기기에만</b> 저장됩니다. 여러 매니저가 실시간으로 함께 보려면 공용 저장소가 필요합니다.'
       + '</div><button class="btn sec2" style="margin-top:12px" data-teamreset>'
-      + ico(I.reset) + '팀 현황 비우기</button></div>';
+      + ico(I.reset) + L('Clear team status', '팀 현황 비우기') + '</button></div>';
     return h;
   }
 
@@ -801,7 +837,7 @@
     return out;
   }
   function viewSearch() {
-    var h = '<div class="fg"><input class="fi" id="sq" placeholder="메뉴 · 포지션 · 규정 검색"'
+    var h = '<div class="fg"><input class="fi" id="sq" placeholder="Search · 메뉴 · 포지션 · 규정 검색"'
       + ' value="' + esc(S.q) + '" autocomplete="off"></div>';
     var q = S.q.trim();
     if (q.length < 1) return h + '<div class="empty">찾을 내용을 입력하세요.</div>';
@@ -810,7 +846,7 @@
       return terms.every(function (t) { return e.text.indexOf(t) >= 0; });
     });
     hits.sort(function (a, b) { return (a.brand === S.brand ? -1 : 0) - (b.brand === S.brand ? -1 : 0); });
-    if (!hits.length) return h + '<div class="empty">일치하는 내용이 없습니다.</div>';
+    if (!hits.length) return h + '<div class="empty">No matches · 일치하는 내용이 없습니다.</div>';
     return h + '<div class="res">' + hits.slice(0, 60).map(function (e) {
       return '<a href="' + e.href + '"><div class="k">' + esc(e.brand) + ' · ' + esc(e.kind) + '</div>'
         + '<div class="t">' + hl(e.title, terms) + '</div>'
@@ -827,32 +863,33 @@
 
     var tab = r.t, body = '', title = '', opts = {};
     if (tab === 'sop') {
-      body = viewSopList(); title = '입문 매뉴얼'; opts.kicker = '간소화';
+      body = viewSopList(); title = 'ONBOARDING MANUAL'; opts.kicker = '입문 매뉴얼 · 간소화';
     }
     else if (tab === 'p') {
       var d2 = deckById(r.a), p2 = d2 && pageOf(d2, parseInt(r.b, 10));
       body = viewPage(r.a, parseInt(r.b, 10));
       title = p2 ? titleMain(p2.title) : 'SOP';
       opts.back = 'sop';
-      opts.kicker = '입문 매뉴얼 (간소화)';
+      opts.kicker = '입문 매뉴얼 · 간소화';
       opts.brands = false;   // 본문에서는 제목에 폭을 양보
     }
     else if (tab === 'menu') {
       body = viewMenu(r.b ? decodeURIComponent(r.b) : '');
-      title = r.b ? decodeURIComponent(r.b) : '메뉴 SOP';
+      title = r.b ? decodeURIComponent(r.b) : 'MENU SOP';
+      opts.kicker = r.b ? '메뉴' : '메뉴 SOP';
       if (r.b) opts.back = 'menu';
     }
-    else if (tab === 'check') { body = viewCheck(); title = '오픈 · 마감 체크리스트'; }
-    else if (tab === 'cert') { body = viewCert(); title = '내 교육 수료'; }
+    else if (tab === 'check') { body = viewCheck(); title = 'CHECKLIST'; opts.kicker = '오픈 · 마감 체크리스트'; }
+    else if (tab === 'cert') { body = viewCert(); title = 'MY CERTIFICATE'; opts.kicker = '내 교육 수료'; }
     else if (tab === 'admin') {
       if (!S.adminOn) { S.adminOn = 1; save(); }
-      body = viewAdmin(); title = '팀 수료 현황'; opts.kicker = '관리자';
+      body = viewAdmin(); title = 'TEAM STATUS'; opts.kicker = '팀 수료 현황 · 관리자';
     }
     else if (tab === 'search') {
       if (r.a) S.q = decodeURIComponent(r.a);   // #/search/갈비 처럼 바로 열 수 있게
-      body = viewSearch(); title = '검색';
+      body = viewSearch(); title = 'SEARCH'; opts.kicker = '검색';
     }
-    else { body = viewSopList(); tab = 'sop'; title = '입문 매뉴얼'; opts.kicker = '간소화'; }
+    else { body = viewSopList(); tab = 'sop'; title = 'ONBOARDING MANUAL'; opts.kicker = '입문 매뉴얼'; }
 
     renderRail(tab === 'p' ? 'sop' : tab);
     renderHead(title, opts);
