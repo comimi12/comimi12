@@ -27,6 +27,7 @@ VIEWS = [
     ("check", "#/check", 390),
     ("cert", "#/cert", 390),
     ("search", "#/search/kalbi", 390),
+    ("admin", "#/admin", 390),
     ("wide-page", "#/p/ksc-manual/15", 1280),
     ("wide-menu", "#/menu", 1280),
 ]
@@ -54,7 +55,7 @@ def main():
               broken: [...document.images].filter(i => i.complete && i.naturalWidth === 0).length,
               blocks: document.querySelectorAll('.blk,.mc,.grp,.tbl,.res a,.row,.card,.cert').length
             })""")
-            if stats["rail"] != 5 and "wide" not in name:
+            if stats["rail"] < 5 and "wide" not in name:
                 problems.append("%s: 왼쪽 레일 탭 %d개 (5개여야 함)" % (name, stats["rail"]))
             if errs:
                 problems.append("%s: 콘솔 오류 %s" % (name, errs[:2]))

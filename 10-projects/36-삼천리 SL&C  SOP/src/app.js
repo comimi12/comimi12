@@ -26,6 +26,8 @@
     done: {},      // "deckId:n" | "menu:deckId:chip"  ->  ISO 날짜
     daily: {},     // "YYYY-MM-DD|deckId:n|g|i"        ->  true
     sign: null,    // { img, by, at }
+    team: [],      // 관리자 기기에 모인 팀 수료 보고
+    adminOn: 0,
     q: ''
   };
   try {
@@ -39,7 +41,8 @@
   function save() {
     try {
       localStorage.setItem(KEY, JSON.stringify({
-        brand: S.brand, theme: S.theme, me: S.me, done: S.done, daily: S.daily, sign: S.sign
+        brand: S.brand, theme: S.theme, me: S.me, done: S.done, daily: S.daily, sign: S.sign,
+        team: S.team, adminOn: S.adminOn
       }));
     } catch (e) { /* 저장 불가여도 화면은 계속 동작 */ }
   }
@@ -78,7 +81,8 @@
     moon: '<path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"/>',
     share: '<path d="M12 15V3"/><path d="m8 7 4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/>',
     copy: '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>',
-    reset: '<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/>'
+    reset: '<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/>',
+    team: '<circle cx="9" cy="8" r="3.4"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16.5 5.2a3.4 3.4 0 0 1 0 5.6"/><path d="M18 14.4a6.5 6.5 0 0 1 3.5 5.6"/>'
   };
 
   /* ── 데이터 헬퍼 ───────────────────────────────────── */
@@ -168,16 +172,20 @@
     save();
   }
 
-  /** 이름·포지션·완료항목·서명일로 만드는 6자리 대조코드 */
-  function certCode(b) {
-    var p = progress(b);
-    var seed = S.me.name + '|' + S.me.pos + '|' + b + '|' + p.done + '/' + p.total
-      + '|' + (S.sign ? S.sign.at : '');
+  /** 이름·포지션·진도·서명일로 만드는 6자리 대조코드.
+   *  씨앗을 전부 보고서 본문에 싣기 때문에, 관리자 화면에서 코드를 다시 계산해
+   *  위·변조 여부를 확인할 수 있다. */
+  function codeFrom(name, posLabel, brand, done, total, at) {
+    var seed = [name, posLabel, brand, done + '/' + total, at].join('|');
     var h = 5381;
     for (var i = 0; i < seed.length; i++) h = ((h * 33) ^ seed.charCodeAt(i)) >>> 0;
     var A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', out = '';
     for (var j = 0; j < 6; j++) { out += A[h % 32]; h = Math.floor(h / 32) + 7919; }
     return out;
+  }
+  function certCode(b) {
+    var p = progress(b);
+    return codeFrom(S.me.name, S.me.posLabel, b, p.done, p.total, S.sign ? S.sign.at : '');
   }
 
   /* ── 라우팅 ───────────────────────────────────────── */
@@ -199,11 +207,15 @@
   /* ── 레일 / 헤더 ──────────────────────────────────── */
   function renderRail(active) {
     var p = progress(S.brand);
+    var tabs = TABS.slice();
+    // 관리자 화면은 한 번 들어가 본 기기에서만 레일에 남는다
+    if (S.adminOn) tabs.push({ id: 'admin', label: '관리자', ic: I.team });
     $rail.innerHTML =
       '<div class="mark">SL&amp;C</div>'
-      + TABS.map(function (t) {
+      + tabs.map(function (t) {
         var badge = '';
         if (t.id === 'cert' && p.total && p.done < p.total) badge = '<span class="dot">' + (p.total - p.done) + '</span>';
+        if (t.id === 'admin' && (S.team || []).length) badge = '<span class="dot">' + S.team.length + '</span>';
         return '<a class="nv" href="#/' + t.id + '"' + (active === t.id ? ' aria-current="true"' : '') + '>'
           + ico(t.ic) + '<span>' + t.label + '</span>' + badge + '</a>';
       }).join('')
@@ -219,7 +231,7 @@
       + (opts.kicker ? '<span>' + esc(opts.kicker) + '</span>' : '') + '</div>';
     if (opts.brands !== false) {
       h += '<div class="bsw">' + BRANDS.map(function (b) {
-        return '<button data-brand="' + b + '"' + (b === S.brand ? ' aria-current="true"' : '') + '>' + b + '</button>';
+        return '<button data-setbrand="' + b + '"' + (b === S.brand ? ' aria-current="true"' : '') + '>' + b + '</button>';
       }).join('') + '</div>';
     }
     h += '<a class="ic" href="#/search" aria-label="검색">' + ico(I.search) + '</a>';
@@ -611,19 +623,105 @@
       + '<div class="note">학습 기록은 이 휴대폰에만 저장됩니다. 앱 삭제·브라우저 데이터 삭제 시 사라지니, '
       + '완료 후에는 반드시 수료 내용을 매니저에게 전달하세요.</div>'
       + '<button class="btn sec2" style="margin-top:12px" data-reset>' + ico(I.reset) + '내 기록 초기화</button></div>';
+
+    h += '<div style="margin-top:22px;text-align:center">'
+      + '<a href="#/admin" style="font-size:12.5px;color:var(--mut2)">관리자용 · 팀 수료 현황 보기 →</a></div>';
     return h;
   }
 
+  /* ── 관리자(트레이너) — 팀 수료 현황 ─────────────── */
+  function viewAdmin() {
+    var team = S.team || [];
+    // 코드가 검증된 보고만 수료로 센다
+    var full = team.filter(function (r) { return r.ok && r.total && r.done >= r.total; }).length;
+    var bad = team.filter(function (r) { return !r.ok; }).length;
+
+    var h = '<div class="card pad"><div class="prog">'
+      + ring(team.length ? Math.round(full / team.length * 100) : 0)
+      + '<div class="meta"><b>' + full + ' / ' + team.length + '명 수료</b>'
+      + '<span>' + esc(BRAND_META[S.brand].name) + '</span>'
+      + (bad ? '<span style="color:var(--crit)">확인코드 불일치 ' + bad + '건</span>'
+             : '<span>모든 코드 정상</span>') + '</div></div></div>';
+
+    h += '<h2 class="sect">수료 보고 받기</h2><div class="card pad">'
+      + '<div class="note">직원이 카톡으로 보낸 <b>수료 보고</b>를 그대로 붙여넣으세요. '
+      + '여러 건을 한꺼번에 붙여넣어도 됩니다. 확인코드는 자동으로 다시 계산해 위·변조를 검사합니다.</div>'
+      + '<textarea class="fi ta" id="paste" placeholder="#SLNC 교육 수료 보고&#10;브랜드: KSC&#10;이름: ..."></textarea>'
+      + '<button class="btn" style="margin-top:10px" data-import>보고서 읽어들이기</button></div>';
+
+    h += '<h2 class="sect">팀 현황 (' + team.length + '명)</h2>';
+    if (!team.length) {
+      h += '<div class="empty">아직 등록된 보고가 없습니다.</div>';
+    } else {
+      h += '<div class="tbl"><table><thead><tr>'
+        + '<th>이름</th><th>포지션</th><th>진도</th><th>서명일</th><th>코드</th><th></th>'
+        + '</tr></thead><tbody>'
+        + team.map(function (r, i) {
+          var done = r.total && r.done >= r.total;
+          return '<tr><td>' + esc(r.name) + '</td><td>' + esc(r.pos) + '</td>'
+            + '<td>' + r.done + '/' + r.total + '</td>'
+            + '<td>' + esc(r.at) + '</td>'
+            + '<td style="font-family:Archivo,monospace;letter-spacing:.06em">' + esc(r.code) + '</td>'
+            + '<td style="white-space:nowrap">'
+            + (r.ok ? (done ? '<b style="color:var(--good)">수료</b>' : '<span>진행중</span>')
+                    : '<b style="color:var(--crit)">코드 불일치</b>')
+            + ' <button data-drop="' + i + '" style="color:var(--mut2);padding:0 4px">✕</button>'
+            + '</td></tr>';
+        }).join('') + '</tbody></table></div>';
+      h += '<button class="btn sec2" style="margin-top:12px" data-teamcopy>' + ico(I.copy)
+        + '현황 표 복사 (엑셀 붙여넣기용)</button>';
+    }
+
+    h += '<h2 class="sect">안내</h2><div class="card pad"><div class="note">'
+      + '이 현황은 <b>이 기기에만</b> 저장됩니다. 여러 매니저가 같은 현황을 실시간으로 보려면 '
+      + '공용 저장소가 필요합니다 — README의 “앞으로 가능한 확장” 참고.'
+      + '</div><button class="btn sec2" style="margin-top:12px" data-teamreset>'
+      + ico(I.reset) + '팀 현황 비우기</button></div>';
+    return h;
+  }
+
+  function teamTsv() {
+    return ['이름\t포지션\t브랜드\t진도\t트레이너\t서명일\t확인코드\t상태']
+      .concat((S.team || []).map(function (r) {
+        return [r.name, r.pos, r.brand, r.done + '/' + r.total, r.by, r.at, r.code,
+          r.ok ? (r.done >= r.total ? '수료' : '진행중') : '코드 불일치'].join('\t');
+      })).join('\n');
+  }
+
+  /** 관리자 화면이 그대로 붙여넣기로 읽어들이는 보고서. 라벨 형식을 바꾸면 파서도 함께 고칠 것. */
   function certText() {
     var p = progress(S.brand);
-    return ['[삼천리 SL&C 교육 수료 보고]',
-      '브랜드: ' + BRAND_META[S.brand].name,
+    return ['#SLNC 교육 수료 보고',
+      '브랜드: ' + S.brand,
       '이름: ' + S.me.name,
       '포지션: ' + (S.me.posLabel || '-'),
-      '진도: ' + p.done + '/' + p.total + ' (' + p.pct + '%)',
+      '진도: ' + p.done + '/' + p.total,
       '트레이너: ' + (S.sign ? S.sign.by : '-'),
       '서명일: ' + (S.sign ? S.sign.at : '-'),
       '확인코드: ' + certCode(S.brand)].join('\n');
+  }
+
+  /** 카톡으로 받은 보고서를 한꺼번에 붙여넣어도 건별로 잘라 읽는다. */
+  function parseReports(txt) {
+    var out = [];
+    String(txt).split(/#SLNC/).forEach(function (chunk) {
+      if (!/이름\s*:/.test(chunk)) return;
+      function f(label) {
+        var m = new RegExp(label + '\\s*:\\s*(.+)').exec(chunk);
+        return m ? m[1].trim() : '';
+      }
+      var prog = f('진도').split('/');
+      var r = {
+        brand: f('브랜드'), name: f('이름'), pos: f('포지션'),
+        done: parseInt(prog[0], 10) || 0, total: parseInt(prog[1], 10) || 0,
+        by: f('트레이너'), at: f('서명일'), code: f('확인코드').toUpperCase()
+      };
+      if (!r.name || !r.code) return;
+      r.ok = codeFrom(r.name, r.pos, r.brand, r.done, r.total, r.at) === r.code;
+      r.id = r.brand + '|' + r.name + '|' + r.pos;
+      out.push(r);
+    });
+    return out;
   }
 
   /* ── 검색 ─────────────────────────────────────────── */
@@ -717,6 +815,10 @@
     }
     else if (tab === 'check') { body = viewCheck(); title = '오픈 · 마감 체크'; }
     else if (tab === 'cert') { body = viewCert(); title = '내 교육 수료'; }
+    else if (tab === 'admin') {
+      if (!S.adminOn) { S.adminOn = 1; save(); }
+      body = viewAdmin(); title = '팀 수료 현황'; opts.kicker = '관리자';
+    }
     else if (tab === 'search') {
       if (r.a) S.q = decodeURIComponent(r.a);   // #/search/갈비 처럼 바로 열 수 있게
       body = viewSearch(); title = '검색';
@@ -769,8 +871,9 @@
   /* ── 이벤트 ───────────────────────────────────────── */
   document.addEventListener('click', function (e) {
     var t;
-    if (t = e.target.closest('[data-brand]')) {
-      S.brand = t.dataset.brand; save(); go('home'); return;
+    // 주의: <html>에도 data-brand가 있다(CSS용). 클릭 판정은 반드시 data-setbrand로.
+    if (t = e.target.closest('[data-setbrand]')) {
+      S.brand = t.dataset.setbrand; save(); go('home'); return;
     }
     if (e.target.closest('#themeTog')) {
       var cur = S.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
@@ -818,6 +921,34 @@
       else if (navigator.clipboard) navigator.clipboard.writeText(txt2).then(function () { alert('복사되었습니다. 카톡에 붙여넣어 주세요.'); });
       else prompt('아래 내용을 복사하세요', txt2);
       return;
+    }
+    if (e.target.closest('[data-import]')) {
+      var ta = document.getElementById('paste');
+      var got = parseReports(ta ? ta.value : '');
+      if (!got.length) { alert('읽을 수 있는 수료 보고가 없습니다.'); return; }
+      S.team = S.team || [];
+      var add = 0, upd = 0;
+      got.forEach(function (r) {
+        var at = -1;
+        S.team.forEach(function (x, i) { if (x.id === r.id) at = i; });
+        if (at >= 0) { S.team[at] = r; upd++; } else { S.team.push(r); add++; }
+      });
+      save(); render();
+      alert('새로 ' + add + '건, 갱신 ' + upd + '건 반영했습니다.');
+      return;
+    }
+    if (t = e.target.closest('[data-drop]')) {
+      S.team.splice(parseInt(t.dataset.drop, 10), 1); save(); render(); return;
+    }
+    if (e.target.closest('[data-teamcopy]')) {
+      var tsv = teamTsv();
+      if (navigator.clipboard) navigator.clipboard.writeText(tsv).then(function () { alert('복사되었습니다.'); });
+      else prompt('아래 내용을 복사하세요', tsv);
+      return;
+    }
+    if (e.target.closest('[data-teamreset]')) {
+      if (!confirm('모아둔 팀 현황을 모두 지웁니다. 계속할까요?')) return;
+      S.team = []; save(); render(); return;
     }
     if (e.target.closest('[data-reset]')) {
       if (!confirm('학습 기록과 서명을 모두 지웁니다. 계속할까요?')) return;

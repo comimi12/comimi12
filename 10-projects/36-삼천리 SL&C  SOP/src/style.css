@@ -357,3 +357,6 @@ mark{ background:var(--warn-soft); color:inherit; padding:0 2px; border-radius:3
   .wrap{ margin-left:0 }
   .blk,.card,.tbl,.grp{ box-shadow:none; break-inside:avoid }
 }
+
+/* 관리자 — 보고서 붙여넣기 */
+textarea.ta{ height:130px; padding:13px 15px; line-height:1.55; resize:vertical; margin-top:6px }
