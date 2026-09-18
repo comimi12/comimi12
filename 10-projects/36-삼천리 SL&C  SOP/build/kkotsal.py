@@ -38,6 +38,21 @@ ENC = ["-c:v", "libx264", "-preset", "medium", "-crf", "26",
        "-g", "60", "-keyint_min", "30", "-sc_threshold", "0",
        "-profile:v", "main", "-level", "3.1", "-pix_fmt", "yuv420p"]
 
+# 소리: 합성물은 클립을 muted 로 깔지만, 클립에는 현장 그릴 소리가 들어 있다.
+# 화면과 같은 구간을 같은 배속으로 꺼내 타임라인 자리에 얹는다.
+#   at=놓을 시각, a=클립 시작, take=쓸 소스 길이(초), rate=화면 배속 (길이 = take/rate)
+# 2번 장면(01-ignite)은 0.18배속이라 늘리면 소리가 뭉개진다 — 대신 앞 장면(02-temp)의
+# 그릴 소리를 그 구간까지 이어 덮는다. 제목(0~3초)과 닫는 카드(56~60초)는 무음.
+AUDIO = [
+    dict(at=3.0,  src="02-temp",  a=0.0,  take=7.9, rate=1.0),   # 01~02 장면을 함께 덮는다
+    dict(at=12.0, src="03-oil",   a=2.0,  take=6.0, rate=1.0),
+    dict(at=18.0, src="04-place", a=4.0,  take=5.0, rate=1.0),
+    dict(at=23.0, src="05-sear",  a=0.3,  take=7.0, rate=0.9),
+    dict(at=31.0, src="06-grill", a=2.0,  take=9.0, rate=1.0),
+    dict(at=40.0, src="07-cut",   a=5.0,  take=8.0, rate=1.0),
+    dict(at=48.0, src="08-serve", a=20.0, take=8.0, rate=1.0),
+]
+
 # 브라우저 쪽 도우미: 재생 루프를 멈추고, 한 프레임씩 요구한다.
 HOOK = """
 window.__freeze = () => {                 // 합성물의 requestAnimationFrame 루프 정지
@@ -114,20 +129,52 @@ def capture():
     return n
 
 
+def build_audio():
+    """클립의 현장 소리를 타임라인 자리에 얹어 60초 한 트랙으로 만든다."""
+    out = os.path.join(WORK, "audio.m4a")
+    ins, fc, labels = [], [], []
+    for k, s in enumerate(AUDIO):
+        span = s["take"] / s["rate"]
+        ins += ["-ss", "%.3f" % s["a"], "-t", "%.3f" % s["take"],
+                "-i", os.path.join(SRC, "clips", s["src"] + ".mp4")]
+        ch = []
+        if abs(s["rate"] - 1.0) > 1e-6:
+            ch.append("atempo=%.6f" % s["rate"])
+        ch += ["aresample=48000",
+               "afade=t=in:st=0:d=0.35",
+               "afade=t=out:st=%.2f:d=0.5" % max(span - 0.5, 0.01),
+               "adelay=%d|%d" % (int(s["at"] * 1000), int(s["at"] * 1000))]
+        fc.append("[%d:a]%s[a%d]" % (k, ",".join(ch), k))
+        labels.append("[a%d]" % k)
+    # 장면마다 녹음 레벨이 달라(-22~-29dB) loudnorm 으로 고르게 맞춘다.
+    fc.append("%samix=inputs=%d:duration=longest:normalize=0,"
+              "loudnorm=I=-18:TP=-2:LRA=11,aresample=48000,"
+              "apad,atrim=0:%.2f,alimiter=limit=0.95[out]"
+              % ("".join(labels), len(labels), DUR))
+    run([FF, "-y"] + ins + ["-filter_complex", ";".join(fc), "-map", "[out]",
+                            "-c:a", "aac", "-b:a", "128k", "-ac", "2", out])
+    return out
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
-    print("[1/3] 클립 준비")
+    print("[1/4] 클립 준비")
     prep()
-    print("[2/3] 프레임 캡처 (%d장 · 10분 안팎)" % int(DUR * FPS))
+    print("[2/4] 프레임 캡처 (%d장 · 10분 안팎)" % int(DUR * FPS))
     have = len(glob.glob(os.path.join(FRAMES, "*.jpg")))
     if "--reuse" in sys.argv and have:
         print("  캡처본 재사용: %d장" % have)
     else:
         capture()
-    print("[3/3] 인코딩")
+    print("[3/4] 소리")
+    audio = build_audio()
+    print("[4/4] 인코딩")
     mp4 = os.path.join(OUT, VID + ".mp4")
     run([FF, "-y", "-framerate", str(FPS), "-i", os.path.join(FRAMES, "%05d.jpg"),
-         "-vf", "scale=-2:720", "-r", str(FPS)] + ENC + ["-an", "-movflags", "+faststart", mp4])
+         "-i", audio, "-map", "0:v:0", "-map", "1:a:0",
+         "-vf", "scale=-2:720", "-r", str(FPS)] + ENC
+        + ["-c:a", "aac", "-b:a", "128k", "-ac", "2", "-shortest",
+           "-movflags", "+faststart", mp4])
     run([FF, "-y", "-ss", str(POSTER_AT), "-i", mp4, "-frames:v", "1",
          "-vf", "scale=-2:480", "-q:v", "4", os.path.join(OUT, VID + ".jpg")])
     print("[OK] %s (%.1f MB)" % (mp4, os.path.getsize(mp4) / 1e6))
