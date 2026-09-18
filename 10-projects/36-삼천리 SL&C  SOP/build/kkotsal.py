@@ -15,9 +15,10 @@ woodae.py 처럼 실시간 화면 녹화를 하지 않는다. 이 합성물은 �
   3. t = 0, 1/30, 2/30 … 60초까지 seek -> 영상 디코드 대기 -> 스크린샷
   4. 프레임을 이어 붙여 720p H.264 (faststart) 로 인코딩
 
-소리는 없다. 원본 합성물이 클립을 muted 로 깔고 자막으로만 설명한다.
+소리는 따로 얹는다. 원본 합성물은 클립을 muted 로 깔지만, 클립에는 8단계를 안내하는
+영어 내레이션과 현장 그릴 소리가 들어 있다 — 아래 `VO` 주석 참고.
 """
-import io, os, sys, glob, time, shutil, subprocess
+import io, os, re, sys, glob, time, shutil, subprocess
 import imageio_ffmpeg
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -38,20 +39,36 @@ ENC = ["-c:v", "libx264", "-preset", "medium", "-crf", "26",
        "-g", "60", "-keyint_min", "30", "-sc_threshold", "0",
        "-profile:v", "main", "-level", "3.1", "-pix_fmt", "yuv420p"]
 
-# 소리: 합성물은 클립을 muted 로 깔지만, 클립에는 현장 그릴 소리가 들어 있다.
-# 화면과 같은 구간을 같은 배속으로 꺼내 타임라인 자리에 얹는다.
-#   at=놓을 시각, a=클립 시작, take=쓸 소스 길이(초), rate=화면 배속 (길이 = take/rate)
-# 2번 장면(01-ignite)은 0.18배속이라 늘리면 소리가 뭉개진다 — 대신 앞 장면(02-temp)의
-# 그릴 소리를 그 구간까지 이어 덮는다. 제목(0~3초)과 닫는 카드(56~60초)는 무음.
-AUDIO = [
-    dict(at=3.0,  src="02-temp",  a=0.0,  take=7.9, rate=1.0),   # 01~02 장면을 함께 덮는다
-    dict(at=12.0, src="03-oil",   a=2.0,  take=6.0, rate=1.0),
-    dict(at=18.0, src="04-place", a=4.0,  take=5.0, rate=1.0),
-    dict(at=23.0, src="05-sear",  a=0.3,  take=7.0, rate=0.9),
-    dict(at=31.0, src="06-grill", a=2.0,  take=9.0, rate=1.0),
-    dict(at=40.0, src="07-cut",   a=5.0,  take=8.0, rate=1.0),
-    dict(at=48.0, src="08-serve", a=20.0, take=8.0, rate=1.0),
+# ── 소리 ───────────────────────────────────────────────────────────────
+# 클립에는 8단계를 안내하는 **영어 내레이션**과 현장 그릴 소리가 같이 들어 있다.
+# 내레이션은 클립 경계와 따로 논다 — 점화 안내는 `02-temp`에, 온도 안내는 `03-oil`
+# 끝에 있고, `01-ignite`·`05-sear`에는 말이 아예 없다.
+#
+# 그래서 합성물의 화면 in/out 지점을 그대로 소리에 쓰면 안 된다(처음엔 그렇게 했다):
+# 문장이 중간에서 잘리고, 2번 장면(온도 체크) 위에 점화 안내가 얹히고,
+# 4번 장면은 정작 제 안내("한 줄로 겹치지 않게")가 통째로 잘려 나갔다.
+#
+# 아래는 **문장 단위로 잘라 자막에 맞는 장면에 놓은 것**이다.
+#   at=놓을 시각, src/a~b=클립에서 꺼낼 구간, cap=맞춰야 할 자막
+VO = [
+    dict(at=3.05,  src="02-temp",  a=3.55, b=7.45,  cap="01 가스불 점화"),
+    dict(at=7.45,  src="03-oil",   a=8.20, b=10.70, cap="02 그릴 온도 체크"),
+    dict(at=12.45, src="03-oil",   a=4.70, b=7.85,  cap="03 소기름 코팅"),
+    dict(at=18.10, src="04-place", a=0.00, b=5.54,  cap="04 고기 올리기"),
+    dict(at=24.10, src="04-place", a=5.54, b=10.94, cap="05 시어링"),
+    dict(at=31.20, src="06-grill", a=3.30, b=12.10, cap="06 타지 않게 굽기"),
+    dict(at=40.20, src="07-cut",   a=0.00, b=8.10,  cap="07 한입 크기 커팅"),
+    dict(at=48.60, src="08-serve", a=0.00, b=4.36,  cap="08 담아서"),
+    dict(at=53.20, src="08-serve", a=22.40, b=25.30, cap="08 코멘트와 함께 제공"),
 ]
+
+# 말 사이가 비면 화면만 돌아 허전하다. 클립에서 **말이 없는 구간**만 모아
+# 낮게 깔아 둔다 — 내레이션 구간과 겹쳐도 같은 말이 두 번 들리지 않는다.
+BED = [("05-sear", 0.20, 7.20), ("07-cut", 8.60, 19.60),
+       ("08-serve", 6.20, 19.60), ("04-place", 11.40, 16.00)]
+BED_AT, BED_UNTIL = 3.0, 56.0     # 제목(0~3초)과 닫는 카드(56~60초)는 무음
+
+VO_LEVEL, BED_LEVEL = -20.0, -34.0   # 구간마다 녹음 레벨이 달라 각각 맞춰 준다
 
 # 브라우저 쪽 도우미: 재생 루프를 멈추고, 한 프레임씩 요구한다.
 HOOK = """
@@ -86,6 +103,13 @@ def run(args):
 def prep():
     """클립을 H.264로 바꾸고, 합성물을 작업 폴더에 그대로 복사한다."""
     os.makedirs(os.path.join(WORK, "clips"), exist_ok=True)
+    if not os.path.isdir(os.path.join(SRC, "clips")):
+        # 원본 export 폴더는 한 번 쓰고 지워진다. 작업 폴더 사본으로 계속 간다.
+        n = len(glob.glob(os.path.join(WORK, "clips", "*.mp4")))
+        if n != 8 or not os.path.exists(os.path.join(WORK, "play.html")):
+            raise SystemExit("[ERR] 원본(%s)도 작업 사본도 없다 — 합성물을 다시 내보내야 한다" % SRC)
+        print("  원본 폴더 없음 — 작업 폴더 사본 %d개 사용" % n)
+        return
     for f in sorted(os.listdir(os.path.join(SRC, "clips"))):
         dst = os.path.join(WORK, "clips", f)
         if os.path.exists(dst):
@@ -129,26 +153,64 @@ def capture():
     return n
 
 
+def clip(name):
+    """원본 export 폴더가 지워졌으면 작업 폴더의 H.264 사본을 쓴다 (소리 동일)."""
+    p = os.path.join(SRC, "clips", name + ".mp4")
+    return p if os.path.exists(p) else os.path.join(WORK, "clips", name + ".mp4")
+
+
+def mean_db(path, a, b):
+    r = subprocess.run([FF, "-hide_banner", "-ss", "%.3f" % a, "-t", "%.3f" % (b - a),
+                        "-i", path, "-af", "volumedetect", "-f", "null", "-"],
+                       capture_output=True, text=True, encoding="utf-8", errors="replace")
+    m = re.search(r"mean_volume:\s*(-?[\d.]+) dB", r.stderr or "")
+    return float(m.group(1)) if m else -99.0
+
+
+def build_bed():
+    """말이 없는 구간만 이어 붙인 그릴 앰비언스 (필요한 길이만큼 반복)."""
+    need = BED_UNTIL - BED_AT
+    parts, total = [], 0.0
+    while total < need:
+        for i, (src, a, b) in enumerate(BED):
+            p = os.path.join(WORK, "bed_%d_%d.m4a" % (len(parts), i))
+            g = BED_LEVEL - mean_db(clip(src), a, b)
+            run([FF, "-y", "-ss", "%.3f" % a, "-t", "%.3f" % (b - a), "-i", clip(src),
+                 "-af", "volume=%.2fdB,aresample=48000,afade=t=in:st=0:d=0.4,"
+                        "afade=t=out:st=%.2f:d=0.4" % (g, b - a - 0.4),
+                 "-c:a", "aac", "-b:a", "128k", "-ac", "2", p])
+            parts.append(p)
+            total += b - a
+            if total >= need:
+                break
+    lst = os.path.join(WORK, "bed_list.txt")
+    with open(lst, "w", encoding="utf-8") as f:
+        for p in parts:
+            f.write("file '%s'\n" % p.replace("\\", "/"))
+    out = os.path.join(WORK, "bed.m4a")
+    run([FF, "-y", "-f", "concat", "-safe", "0", "-i", lst, "-c", "copy", out])
+    return out
+
+
 def build_audio():
-    """클립의 현장 소리를 타임라인 자리에 얹어 60초 한 트랙으로 만든다."""
+    """내레이션을 자막에 맞는 장면에 놓고, 그 아래 앰비언스를 깔아 60초 한 트랙으로."""
+    bed = build_bed()
     out = os.path.join(WORK, "audio.m4a")
-    ins, fc, labels = [], [], []
-    for k, s in enumerate(AUDIO):
-        span = s["take"] / s["rate"]
-        ins += ["-ss", "%.3f" % s["a"], "-t", "%.3f" % s["take"],
-                "-i", os.path.join(SRC, "clips", s["src"] + ".mp4")]
-        ch = []
-        if abs(s["rate"] - 1.0) > 1e-6:
-            ch.append("atempo=%.6f" % s["rate"])
-        ch += ["aresample=48000",
-               "afade=t=in:st=0:d=0.35",
-               "afade=t=out:st=%.2f:d=0.5" % max(span - 0.5, 0.01),
-               "adelay=%d|%d" % (int(s["at"] * 1000), int(s["at"] * 1000))]
-        fc.append("[%d:a]%s[a%d]" % (k, ",".join(ch), k))
-        labels.append("[a%d]" % k)
-    # 장면마다 녹음 레벨이 달라(-22~-29dB) loudnorm 으로 고르게 맞춘다.
+    span = BED_UNTIL - BED_AT
+    ins = ["-t", "%.3f" % span, "-i", bed]
+    fc = ["[0:a]afade=t=in:st=0:d=1.2,afade=t=out:st=%.2f:d=1.5,adelay=%d|%d[bed]"
+          % (span - 1.5, int(BED_AT * 1000), int(BED_AT * 1000))]
+    labels = ["[bed]"]
+    for k, s in enumerate(VO, start=1):
+        d = s["b"] - s["a"]
+        g = VO_LEVEL - mean_db(clip(s["src"]), s["a"], s["b"])
+        ins += ["-ss", "%.3f" % s["a"], "-t", "%.3f" % d, "-i", clip(s["src"])]
+        fc.append("[%d:a]volume=%.2fdB,aresample=48000,afade=t=in:st=0:d=0.15,"
+                  "afade=t=out:st=%.2f:d=0.25,adelay=%d|%d[v%d]"
+                  % (k, g, max(d - 0.25, 0.01), int(s["at"] * 1000), int(s["at"] * 1000), k))
+        labels.append("[v%d]" % k)
+        print("  %5.2f초  %-22s %s" % (s["at"], s["cap"], s["src"]))
     fc.append("%samix=inputs=%d:duration=longest:normalize=0,"
-              "loudnorm=I=-18:TP=-2:LRA=11,aresample=48000,"
               "apad,atrim=0:%.2f,alimiter=limit=0.95[out]"
               % ("".join(labels), len(labels), DUR))
     run([FF, "-y"] + ins + ["-filter_complex", ";".join(fc), "-map", "[out]",
