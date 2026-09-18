@@ -285,6 +285,25 @@ tbody tr.sep td{ background:var(--pri); color:var(--pri-on); font-weight:800; fo
 .done svg{ width:21px; height:21px; stroke:currentColor; fill:none; stroke-width:2.4 }
 .done[aria-pressed="true"]{ border-style:solid; border-color:transparent;
   background:var(--good-soft); color:var(--good) }
+/* 아직 최소 학습 시간을 못 채웠을 때 — 왜 못 누르는지 바로 보이게 */
+.done[disabled]{ opacity:1; border-style:dashed; color:var(--mut2) }
+.donewrap{ margin-top:22px }
+.donewrap.sm{ margin-top:12px }
+.donewrap .done, .donewrap .done.sm{ margin-top:0 }   /* 여백은 바깥 래퍼가 갖는다 */
+.gate:empty{ display:none }
+.gate{ margin-top:8px }
+.gate .bar{ margin-top:0; height:5px }
+.gatetx{ margin-top:6px; font-size:12.5px; color:var(--mut2); text-align:center; letter-spacing:-.01em }
+
+/* 학습 시간 표 — 묶음 줄은 살짝 눌러 구분 */
+tbody tr.gr td{ background:var(--surf2); color:var(--ink) }
+
+/* 등록 확인 화면의 항목 줄 */
+.kv{ display:flex; justify-content:space-between; gap:14px; padding:9px 0;
+  border-bottom:1px solid var(--line); font-size:14px }
+.kv:last-child{ border-bottom:0 }
+.kv span{ color:var(--mut2); flex:0 0 auto }
+.kv b{ color:var(--ink); text-align:right; font-weight:700 }
 
 /* ── 메뉴 ─────────────────────────────────────────── */
 .chips{ display:flex; gap:7px; overflow-x:auto; scrollbar-width:none;

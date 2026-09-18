@@ -26,6 +26,7 @@
     brand: 'KSC', theme: '',
     me: { name: '', phone: '', pos: '', posLabel: '', start: '' },
     done: {},      // "deckId:n" | "menu:deckId:chip"  ->  ISO 날짜
+    study: {},     // 같은 키 -> { s: 머문 초, d: 스크롤 도달 % }
     daily: {},     // "YYYY-MM-DD|deckId:n|g|i"        ->  true
     sign: null,    // { img, by, at }
     team: [],      // 관리자 기기에 모인 팀 수료 보고
@@ -44,7 +45,7 @@
     try {
       localStorage.setItem(KEY, JSON.stringify({
         brand: S.brand, theme: S.theme, me: S.me,
-        done: S.done, daily: S.daily, sign: S.sign,
+        done: S.done, study: S.study, daily: S.daily, sign: S.sign,
         team: S.team, adminOn: S.adminOn
       }));
     } catch (e) { /* 저장 불가여도 화면은 계속 동작 */ }
@@ -217,6 +218,119 @@
     if (S.sign) S.sign.stale = true;   // 서명 후 내용이 바뀌면 표시
     save();
   }
+
+  /* ── 학습 시간 ────────────────────────────────────────
+   *  스크롤만 내리고 완료를 눌러 버리면 이수 기록이 아무 뜻이 없다.
+   *  화면에 머문 시간과 스크롤 도달률을 재고, 분량에 맞는 최소 시간을
+   *  채우기 전에는 완료 버튼을 열어 주지 않는다.
+   *  시간은 화면이 보이는 동안만, 그리고 1분 넘게 손이 멈추면 세지 않는다
+   *  (켜 두고 자리를 뜬 시간까지 학습으로 잡히면 숫자가 의미를 잃는다). */
+  var IDLE_MS = 60000, DEPTH_OK = 80;
+  var TR = { items: [], act: Date.now(), timer: null, n: 0 };
+
+  function studyOf(k) { var x = S.study[k]; return { s: (x && x.s) || 0, d: (x && x.d) || 0 }; }
+  function studyTotal(b) {
+    var n = 0;
+    course(b).forEach(function (x) { n += studyOf(x.k).s; });
+    return n;
+  }
+  function mmss(s) {
+    s = Math.max(0, Math.round(s));
+    return s >= 60 ? (Math.floor(s / 60) + '분' + (s % 60 ? ' ' + (s % 60) + '초' : '')) : (s + '초');
+  }
+  function mins(s) { return Math.max(s > 0 ? 1 : 0, Math.round(s / 60)) + '분'; }
+
+  /** 실제로 그려진 분량으로 최소 학습 시간을 정한다.
+   *  영문·국문이 함께 나오므로 글자 수는 넉넉히 나누고, 사진은 한 장에 4초로 친다.
+   *  한 항목 2분을 넘기지 않는다 — 전 과정을 다 채워도 20분 남짓이다. */
+  function needOf(el) {
+    var txt = ((el.innerText || '').replace(/\s+/g, ' ').trim()).length;
+    var imgs = el.querySelectorAll('img').length;
+    return Math.max(20, Math.min(120, Math.round(txt / 14) + imgs * 4));
+  }
+
+  function gateOf(k, need) {
+    var st = studyOf(k);
+    return { sec: st.s, dep: st.d, left: Math.max(0, need - st.s),
+             ok: st.s >= need && st.d >= DEPTH_OK };
+  }
+  function gateHtml(g, need) {
+    if (g.ok) return '';
+    var msg = g.left > 0 ? '조금만 더 읽어 주세요 · ' + mmss(g.left) + ' 남음'
+                         : '끝까지 내려 주세요';
+    return '<div class="bar"><i style="width:'
+      + Math.round(Math.min(100, need ? g.sec / need * 100 : 0)) + '%"></i></div>'
+      + '<div class="gatetx">' + esc(msg) + '</div>';
+  }
+
+  /** 화면을 그린 뒤에 호출 — 완료 버튼마다 제 분량만큼 최소 시간을 매긴다 */
+  function mountStudy() {
+    TR.items = [];
+    var btns = $main.querySelectorAll('[data-done]');
+    for (var i = 0; i < btns.length; i++) {
+      var b = btns[i], sec = b.closest('[data-study]') || $main;
+      var need = needOf(sec);
+      b.dataset.need = need;
+      TR.items.push({ k: b.dataset.done, need: need, el: sec === $main ? null : sec });
+    }
+    save();          // 화면을 옮길 때마다 여기까지 쌓인 시간을 확정해 둔다
+    paintGate();
+  }
+
+  /** 여러 분류가 한 화면에 있으면, 지금 화면 한가운데 있는 분류에 시간을 준다 */
+  function pickItem() {
+    if (TR.items.length <= 1) return TR.items[0] || null;
+    var mid = window.innerHeight / 2, best = null, bd = 1e9;
+    TR.items.forEach(function (it) {
+      if (!it.el) return;
+      var r = it.el.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > window.innerHeight) return;
+      var d = Math.abs((r.top + r.bottom) / 2 - mid);
+      if (d < bd) { bd = d; best = it; }
+    });
+    return best;
+  }
+  function depthOf(it) {
+    if (!it.el) {
+      var h = document.documentElement.scrollHeight - window.innerHeight;
+      return h <= 8 ? 100 : Math.min(100, Math.round(window.scrollY / h * 100));
+    }
+    var r = it.el.getBoundingClientRect();
+    if (r.height <= 0) return 0;
+    return Math.max(0, Math.min(100, Math.round((window.innerHeight - r.top) / r.height * 100)));
+  }
+
+  function paintGate() {
+    var btns = $main.querySelectorAll('[data-done][data-need]');
+    for (var i = 0; i < btns.length; i++) {
+      var b = btns[i], k = b.dataset.done;
+      var tip = b.parentNode.querySelector('.gate');
+      if (isDone(k)) { b.disabled = false; if (tip) tip.innerHTML = ''; continue; }
+      var g = gateOf(k, +b.dataset.need);
+      b.disabled = !g.ok;
+      if (tip) tip.innerHTML = gateHtml(g, +b.dataset.need);
+    }
+  }
+
+  function trackTick() {
+    if (document.hidden || !TR.items.length) return;
+    if (Date.now() - TR.act > IDLE_MS) return;          // 자리 비움
+    var it = pickItem();
+    if (!it) return;
+    var st = S.study[it.k] || (S.study[it.k] = { s: 0, d: 0 });
+    st.s++;
+    var d = depthOf(it);
+    if (d > st.d) st.d = d;
+    if (++TR.n % 5 === 0) save();                      // 매초 저장하지는 않는다
+    paintGate();
+  }
+  function trackPing() { TR.act = Date.now(); }
+
+  TR.timer = setInterval(trackTick, 1000);
+  ['pointerdown', 'pointermove', 'keydown', 'wheel', 'touchstart', 'scroll']
+    .forEach(function (ev) { window.addEventListener(ev, trackPing, { passive: true }); });
+  document.addEventListener('visibilitychange', function () { trackPing(); save(); });
+  window.addEventListener('pagehide', save);
 
   /** 이름·포지션·진도·서명일로 만드는 6자리 대조코드.
    *  씨앗을 전부 보고서 본문에 싣기 때문에, 관리자 화면에서 코드를 다시 계산해
@@ -498,10 +612,11 @@
     (p.tables || []).forEach(function (t) { h += '<div style="margin-top:10px">' + tableHtml(t) + '</div>'; });
 
     var key = deck.id + ':' + p.n, on = isDone(key);
-    h += '<button class="done" data-done="' + esc(key) + '" aria-pressed="' + on + '">'
+    h += '<div class="donewrap"><button class="done" data-done="' + esc(key) + '" aria-pressed="' + on + '">'
       + ico(on ? I.tick : I.check)
       + (on ? L('Completed · ' + S.done[key].slice(0, 10), '학습 완료')
-            : L('I have studied this', '이 내용을 학습했습니다')) + '</button>';
+            : L('I have studied this', '이 내용을 학습했습니다')) + '</button>'
+      + '<div class="gate"></div></div>';
 
     var nx = at >= 0 ? list[at + 1] : null;
     if (nx) h += '<a class="btn sec2" style="margin-top:10px" href="#/p/' + nx.deck + '/' + nx.n + '">'
@@ -561,15 +676,17 @@
       var list = [];
       deck.items.forEach(function (it, idx) { if (it.chip === c) list.push({ it: it, i: idx }); });
       var k = 'menu:' + deck.id + ':' + c, on = isDone(k);
-      h += '<h2 class="sect" id="cat' + i + '">' + esc(c)
+      // 분류마다 제 구역을 갖는다 — 학습 시간도 지금 보고 있는 분류에만 쌓인다
+      h += '<section data-study id="cat' + i + '">'
+        + '<h2 class="sect">' + esc(c)
         + (CAT_KR[c] ? ' · ' + esc(CAT_KR[c]) : '') + ' &nbsp;' + list.length + '종</h2>'
         + '<div class="mg">'
         + list.map(function (x) { return cardHtml(deck, x.it, x.i); }).join('')
         + '</div>'
-        + '<button class="done sm" data-done="' + esc(k) + '" aria-pressed="' + on + '">'
+        + '<div class="donewrap sm"><button class="done sm" data-done="' + esc(k) + '" aria-pressed="' + on + '">'
         + ico(on ? I.tick : I.check)
         + (on ? L(c + ' completed', '학습 완료') : L('I have studied ' + c, '이 분류를 학습했습니다'))
-        + '</button>';
+        + '</button><div class="gate"></div></div></section>';
     });
     return h;
   }
@@ -601,10 +718,10 @@
     }
 
     var k = 'menu:' + deck.id + ':' + cat, on = isDone(k);
-    h += '<button class="done" data-done="' + esc(k) + '" aria-pressed="' + on + '">'
+    h += '<div class="donewrap"><button class="done" data-done="' + esc(k) + '" aria-pressed="' + on + '">'
       + ico(on ? I.tick : I.check)
       + (on ? L(cat + ' completed', '학습 완료') : L('I have studied ' + cat, '이 분류를 학습했습니다'))
-      + '</button>';
+      + '</button><div class="gate"></div></div>';
 
     // 아직 안 끝낸 다음 분류로 이어서
     var nx = null;
@@ -634,6 +751,9 @@
           return '<p class="' + (HANGUL.test(l) ? 'kr' : 'en') + '">' + esc(l) + '</p>';
         }).join('') + '</div>';
     });
+    showSheet(h);
+  }
+  function showSheet(h) {
     $sheetBody.innerHTML = h;
     $sheet.hidden = false;
     document.body.style.overflow = 'hidden';
@@ -721,6 +841,8 @@
       if (left.length > 40) h += '<div class="note" style="margin-top:8px">외 ' + (left.length - 40) + '개</div>';
     }
 
+    h += studyTableHtml(S.brand);
+
     h += '<h2 class="sect">TRAINER SIGN-OFF · 트레이너 확인</h2><div class="card pad">';
     if (S.sign && !S.sign.stale) {
       h += '<img src="' + esc(S.sign.img) + '" alt="서명" style="width:100%;border-radius:10px;background:#fff">'
@@ -754,10 +876,12 @@
         + '<div class="who">' + esc(S.me.posLabel || '') + ' · ' + p.done + ' items · 항목 이수</div>'
         + '<div class="code">' + code + '</div>'
         + '<div class="cl">VERIFICATION CODE · 확인 코드 — 매니저에게 전달</div></div>'
-        + '<button class="btn" style="margin-top:12px" data-share>' + ico(I.share)
-        + L('Share my completion', '수료 내용 공유하기') + '</button>'
+        + '<div class="note" style="margin-top:12px">보내면 <b>등록 링크</b>가 같이 갑니다. '
+        + '매니저가 카톡에서 그 링크를 누르면 팀 현황에 바로 등록돼요 — 복사·붙여넣기가 필요 없습니다.</div>'
+        + '<button class="btn" style="margin-top:10px" data-share>' + ico(I.share)
+        + L('Send to my manager', '매니저에게 보내기') + '</button>'
         + '<button class="btn sec2" style="margin-top:8px" data-copy>' + ico(I.copy)
-        + L('Copy as text', '텍스트 복사') + '</button>';
+        + L('Copy as text', '텍스트만 복사') + '</button>';
     }
 
     h += '<h2 class="sect">RECORD · 기록</h2><div class="card pad">'
@@ -768,6 +892,47 @@
       + '<button class="btn sec2" style="margin-top:12px" data-reset>' + ico(I.reset)
       + L('Reset my record', '내 기록 초기화') + '</button></div>';
 
+    return h;
+  }
+
+  /** 항목별로 얼마나 붙들고 있었는지. 묶음(챕터)별 합계 아래 항목을 펼쳐 보여준다. */
+  function studyTableHtml(b) {
+    var items = course(b), tot = 0, any = false;
+    items.forEach(function (x) { var s = studyOf(x.k).s; tot += s; if (s) any = true; });
+    if (!any) {
+      return '<h2 class="sect">TIME SPENT · 학습 시간</h2>'
+        + '<div class="card pad"><div class="note">아직 기록이 없습니다. '
+        + '각 항목을 열어 읽으면 머문 시간이 자동으로 쌓입니다.</div></div>';
+    }
+    var groups = [], byCh = {};
+    items.forEach(function (x) {
+      var g = byCh[x.ch];
+      if (!g) { g = byCh[x.ch] = { ch: x.ch, name: x.chName, rows: [], s: 0 }; groups.push(g); }
+      var st = studyOf(x.k);
+      g.rows.push({ x: x, st: st });
+      g.s += st.s;
+    });
+    var h = '<h2 class="sect">TIME SPENT · 학습 시간</h2>'
+      + '<div class="card pad"><div class="prog"><div class="meta" style="margin:0">'
+      + '<b>' + mins(tot) + '</b><span>' + items.length + '개 항목 합계 · 이 휴대폰 기준</span>'
+      + '</div></div></div>'
+      + '<div class="tbl" style="margin-top:10px"><table><thead><tr>'
+      + '<th>항목</th><th style="text-align:right">시간</th><th></th></tr></thead><tbody>';
+    groups.forEach(function (g) {
+      h += '<tr class="gr"><td><b>' + esc(g.name) + '</b></td>'
+        + '<td style="text-align:right"><b>' + mins(g.s) + '</b></td><td></td></tr>';
+      g.rows.forEach(function (r) {
+        var on = isDone(r.x.k);
+        h += '<tr><td style="padding-left:18px">' + esc(r.x.label) + '</td>'
+          + '<td style="text-align:right;white-space:nowrap">'
+          + (r.st.s ? mmss(r.st.s) : '<span style="color:var(--mut2)">-</span>') + '</td>'
+          + '<td style="white-space:nowrap">'
+          + (on ? '<b style="color:var(--good)">완료</b>' : '<span style="color:var(--mut2)">미완</span>')
+          + '</td></tr>';
+      });
+    });
+    h += '</tbody></table></div>'
+      + '<div class="note" style="margin-top:8px">화면이 보이는 동안만, 1분 넘게 손이 멈추면 세지 않습니다.</div>';
     return h;
   }
 
@@ -786,10 +951,11 @@
              : '<span>모든 코드 정상</span>') + '</div></div></div>';
 
     h += '<h2 class="sect">COLLECT REPORTS · 수료 보고 받기</h2><div class="card pad">'
-      + '<div class="note">Paste the <b>completion reports</b> staff sent you. '
-      + 'Several at once is fine — codes are recalculated to detect tampering.<br>'
-      + '직원이 보낸 <b>수료 보고</b>를 그대로 붙여넣으세요. 여러 건을 한꺼번에 붙여넣어도 됩니다. '
-      + '확인코드는 자동으로 다시 계산해 위·변조를 검사합니다.</div>'
+      + '<div class="note"><b>가장 빠른 방법 —</b> 직원이 보낸 카톡 메시지의 <b>등록 링크</b>를 그냥 누르세요. '
+      + '이 화면이 열리면서 등록 확인만 하면 끝입니다(복사·붙여넣기 없음).</div></div>'
+      + '<div class="card pad" style="margin-top:10px">'
+      + '<div class="note">링크가 없는 예전 보고는 아래에 붙여넣으세요. 여러 건을 한꺼번에 넣어도 '
+      + '건별로 잘라 읽고, 확인코드를 다시 계산해 위·변조를 검사합니다.</div>'
       + '<textarea class="fi ta" id="paste" placeholder="#SLNC 교육 수료 보고&#10;브랜드: KSC&#10;이름: ..."></textarea>'
       + '<button class="btn" style="margin-top:10px" data-import>'
       + L('Import reports', '보고서 읽어들이기') + '</button></div>';
@@ -799,13 +965,15 @@
       h += '<div class="empty">No reports yet · 아직 등록된 보고가 없습니다.</div>';
     } else {
       h += '<div class="tbl"><table><thead><tr>'
-        + '<th>이름</th><th>연락처</th><th>포지션</th><th>진도</th><th>서명일</th><th>코드</th><th></th>'
+        + '<th>이름</th><th>포지션</th><th>진도</th><th>학습시간</th><th>서명일</th><th>코드</th><th></th>'
         + '</tr></thead><tbody>'
         + team.map(function (r, i) {
           var done = r.total && r.done >= r.total;
-          return '<tr><td>' + esc(r.name) + '</td><td>' + esc(r.phone || '-') + '</td>'
+          return '<tr><td>' + esc(r.name) + (r.phone ? ' <span style="color:var(--mut2)">'
+              + esc(r.phone) + '</span>' : '') + '</td>'
             + '<td>' + esc(r.pos) + '</td>'
             + '<td>' + r.done + '/' + r.total + '</td>'
+            + '<td style="white-space:nowrap">' + timeCell(r, i) + '</td>'
             + '<td>' + esc(r.at) + '</td>'
             + '<td style="font-family:Archivo,monospace;letter-spacing:.06em">' + esc(r.code) + '</td>'
             + '<td style="white-space:nowrap">'
@@ -827,10 +995,44 @@
     return h;
   }
 
+  /** 학습 시간 칸 — 항목별 내역이 따라왔으면 눌러서 펼쳐 볼 수 있다 */
+  function timeCell(r, i) {
+    var s = r.secs || 0;
+    if (!s) return '<span style="color:var(--mut2)">-</span>';
+    // 항목당 25초도 안 붙들고 있었다면 훑고 지나간 것으로 본다
+    var thin = r.total && (s / r.total) < 25;
+    var txt = mins(s) + (thin ? ' <span style="color:var(--crit)">짧음</span>' : '');
+    return (r.ts && r.ts.length)
+      ? '<button data-tdetail="' + i + '" style="color:inherit;text-decoration:underline">' + txt + '</button>'
+      : txt;
+  }
+
+  /** 등록 링크로 온 보고는 항목별 시간까지 들어 있다 — course() 순서로 다시 붙여 보여준다 */
+  function timeSheet(r) {
+    var items = course(r.brand || S.brand);
+    var h = '<div style="padding:20px 20px 6px"><div class="eyebrow">TIME SPENT · 학습 시간</div>'
+      + '<h2 class="ph" style="font-size:24px">' + esc(r.name)
+      + '<span class="kr">' + esc(r.pos || '') + ' · 합계 ' + mins(r.secs || 0) + '</span></h2></div>'
+      + '<div class="tbl" style="margin:0 14px 18px"><table><thead><tr>'
+      + '<th>항목</th><th style="text-align:right">시간</th></tr></thead><tbody>';
+    if (items.length !== r.ts.length) {
+      h += '<tr><td colspan="2">자료가 바뀌어 항목을 맞출 수 없습니다 (' + r.ts.length + '개 기록).</td></tr>';
+    } else {
+      items.forEach(function (x, i) {
+        var s = r.ts[i] || 0;
+        h += '<tr><td>' + esc(x.chName) + ' · ' + esc(x.label) + '</td>'
+          + '<td style="text-align:right;white-space:nowrap">'
+          + (s ? mmss(s) : '<span style="color:var(--mut2)">-</span>') + '</td></tr>';
+      });
+    }
+    return h + '</tbody></table></div>';
+  }
+
   function teamTsv() {
-    return ['이름\t연락처\t포지션\t브랜드\t진도\t트레이너\t서명일\t확인코드\t상태']
+    return ['이름\t연락처\t포지션\t브랜드\t진도\t학습시간(분)\t트레이너\t서명일\t확인코드\t상태']
       .concat((S.team || []).map(function (r) {
-        return [r.name, r.phone || '', r.pos, r.brand, r.done + '/' + r.total, r.by, r.at, r.code,
+        return [r.name, r.phone || '', r.pos, r.brand, r.done + '/' + r.total,
+          Math.round((r.secs || 0) / 60), r.by, r.at, r.code,
           r.ok ? (r.done >= r.total ? '수료' : '진행중') : '코드 불일치'].join('\t');
       })).join('\n');
   }
@@ -844,9 +1046,92 @@
       '연락처: ' + (S.me.phone || '-'),
       '포지션: ' + (S.me.posLabel || '-'),
       '진도: ' + p.done + '/' + p.total,
+      '학습시간: ' + mins(studyTotal(S.brand)),
       '트레이너: ' + (S.sign ? S.sign.by : '-'),
       '서명일: ' + (S.sign ? S.sign.at : '-'),
       '확인코드: ' + certCode(S.brand)].join('\n');
+  }
+
+  /* ── 링크로 제출 ──────────────────────────────────────
+   *  카톡으로 온 보고를 매니저가 한 건씩 복사해 붙여넣는 것이 제일 번거롭다.
+   *  수료 내용을 링크에 담아 보내면, 매니저는 카톡에서 링크를 누르기만 하면 된다
+   *  (앱이 열리면서 등록 확인 화면이 뜬다). 서버도 계정도 필요 없다. */
+  function b64u(s) {
+    return btoa(unescape(encodeURIComponent(s)))
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+  function unb64u(s) {
+    s = String(s).replace(/-/g, '+').replace(/_/g, '/');
+    while (s.length % 4) s += '=';
+    return decodeURIComponent(escape(atob(s)));
+  }
+  /** 항목별 시간은 course() 순서의 초 배열로 싣는다 — 링크를 짧게 두기 위해서다 */
+  function certPack() {
+    var b = S.brand, p = progress(b);
+    return { v: 1, b: b, n: S.me.name, p: S.me.phone || '', ps: S.me.posLabel || '',
+      d: p.done, t: p.total, by: S.sign ? S.sign.by : '', at: S.sign ? S.sign.at : '',
+      c: certCode(b), ts: p.items.map(function (x) { return studyOf(x.k).s; }) };
+  }
+  function certLink() {
+    return location.origin + location.pathname + '#/add/' + b64u(JSON.stringify(certPack()));
+  }
+  function certMsg() {
+    return certText() + '\n\n[매니저용] 아래 링크를 누르면 팀 현황에 바로 등록됩니다\n' + certLink();
+  }
+  /** 링크(또는 붙여넣기)로 들어온 보고 한 건을 팀 현황 형식으로 */
+  function recFromPack(o) {
+    var secs = (o.ts || []).reduce(function (a, c) { return a + (c || 0); }, 0);
+    var r = { brand: o.b, name: o.n, phone: o.p, pos: o.ps,
+      done: o.d || 0, total: o.t || 0, by: o.by, at: o.at,
+      code: String(o.c || '').toUpperCase(), ts: o.ts || [], secs: secs };
+    r.ok = codeFrom(r.name, r.pos, r.brand, r.done, r.total, r.at) === r.code;
+    r.id = r.brand + '|' + r.name + '|' + r.phone + '|' + r.pos;
+    return r;
+  }
+  /** 같은 사람(브랜드+이름+연락처+포지션)의 보고가 다시 오면 갱신한다 */
+  function addReports(list) {
+    S.team = S.team || [];
+    var add = 0, upd = 0;
+    list.forEach(function (r) {
+      var at = -1;
+      S.team.forEach(function (x, i) { if (x.id === r.id) at = i; });
+      if (at >= 0) { S.team[at] = r; upd++; } else { S.team.push(r); add++; }
+    });
+    save();
+    return { add: add, upd: upd };
+  }
+
+  /** 매니저가 링크를 눌렀을 때 뜨는 등록 확인 화면 (#/add/…) */
+  function viewAdd(raw) {
+    var o = null;
+    try { o = JSON.parse(unb64u(raw)); } catch (e) { /* 잘린 링크 */ }
+    if (!o || !o.n) {
+      return '<div class="empty">Could not read this link · 읽을 수 없는 링크입니다.<br>'
+        + '카톡에서 링크가 잘렸을 수 있습니다. 다시 받아 주세요.</div>';
+    }
+    var r = recFromPack(o), done = r.total && r.done >= r.total;
+    var h = '<div class="card pad">'
+      + '<div class="note">A completion report was sent to you. Check it and add it to the team status.<br>'
+      + '직원이 보낸 <b>수료 보고</b>입니다. 확인 후 팀 현황에 등록하세요.</div></div>'
+      + '<div class="card pad" style="margin-top:12px">'
+      + '<div class="kv"><span>이름</span><b>' + esc(r.name) + (r.phone ? ' (' + esc(r.phone) + ')' : '') + '</b></div>'
+      + '<div class="kv"><span>브랜드 · 포지션</span><b>' + esc(r.brand) + ' · ' + esc(r.pos || '-') + '</b></div>'
+      + '<div class="kv"><span>진도</span><b>' + r.done + ' / ' + r.total
+      + (done ? ' <span style="color:var(--good)">수료</span>' : ' <span>진행중</span>') + '</b></div>'
+      + '<div class="kv"><span>학습 시간</span><b>' + mins(r.secs) + '</b></div>'
+      + '<div class="kv"><span>트레이너 · 서명일</span><b>' + esc(r.by || '-') + ' · ' + esc(r.at || '-') + '</b></div>'
+      + '<div class="kv"><span>확인코드</span><b style="letter-spacing:.06em">' + esc(r.code) + ' '
+      + (r.ok ? '<span style="color:var(--good)">정상</span>'
+              : '<span style="color:var(--crit)">불일치</span>') + '</b></div></div>';
+    if (!r.ok) {
+      h += '<div class="card pad" style="margin-top:12px"><div class="note" style="color:var(--crit)">'
+        + '확인코드가 맞지 않습니다. 내용이 고쳐졌을 수 있으니 본인에게 다시 받아 주세요.</div></div>';
+    }
+    h += '<button class="btn" style="margin-top:14px" data-addok="' + esc(raw) + '">'
+      + ico(I.tick) + L('Add to team status', '팀 현황에 등록') + '</button>'
+      + '<a class="btn sec2" style="margin-top:8px" href="#/admin">'
+      + L('Cancel', '취소하고 팀 현황 보기') + '</a>';
+    return h;
   }
 
   /** 카톡으로 받은 보고서를 한꺼번에 붙여넣어도 건별로 잘라 읽는다. */
@@ -862,7 +1147,9 @@
       var r = {
         brand: f('브랜드'), name: f('이름'), phone: f('연락처'), pos: f('포지션'),
         done: parseInt(prog[0], 10) || 0, total: parseInt(prog[1], 10) || 0,
-        by: f('트레이너'), at: f('서명일'), code: f('확인코드').toUpperCase()
+        by: f('트레이너'), at: f('서명일'), code: f('확인코드').toUpperCase(),
+        // 붙여넣기에는 분 단위 합계만 온다 (항목별 시간은 등록 링크로만 따라온다)
+        secs: (parseInt(f('학습시간'), 10) || 0) * 60, ts: []
       };
       if (!r.name || !r.code) return;
       r.ok = codeFrom(r.name, r.pos, r.brand, r.done, r.total, r.at) === r.code;
@@ -983,6 +1270,12 @@
       if (!S.adminOn) { S.adminOn = 1; save(); }
       body = viewAdmin(); title = 'TEAM STATUS'; opts.kicker = '팀 수료 현황 · 관리자';
     }
+    else if (tab === 'add') {
+      // 직원이 보낸 등록 링크 — 해시가 길어 route()가 자른 조각을 다시 붙인다
+      if (!S.adminOn) { S.adminOn = 1; save(); }
+      body = viewAdd(location.hash.replace(/^#\/?add\//, ''));
+      tab = 'admin'; title = 'ADD REPORT'; opts.kicker = '수료 보고 등록';
+    }
     else if (tab === 'search') {
       if (r.a) S.q = decodeURIComponent(r.a);   // #/search/갈비 처럼 바로 열 수 있게
       body = viewSearch(); title = 'SEARCH'; opts.kicker = '검색';
@@ -992,6 +1285,7 @@
     renderRail(tab === 'p' ? 'sop' : tab);
     renderHead(title, opts);
     $main.innerHTML = body;
+    mountStudy();
     if (tab === 'cert') mountSig();
     if (tab === 'search') {
       var el = document.getElementById('sq');
@@ -1089,25 +1383,32 @@
       return;
     }
     if (e.target.closest('[data-share]')) {
-      var txt2 = certText();
+      var txt2 = certMsg();
       if (navigator.share) navigator.share({ title: '교육 수료 보고', text: txt2 }).catch(function () {});
       else if (navigator.clipboard) navigator.clipboard.writeText(txt2).then(function () { alert('복사되었습니다. 카톡에 붙여넣어 주세요.'); });
       else prompt('아래 내용을 복사하세요', txt2);
       return;
     }
+    if (t = e.target.closest('[data-addok]')) {
+      var o = null;
+      try { o = JSON.parse(unb64u(t.dataset.addok)); } catch (e2) { }
+      if (!o) { alert('링크를 읽을 수 없습니다.'); return; }
+      var n = addReports([recFromPack(o)]);
+      alert(o.n + '님 보고를 ' + (n.upd ? '갱신' : '등록') + '했습니다.');
+      go('admin'); return;
+    }
     if (e.target.closest('[data-import]')) {
       var ta = document.getElementById('paste');
       var got = parseReports(ta ? ta.value : '');
       if (!got.length) { alert('읽을 수 있는 수료 보고가 없습니다.'); return; }
-      S.team = S.team || [];
-      var add = 0, upd = 0;
-      got.forEach(function (r) {
-        var at = -1;
-        S.team.forEach(function (x, i) { if (x.id === r.id) at = i; });
-        if (at >= 0) { S.team[at] = r; upd++; } else { S.team.push(r); add++; }
-      });
-      save(); render();
-      alert('새로 ' + add + '건, 갱신 ' + upd + '건 반영했습니다.');
+      var n2 = addReports(got);
+      render();
+      alert('새로 ' + n2.add + '건, 갱신 ' + n2.upd + '건 반영했습니다.');
+      return;
+    }
+    if (t = e.target.closest('[data-tdetail]')) {
+      var rec = (S.team || [])[parseInt(t.dataset.tdetail, 10)];
+      if (rec) showSheet(timeSheet(rec));
       return;
     }
     if (t = e.target.closest('[data-drop]')) {
@@ -1125,7 +1426,7 @@
     }
     if (e.target.closest('[data-reset]')) {
       if (!confirm('학습 기록과 서명을 모두 지웁니다. 계속할까요?')) return;
-      S.done = {}; S.daily = {}; S.sign = null; save(); render(); return;
+      S.done = {}; S.study = {}; S.daily = {}; S.sign = null; save(); render(); return;
     }
   });
 
