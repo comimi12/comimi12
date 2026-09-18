@@ -27,6 +27,10 @@ VIDEOS = [
     dict(id="woodae-galbi", file=None,
          en="WOODAE GALBI SERVICE", kr="우대갈비 서비스 가이드",
          note="한 대 통구이 · 커팅 · 세팅 3단계 — 홀 직원용 60초 가이드 (자막 포함)."),
+    # 아래 항목은 build/kkotsal.py 가 만든다 (HTML 합성물 -> mp4).
+    dict(id="kkotsal", file=None,
+         en="ROSE MEAT", kr="꽃살",
+         note="꽃살 그릴 스탠다드 — 점화·온도 확인부터 커팅·제공까지 8단계 (자막, 소리 없음)."),
     dict(id="brisket", file="Brisket.mp4",
          en="PRIME BRISKET", kr="차돌",
          note="차돌 굽는 법 — 얇은 고기를 빠르게, 한 번만 뒤집어 굽습니다."),
