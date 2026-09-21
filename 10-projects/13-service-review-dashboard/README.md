@@ -118,6 +118,29 @@ python collect.py --catchtable     # 캐치테이블도 (pip install selenium ch
 - **캐치테이블**: Selenium 기반(옵션). `catchtable_session.env` 쿠키가 만료되면 매크로에서 재로그인해 갱신 필요. 결과는 `merged_reviews_*.csv`(보충 양식)로 저장.
 - 매크로 폴더 경로 = `collect_config.json`(git 제외)의 `macro_dir`. 매장목록은 매크로의 `store_registry.json` 사용.
 - 수집기 소스(.py)는 매크로 `_internal`에 있으며(파이썬 3.13 번들), 실행 시 임시폴더로 복사해 현재 파이썬으로 임포트(바이너리 충돌 회피).
+### collect_v2.py (일일 자동수집 본체) — 차단 대응
+
+`update_all.py` 가 매일 돌리는 건 `collect.py` 가 아니라 **`collect_v2.py`** 다. 매장별 `x-wtm-graphql`
+토큰 생성 + 차단 재시도 + 매장 단위 증분 저장이 들어 있다.
+
+```powershell
+python collect_v2.py 2026-09-01 --pages 15      # 기본(시간예산 45분, 매장 순환 ON)
+python collect_v2.py 2026-09-01 --deadline 20   # 시간예산 20분
+python collect_v2.py 2026-09-01 --no-rotate     # 항상 1번 매장부터
+```
+
+- **차단 백오프 `BLOCK_BACKOFF = [5, 15, 40]`** — 2026-09 실측 결과 405는 오래 기다린다고 풀리는
+  장기 차단이 아니라 **요청 단위로 튕기는** 성격이라, 짧게 여러 번이 회복률이 높다.
+  (옛값 `[30,60,120,240,480,900]` = 한 페이지 최악 **30.5분** → 84매장 수집이 매일 1시간
+  타임아웃으로 강제종료되고 앞쪽 몇 개 매장만 들어왔다.)
+- **시간예산 `DEADLINE_MIN = 45`** — 넘기면 남은 매장을 다음 실행으로 넘기고 **정상 종료**한다.
+  강제종료되면 `_logs/collect_v2.lock` 이 남고 로그도 유실되므로 스스로 끊는 편이 낫다.
+- **매장 순환** — 시작 매장을 날짜로 돌린다. 중간에 끊겨도 매일 다른 구간이 수집돼 전 매장이 커버된다.
+- **⚠️ 네이버 로그인 쿠키**: 쿠키 없이 돌면 차단율이 크게 오른다(2026-09 실측 **8곳 중 5곳 실패**).
+  Chrome 127+ 앱바운드 암호화로 브라우저 자동 로딩이 막히면 **수동 폴백**을 쓴다 —
+  DevTools(F12) → Network → `graphql` 요청 → Request Headers 의 `cookie` 값을 통째로 복사해
+  `naver_cookie.txt`(git 제외)에 저장. 차단율이 높으면 수집 종료 시 안내가 출력된다.
+
 - **⚠️ DRM 주의**: VOC(View 3) 원본 `.xls`는 DRM(DRMONE) 잠김이라 자동화 컨텍스트에선 복호화가 안 붙을 수 있음 → build.py는 이때 **기존 data.js의 VOC를 보존**하고 리뷰(View 1·2)만 갱신. VOC까지 갱신하려면 DRM이 해제되는 대화형 환경에서 `python build.py` 실행.
 
 ## 📅 일별 리서치 (전일 유입 리뷰 확인)
