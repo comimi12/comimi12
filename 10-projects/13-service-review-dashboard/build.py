@@ -161,15 +161,24 @@ def normalize_reviews_file(path):
        양식B(3월~): 생성시각|매장명|브랜드명|...|방문일자|평점|출처|...|리뷰내용|리뷰감성(Gemini)|...
        감성은 파일에 사전분류돼 있으므로 그대로 사용(긍정/부정/중립)."""
     out = []
+    # 자동수집 파일(naver_collected_YYYYMMDD_*.csv)은 파일명이 곧 수집일 → 일별 유입(첫 수집일) 산출용
+    m = re.search(r"(\d{8})", os.path.basename(path))
+    collected = None
+    if os.path.basename(path).startswith("naver_collected") and m:
+        collected = f"{m.group(1)[:4]}-{m.group(1)[4:6]}-{m.group(1)[6:]}"
     with open(path, encoding="utf-8-sig", newline="") as f:
         rd = csv.DictReader(f)
         hdr = rd.fieldnames or []
         fixed_source = None
+        wc = ac = gc = None                  # 작성일자 · 작성자 · 카테고리 컬럼
         if "닉네임" in hdr and "작성일자" in hdr:   # 양식 C: 캐치테이블 통합(방문일자 없음, 작성일자 사용)
             sc, tc, mc, dc, cc = "리뷰유형", "리뷰내용", "매장명", "작성일자", None
+            wc, ac = "작성일자", "닉네임"
+            gc = None
             fixed_source = "catchtable"
         elif "리뷰유형" in hdr:               # 양식 A (네이버+캐치테이블, 채널 구분)
             sc, tc, mc, dc, cc = "리뷰유형", "리뷰내용", "매장명", "방문일자", "채널"
+            wc, ac, gc = "작성일자", "작성자", "카테고리"
         elif "리뷰감성(Gemini)" in hdr:      # 양식 B
             sc, tc, mc, dc, cc = "리뷰감성(Gemini)", "리뷰내용", "매장명", "방문일자", "출처"
         else:
@@ -185,6 +194,10 @@ def normalize_reviews_file(path):
                 "month": date[:7], "date": date, "text": r.get(tc, "") or "",
                 "source": src,
                 "sentiment": SENT_MAP.get((r.get(sc) or "").strip(), "중립"),
+                "wdate": parse_date(r.get(wc, "")) if wc else None,
+                "author": (r.get(ac, "") or "").strip() if ac else "",
+                "cat": (r.get(gc, "") or "").strip() if gc else "",
+                "collected": collected,
             })
     return out
 
@@ -206,6 +219,33 @@ def load_merged_catchtable(path, skip_months):
                 "month": date[:7], "date": date, "text": r.get("review_text", "") or "",
                 "source": "catchtable",
                 "sentiment": classify_review(r.get("review_text", ""), r.get("rating", ""), "catchtable"),
+                "wdate": date, "author": "", "collected": None,
+            })
+    return out
+
+
+def load_merged_naver(path):
+    """merged_reviews_*.csv (collect.py 대량수집 양식: store_name/review_text/rating/review_date/visit_date/source)
+       의 네이버 행. 양식A(naver_collected_*.csv)와 달리 사전분류 감성이 없어 키워드 분류를 쓰므로
+       prio 를 낮게(0.5) 주고, 같은 리뷰가 양식A에도 있으면 양식A의 사전분류 감성을 채택한다.
+       날짜는 양식A의 '방문일자'와 맞추기 위해 visit_date 우선(없으면 review_date)."""
+    out = []
+    with open(path, encoding="utf-8-sig", newline="") as f:
+        for r in csv.DictReader(f):
+            if (r.get("source") or "").strip() != "naver":
+                continue
+            date = parse_date((r.get("visit_date") or "").strip()[:10]
+                              or (r.get("review_date") or "").strip()[:10])
+            if not date:
+                continue
+            brand, store = clean_store(r.get("store_name", ""))
+            out.append({
+                "brand": brand, "store": f"{brand}·{store}", "store_short": store,
+                "month": date[:7], "date": date, "text": r.get("review_text", "") or "",
+                "source": "naver",
+                "sentiment": classify_review(r.get("review_text", ""), r.get("rating", ""), "naver"),
+                "wdate": parse_date((r.get("review_date") or "").strip()[:10]) or date,
+                "author": "", "collected": None,
             })
     return out
 
@@ -275,6 +315,82 @@ def build_2025():
     return months, bmt, bmb, complaints
 
 
+# ───────────────────── 일별 리서치 (전일 유입 리뷰 일자별 확인) ─────────────────────
+# 월별 집계와 달리 "언제 올라온 리뷰인가"를 본다. 기준일 = 작성일자(없으면 방문일자).
+# 자동수집(naver_collected_YYYYMMDD)은 파일명이 수집일이라, 같은 리뷰의 최초 등장 파일 =
+# 우리가 그 리뷰를 처음 인지한 날(first_seen) → "전일 새로 들어온 리뷰" 판별에 쓴다.
+# 원문(records)은 용량 때문에 최근 REC_WINDOW 일만, 일별 건수(by_day)는 AGG_WINDOW 일까지.
+AGG_WINDOW = 180
+REC_WINDOW = 62
+DAILY_COLS = ["d", "vd", "si", "s", "src", "cat", "author", "seen", "text"]
+
+
+def build_daily(rows, agg_window=AGG_WINDOW, rec_window=REC_WINDOW):
+    today = datetime.date.today()
+    end = today.isoformat()
+    agg_from = (today - datetime.timedelta(days=agg_window - 1)).isoformat()
+    rec_from = (today - datetime.timedelta(days=rec_window - 1)).isoformat()
+
+    sel = []
+    for r in rows:
+        d = r.get("wdate") or r.get("date")     # 올라온 날(작성일) 우선, 없으면 방문일
+        if not d or d < agg_from or d > end:
+            continue
+        sel.append((d, r))
+    sel.sort(key=lambda x: (x[0], x[1]["store"], x[1].get("author") or ""), reverse=True)
+
+    # brand 는 [총, 칭찬, 불만, 중립] 4칸 배열 — 브랜드 필터를 걸어도 감성 분해가 되도록
+    SI = {"칭찬": 1, "불만": 2, "중립": 3}
+    by_day, by_seen = {}, collections.Counter()
+    for d, r in sel:
+        o = by_day.setdefault(d, {"total": 0, "칭찬": 0, "불만": 0, "중립": 0, "brand": {}, "src": {}})
+        o["total"] += 1
+        o[r["sentiment"]] += 1
+        bb = o["brand"].setdefault(r["brand"], [0, 0, 0, 0])
+        bb[0] += 1
+        bb[SI[r["sentiment"]]] += 1
+        o["src"][r["source"]] = o["src"].get(r["source"], 0) + 1
+        if r.get("first_seen"):
+            by_seen[r["first_seen"]] += 1
+
+    # 원문 목록 — 최근 rec_window 일. 매장명은 인덱스로 접어 용량을 줄인다.
+    store_idx, stores, store_brand = {}, [], {}
+    records = []
+    for d, r in sel:
+        if d < rec_from:
+            continue
+        st = r["store"]
+        if st not in store_idx:
+            store_idx[st] = len(stores)
+            stores.append(st)
+            store_brand[st] = r["brand"]
+        txt = (r.get("text") or "").replace(chr(10), " ").replace(chr(13), " ").strip()
+        records.append([d, r.get("date"), store_idx[st], r["sentiment"], r["source"],
+                        r.get("cat") or "", r.get("author") or "", r.get("first_seen") or "",
+                        txt[:400]])
+
+    collected_days = sorted({r.get("first_seen") for _, r in sel if r.get("first_seen")}, reverse=True)
+    return {
+        "agg_from": agg_from, "rec_from": rec_from, "to": end,
+        "agg_window": agg_window, "rec_window": rec_window,
+        "days": sorted(by_day.keys(), reverse=True), "by_day": by_day,
+        "cols": DAILY_COLS, "stores": stores, "store_brand": store_brand,
+        "records": records,
+        "by_seen": dict(by_seen), "collected_days": collected_days,
+        "last_collected": collected_days[0] if collected_days else None,
+        "n_agg": len(sel), "n_rec": len(records),
+    }
+
+
+def dedupe_key(r):
+    """중복 리뷰 판정 키. 캐치테이블은 출처마다 날짜 컬럼이 달라(방문↔작성) 내용 기준,
+       네이버는 (매장·날짜·내용) 기준."""
+    t = (r["text"] or "").strip()
+    if r["source"] == "catchtable":
+        return ("ct", r["store"], t) if t else ("ct", r["store"], r["date"], r["sentiment"])
+    return (r["store"], r["date"], t)
+
+
 def build_reviews():
     files = [f for f in sorted(glob.glob(os.path.join(REVIEW_DIR, "*.csv")))
              if not os.path.basename(f).startswith("_")]
@@ -283,6 +399,7 @@ def build_reviews():
     # prio: 프로그램(매크로) 파일 = 2(감성 신뢰: Gemini/사전분류), 자동수집·merged = 1.
     # 같은 리뷰가 양쪽에 있으면 prio 높은(프로그램) 감성을 채택 — 자동수집 키워드 감성이 덮어쓰지 않게.
     rows, used = [], []
+    first_seen, wdate_map = {}, {}      # 중복 제거 키 → 최초 수집일 / 작성일자
     for p in files:
         rs = normalize_reviews_file(p)
         if rs:
@@ -294,36 +411,55 @@ def build_reviews():
             used.append(bn)
     if not rows:
         raise SystemExit("인식 가능한 월별 리뷰 양식(리뷰유형/리뷰감성)이 없습니다.")
-    # 캐치테이블 보충: 프로그램 파일에 캐치테이블이 없는 월을 merged 파일에서 채움
+    # 캐치테이블 보충: 프로그램 파일에 캐치테이블이 없는 월을 merged 파일에서 채움.
+    # merged 파일은 여러 개 쌓이므로 전부 훑는다(예전엔 merged[0] 1개만 봐서 최신 수집분이 누락됐음).
+    merged = sorted(f for f in glob.glob(os.path.join(REVIEW_DIR, "*.csv"))
+                    if "merged" in os.path.basename(f).lower())
     ct_months = {r["month"] for r in rows if r["source"] == "catchtable"}
-    merged = [f for f in glob.glob(os.path.join(REVIEW_DIR, "*.csv"))
-              if "merged" in os.path.basename(f).lower()]
-    if merged:
-        add = load_merged_catchtable(merged[0], ct_months)
+    for mp in merged:
+        add = load_merged_catchtable(mp, ct_months)
         if add:
             for r in add:
                 r["_prio"] = 1
             rows.extend(add)
-            used.append(os.path.basename(merged[0]) + " (catchtable 보충)")
+            used.append(os.path.basename(mp) + " (catchtable 보충)")
+    # 네이버 보충: merged 파일(collect.py 대량수집)의 네이버 행. 양식A(naver_collected)에는
+    # 수집 실패·부분수집으로 빠진 리뷰가 많아(예: 2026-07) 여기서 채운다. 중복은 아래 dedup 이 제거.
+    for mp in merged:
+        add = load_merged_naver(mp)
+        if add:
+            for r in add:
+                r["_prio"] = 0.5      # 양식A(1) < merged(0.5) — 사전분류 감성이 있는 양식A 우선
+            rows.extend(add)
+            used.append(os.path.basename(mp) + " (naver 보충)")
     # 프로그램(매크로)이 그 달 네이버의 주력 소스면(프로그램 건수 ≥ 자동 건수) 프로그램 100% 사용 →
     # 그 달의 자동수집 네이버 제외. 프로그램이 spillover 수준(자동보다 적음)인 달은 자동수집 유지(당월 등).
     prog_n = collections.Counter(r["month"] for r in rows if r.get("_prio", 0) >= 2 and r["source"] == "naver")
-    auto_n = collections.Counter(r["month"] for r in rows if r.get("_prio", 0) == 1 and r["source"] == "naver")
+    auto_n = collections.Counter(r["month"] for r in rows if r.get("_prio", 0) < 2 and r["source"] == "naver")
     drop_naver_months = {m for m in prog_n if prog_n[m] >= auto_n.get(m, 0)}
     rows = [r for r in rows
-            if not (r.get("_prio", 0) == 1 and r["source"] == "naver" and r["month"] in drop_naver_months)]
+            if not (r.get("_prio", 0) < 2 and r["source"] == "naver" and r["month"] in drop_naver_months)]
     # 중복 제거(우선순위 반영). 캐치테이블은 출처마다 날짜 컬럼이 달라(방문↔작성) 내용 기준,
     # 네이버는 (매장·날짜·내용) 기준. 동일 리뷰면 prio 높은(프로그램 감성) 행을 채택.
     best = {}
     for r in rows:
-        t = (r["text"] or "").strip()
-        if r["source"] == "catchtable":
-            k = ("ct", r["store"], t) if t else ("ct", r["store"], r["date"], r["sentiment"])
-        else:
-            k = (r["store"], r["date"], t)
+        k = dedupe_key(r)
         ex = best.get(k)
         if ex is None or r.get("_prio", 0) > ex.get("_prio", 0):
             best[k] = r
+        # 일별 유입: 같은 리뷰가 여러 수집분에 있으면 가장 이른 수집일 = 우리가 처음 인지한 날
+        if r.get("collected"):
+            cur_seen = first_seen.get(k)
+            if cur_seen is None or r["collected"] < cur_seen:
+                first_seen[k] = r["collected"]
+        # 작성일자는 자동수집분에만 있으므로(프로그램 파일엔 없음) 키 단위로 따로 보존
+        if r.get("wdate") and k not in wdate_map:
+            wdate_map[k] = r["wdate"]
+    for k, r in best.items():
+        if first_seen.get(k):
+            r["first_seen"] = first_seen[k]
+        if not r.get("wdate") and wdate_map.get(k):
+            r["wdate"] = wdate_map[k]
     rows = list(best.values())
     # 별점만 있고 내용 없는 리뷰는 불만으로 세지 않음 → 중립 처리(전체 건수는 유지).
     # 네이버·캐치테이블 공통. 실제 불만 텍스트가 있는 리뷰만 불만 건수·불만 상세에 반영.
@@ -336,7 +472,17 @@ def build_reviews():
     START_MONTH = "2026-01"
     FLOOR = 15
     mcount = collections.Counter(r["month"] for r in rows)
-    months = [m for m in sorted(mcount) if m >= START_MONTH and mcount[m] >= FLOOR]
+    cand = [m for m in sorted(mcount) if m >= START_MONTH and mcount[m] >= FLOOR]
+    # 부분 월(수집 중인 당월·파일 경계 잔여)은 제외 — 중앙값의 25% 미만이면 월 비교를 왜곡한다.
+    # 당월이 25%를 넘길 만큼 쌓이면 자동으로 다시 포함된다.
+    if len(cand) >= 3:
+        med = statistics.median(mcount[m] for m in cand)
+        partial = [m for m in cand if mcount[m] < med * 0.25]
+        if partial:
+            print(f"[skip] 부분 월 제외(중앙값 {med:,.0f}의 25% 미만): "
+                  + ", ".join(f"{m}({mcount[m]:,}건)" for m in partial))
+        cand = [m for m in cand if m not in set(partial)]
+    months = cand
     rowset = [r for r in rows if r["month"] in months]
     cur = months[-1]
     prev = months[-2] if len(months) > 1 else None
@@ -422,6 +568,7 @@ def build_reviews():
         "stores": sorted(store_brand.keys()), "complaints": complaints,
         "source_file": ", ".join(used),
         "n_reviews": len(rowset),
+        "daily": build_daily(rows),
     }
 
     # 2025년 팀 월간 분석 워크북(집계) 주입 — 추이/브랜드 차트를 2025-01 까지 확장.

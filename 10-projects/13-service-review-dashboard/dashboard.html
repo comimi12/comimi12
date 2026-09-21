@@ -15,6 +15,10 @@
 <script src="memos.js" onerror="window.MEMOS=window.MEMOS||null"></script>
 <script src="kpi_data.js" onerror="window.KPI_DATA=window.KPI_DATA||null"></script>
 <script src="incentive_data.js" onerror="window.INCENTIVE_DATA=window.INCENTIVE_DATA||null"></script>
+<script src="manuals_data.js" onerror="window.MANUALS=window.MANUALS||null"></script>
+<script src="manuals_mot.js" onerror="window.MOT=window.MOT||null"></script>
+<script src="manuals_svc.js" onerror="window.SVC_MANUALS=window.SVC_MANUALS||null"></script>
+<script src="manuals_images.js" onerror="window.MANUAL_IMAGES=window.MANUAL_IMAGES||null"></script>
 <script>
 /* 새 버전 자동 반영: 배포 시 주입된 빌드토큰과 ver.txt(캐시 우회) 비교 → 다르면 최신으로 새로고침 */
 window.__BUILD__='__BUILD_TOKEN__';
@@ -123,12 +127,281 @@ window.__BUILD__='__BUILD_TOKEN__';
   .seg button{border:1px solid #c7d2e0;background:#f4f6fa;color:var(--ink);font-size:12px;padding:6px 14px;cursor:pointer;font-weight:600;border-radius:999px;transition:.12s;line-height:1}
   .seg button:hover{border-color:var(--brand);color:var(--brand);background:#fff;transform:translateY(-1px)}
   .seg button.on{background:var(--brand);color:#fff;border-color:var(--brand);box-shadow:0 2px 7px rgba(20,85,155,.28)}
+  .seg.seg-sm{gap:5px}
+  .seg.seg-sm button{padding:4px 11px;font-size:11.5px}
   .sortlbl{font-size:11.5px;color:var(--muted);font-weight:600;margin-right:2px}
   .seg .arr{margin-left:5px;font-size:10px;font-style:normal;opacity:.5}
   .seg button.on .arr{opacity:1}
+  /* ── 월간 회의 보고 (대표 보고용 1장 요약 · 삼천리 스타일) ── */
+  .wrap.wide{max-width:1680px;padding:14px 20px}
+  .mt{--nv:#0F2F54;--nv2:#1F3864;--bl:#0B63CE;--ln:#dbe3ec;
+    height:calc(100vh - 28px);display:grid;grid-template-rows:auto 1fr 1.08fr auto;gap:9px;overflow:hidden;
+    font-family:"Malgun Gothic","맑은 고딕",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#fff}
+  /* 헤더 + 분절 파란 룰 */
+  .mt-hd{display:flex;align-items:flex-end;gap:11px;flex-wrap:wrap;border-bottom:2px solid var(--nv);padding-bottom:7px}
+  .mt-hd h2{margin:0;font-size:21px;font-weight:800;color:var(--nv);letter-spacing:-.02em;line-height:1}
+  .mt-hd .rule{display:inline-flex;gap:3px;align-items:center;margin-bottom:2px}
+  .mt-hd .rule i{display:block;height:3px;background:var(--bl);border-radius:1px}
+  .mt-hd .rule i:nth-child(1){width:22px} .mt-hd .rule i:nth-child(2){width:11px;opacity:.65} .mt-hd .rule i:nth-child(3){width:5px;opacity:.4}
+  .mt-hd select{font-size:13px;font-weight:700;padding:3px 9px;border:1px solid var(--ln);border-radius:5px;background:#fff;color:var(--nv)}
+  .mt-hd .rt{margin-left:auto;display:flex;gap:8px;align-items:center;font-size:11.5px;color:#6b7a8d;font-weight:600}
+  /* 구간 밴드 (01 요약 / 02 TOP3 / 03 개선) */
+  .mt-band{border:1px solid var(--ln);border-radius:5px;padding:10px 15px 13px;background:#fff;min-height:0;display:flex;flex-direction:column}
+  .mt-band.b1{border:2px solid var(--nv);background:#f6f9fd}
+  .mt-band.b2{border:2px solid var(--bl);background:#fff}
+  .mt-band.b3{border:2px solid var(--nv2);background:#fafcfe}
+  .mt-bt{display:flex;align-items:center;gap:9px;margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid #e3eaf3;flex:0 0 auto}
+  .mt-bt .no{background:var(--nv);color:#fff;font-size:10.5px;font-weight:800;border-radius:3px;padding:2px 7px;letter-spacing:.04em}
+  .mt-band.b2 .mt-bt .no{background:var(--bl)}
+  .mt-band.b3 .mt-bt .no{background:var(--nv2)}
+  .mt-bt .ti{font-size:13.5px;font-weight:800;color:var(--nv);letter-spacing:-.01em}
+  .mt-bt .bsub{font-size:11.5px;color:#8b98a8;font-weight:600}
+  .mt-bt .sp{margin-left:auto}
+  /* 요약 KPI — 전월 ↔ 당월 좌우 비교 */
+  .mt-kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;flex:1}
+  .mt-k{border:1px solid var(--ln);border-radius:4px;padding:12px 20px;background:#fff;
+    display:flex;flex-direction:column;justify-content:center}
+  .mt-k .l{font-size:14px;color:var(--nv2);font-weight:800;letter-spacing:.01em}
+  .mt-k .cmp{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;margin-top:4px}
+  .mt-k .side{display:flex;flex-direction:column;line-height:1;flex:1;min-width:0}
+  .mt-k .side.cur{align-items:flex-end;text-align:right}
+  .mt-k .side .ym{font-size:12px;font-weight:700;color:#8b98a8;margin-bottom:6px}
+  .mt-k .side .num{font-size:42px;font-weight:800;letter-spacing:-.02em;white-space:nowrap}
+  .mt-k .side .num small{font-size:17px;font-weight:700;color:#8b98a8;margin-left:2px}
+  .mt-k .side.prev .num{color:#9aa8b8}
+  .mt-k .side.cur .num{color:var(--nv)}
+  .mt-k .ar{font-size:22px;color:#c3cedb;font-weight:700;margin-bottom:7px;flex:0 0 auto}
+  .mt-k .dl{flex:0 0 auto;font-size:19px;font-weight:800;margin-bottom:7px;margin-left:12px;padding-left:14px;
+    border-left:1px solid #e3eaf3;white-space:nowrap;text-align:right;min-width:78px}
+  .mt-k .dl.good{color:#1e7a55} .mt-k .dl.bad{color:#c0392b} .mt-k .dl.flat{color:#9aa8b8}
+  .mt-k.accent{border-left:3px solid var(--bl)} .mt-k.accent .side.cur .num{color:var(--bl)}
+  /* 불만 매장 순위 */
+  .mt-rank{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;flex:1}
+  .mt-ri{display:flex;align-items:center;gap:17px;border:1px solid var(--ln);border-radius:4px;padding:16px 20px;background:#fff}
+  .mt-ri .no{flex:0 0 auto;width:54px;height:54px;border-radius:50%;background:var(--nv);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800}
+  .mt-ri.r1 .no{background:var(--bl)} .mt-ri.r2 .no{background:#3d7ec4} .mt-ri.r3 .no{background:#7fa6cd}
+  .mt-ri .nm{flex:1;min-width:0}
+  .mt-ri .nm b{display:block;font-size:17.5px;font-weight:800;color:var(--nv);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mt-ri .nm span{font-size:12px;color:#8b98a8;font-weight:600}
+  .mt-ri .vv{flex:0 0 auto;text-align:right;line-height:1.1}
+  .mt-ri .vv b{font-size:38px;font-weight:800;color:#c0392b;letter-spacing:-.02em}
+  .mt-ri .vv b small{font-size:14px;font-weight:700;color:#8b98a8;margin-left:1px}
+  .mt-ri .vv span{display:block;font-size:15px;font-weight:800;color:#6b7a8d;margin-top:3px}
+  /* 개선 과제 카드 */
+  .mt-row{display:grid;gap:12px;min-height:0}
+  .mt-row.r4{grid-template-columns:repeat(3,1fr);flex:1}
+  .mt-c{border:1px solid var(--ln);border-radius:4px;padding:10px 15px 11px;background:#fff;
+    display:flex;flex-direction:column;min-height:0;overflow:hidden}
+  .mt-c>h4{margin:0 0 10px;font-size:13px;font-weight:800;color:var(--nv);display:flex;align-items:center;gap:8px;
+    padding-bottom:6px;border-bottom:1px solid var(--ln)}
+  .mt-c>h4 .rk{background:var(--nv);color:#fff;border-radius:3px;font-size:10.5px;font-weight:800;padding:1px 7px;flex:0 0 auto}
+  .mt-c>h4 .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mt-f{margin-bottom:11px}
+  .mt-f .k{font-size:10px;font-weight:800;letter-spacing:.04em;color:#fff;background:var(--nv2);border-radius:2px;padding:2px 7px;display:inline-block;margin-bottom:5px}
+  .mt-f .k.act{background:var(--bl)}
+  .mt-f .t{font-size:12.5px;line-height:1.55;color:#28323f}
+  .mt-chips{display:flex;gap:5px;flex-wrap:wrap}
+  .mt-chips span{border:1px solid #f0cfcd;background:#fdf6f5;color:#a9342f;border-radius:3px;padding:3px 9px;font-size:11.5px;font-weight:700}
+  .mt-c .foot{margin-top:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding-top:9px;border-top:1px solid #eef2f7}
+  .mt-dept{display:flex;gap:4px;flex-wrap:wrap}
+  .mt-dept span{border:1px solid var(--ln);color:var(--nv2);font-size:10px;font-weight:700;border-radius:999px;padding:1px 7px;background:#f7fafd}
+  .mt-empty{font-size:12px;color:#8b98a8;padding:6px 2px}
+  /* 상세 버튼 */
+  .mt-more{border:1px solid var(--bl);background:#fff;color:var(--bl);font-size:11px;font-weight:800;
+    border-radius:4px;padding:3px 11px;cursor:pointer;white-space:nowrap;line-height:1.55}
+  .mt-more:hover{background:var(--bl);color:#fff}
+  /* 상세 모달 */
+  .sc-modal{position:fixed;inset:0;background:rgba(15,47,84,.42);z-index:80;display:none;align-items:center;justify-content:center;padding:26px}
+  .sc-modal.on{display:flex}
+  .sc-mbox{background:#fff;border-radius:6px;max-width:920px;width:100%;max-height:86vh;display:flex;flex-direction:column;
+    box-shadow:0 18px 48px rgba(15,47,84,.28);border-top:4px solid #0F2F54}
+  .sc-mhd{display:flex;align-items:center;gap:10px;padding:13px 20px 11px;border-bottom:1px solid #dbe3ec}
+  .sc-mhd h3{margin:0;font-size:15px;font-weight:800;color:#0F2F54}
+  .sc-mhd button.x{margin-left:auto;border:0;background:#f2f6fb;color:#0F2F54;width:28px;height:28px;border-radius:5px;font-size:14px;cursor:pointer;font-weight:700}
+  .sc-mhd button.x:hover{background:#e3ecf7}
+  .sc-mbd{padding:14px 20px 18px;overflow:auto}
+  .sc-mbd h5{margin:14px 0 6px;font-size:11.5px;font-weight:800;color:#1F3864;letter-spacing:.03em}
+  .sc-mbd h5:first-child{margin-top:0}
+  .sc-mbd ul{margin:0;padding-left:17px}
+  .sc-mbd li{font-size:12.5px;line-height:1.62;margin:4px 0;color:#28323f}
+  .sc-mbd table{width:100%;border-collapse:collapse;font-size:12px}
+  .sc-mbd th{background:#f2f6fb;color:#1F3864;font-size:11px;font-weight:800;text-align:right;padding:6px 8px;border-bottom:1px solid #dbe3ec}
+  .sc-mbd th:first-child{text-align:left}
+  .sc-mbd td{padding:6px 8px;border-bottom:1px solid #eef2f7;text-align:right;white-space:nowrap}
+  .sc-mbd td:first-child{text-align:left;font-weight:700;white-space:normal}
+  @media(max-width:1320px){
+    .mt{height:auto;overflow:visible}
+    .mt-kpis,.mt-rank,.mt-row.r4{grid-template-columns:1fr}
+  }
+  @media print{ .mt{height:auto;overflow:visible} .mt-more{display:none} }
   .chart{width:100%;height:300px}
   .chart.sm{height:250px}
   .chart.lg{height:300px}
+  /* ── 서비스 매뉴얼 (플로어플랜) ── */
+  .man-nav{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px}
+  .man-nav a{display:inline-block;padding:6px 12px;border:1px solid var(--line);border-radius:999px;
+    background:var(--card);color:var(--brand);font-size:12.5px;font-weight:600;text-decoration:none;transition:.12s}
+  .man-nav a:hover{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .man-part{margin:26px 0 12px;padding:9px 14px;background:linear-gradient(90deg,var(--brand-deep),var(--brand));
+    color:#fff;border-radius:8px;font-size:14px;font-weight:800;letter-spacing:-.2px}
+  .man-sec{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:16px 18px;margin:0 0 14px;box-shadow:var(--shadow);scroll-margin-top:14px}
+  .man-sec>h3{margin:0 0 4px;font-size:15px;font-weight:800;color:var(--brand-deep)}
+  .man-sec>h3 .pg{display:inline-block;margin-left:7px;padding:1px 7px;border-radius:5px;
+    background:var(--brand-soft);color:var(--brand);font-size:11px;font-weight:700;vertical-align:2px}
+  .man-lead{margin:6px 0 13px;padding:10px 13px;background:#f7f9fc;border-left:3px solid var(--brand);
+    border-radius:0 7px 7px 0;font-size:12.8px;color:#3d4757}
+  .man-lead p{margin:0 0 4px} .man-lead p:last-child{margin:0}
+  .man-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:12px}
+  .man-card{border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .man-card>b{display:block;padding:8px 12px;background:var(--brand-soft);color:var(--brand-deep);font-size:13px}
+  .man-card ul{margin:0;padding:10px 14px 11px 28px}
+  .man-card li{margin:0 0 4px;font-size:12.8px;color:#333c4a}
+  table.man{width:100%;border-collapse:collapse;font-size:12.6px}
+  table.man th{background:var(--brand-soft);color:var(--brand-deep);font-weight:700;text-align:left;
+    padding:8px 10px;border:1px solid var(--line);white-space:nowrap}
+  table.man td{padding:8px 10px;border:1px solid var(--line);vertical-align:top;color:#333c4a}
+  table.man td:first-child{font-weight:700;color:var(--ink);white-space:nowrap;background:#fafbfd}
+  table.man tr:hover td{background:#fffaf0}
+  .man-warn{border-left:3px solid var(--bad);background:#fdf5f5;border-radius:0 7px 7px 0;
+    padding:9px 13px;margin:0 0 8px;font-size:12.7px}
+  .man-warn b{display:block;color:var(--bad);margin-bottom:2px}
+  .man-photo{max-width:100%;border:1px solid var(--line);border-radius:9px;display:block}
+  .zone{border:1px solid var(--line);border-radius:9px;padding:10px 12px;margin:0 0 9px;background:#fbfcfe}
+  .zone>b{display:block;font-size:12.8px;color:var(--brand-deep);margin-bottom:6px}
+  .tnum{display:inline-block;min-width:34px;text-align:center;margin:0 4px 4px 0;padding:3px 7px;
+    border:1px solid #cfdbea;border-radius:5px;background:#fff;font-size:11.5px;font-weight:600;color:#31435a}
+  .who{display:inline-block;margin-left:6px;padding:2px 9px;border-radius:999px;
+    font-size:11px;font-weight:700;color:#fff}
+  .who.mgr{background:#2f3742} .who.cash{background:#1f6fd0} .who.srv{background:#2f9e6f}
+  .who.run{background:#e08b1f} .who.back{background:#d64545}
+  .legend{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 0;padding-top:10px;border-top:1px dashed var(--line)}
+  .legend span{font-size:11.5px;color:var(--muted)}
+  /* ── 서비스 매뉴얼 › 브랜드별 MOT 멘트 ── */
+  .mot-ctl{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin:0 0 14px}
+  .mot-tabs{display:flex;flex-wrap:wrap;gap:6px}
+  .mot-tab{border:1px solid var(--line);background:#fff;color:var(--brand-deep);border-radius:999px;
+    padding:6px 14px;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+  .mot-tab:hover{background:var(--brand-soft)}
+  .mot-tab.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .mot-tools{display:flex;gap:8px;align-items:center}
+  .mot-tools input{padding:8px 12px;border:1px solid var(--line);border-radius:8px;font-size:12.5px;min-width:230px}
+  .mot-step{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:0;margin:0 0 12px;box-shadow:var(--shadow);overflow:hidden;break-inside:avoid}
+  .mot-step>h3{margin:0;padding:10px 15px;background:var(--brand-soft);color:var(--brand-deep);
+    font-size:13.5px;font-weight:800;display:flex;align-items:center;gap:9px}
+  .mot-step>h3 .no{background:var(--brand);color:#fff;border-radius:6px;font-size:11px;
+    padding:2px 8px;font-weight:800;flex-shrink:0}
+  .mot-in{padding:12px 15px}
+  .mot-tag{display:inline-block;font-size:11px;font-weight:700;border-radius:999px;padding:2px 9px;
+    background:var(--bg);color:var(--muted);border:1px solid var(--line);margin:0 5px 5px 0}
+  .mot-say,.mot-dont{margin:9px 0 0;padding:0;list-style:none}
+  .mot-say li,.mot-dont li{font-size:12.5px;line-height:1.6;padding:5px 0 5px 24px;position:relative}
+  .mot-say li{color:var(--ink)}
+  .mot-say li::before{content:"✓";position:absolute;left:4px;color:var(--good);font-weight:800}
+  .mot-dont li{color:var(--muted)}
+  .mot-dont li::before{content:"✕";position:absolute;left:4px;color:var(--bad);font-weight:800}
+  .mot-cap{font-size:11.5px;font-weight:800;letter-spacing:.2px;margin-top:11px;color:var(--brand-deep)}
+  .mot-cap.no{color:var(--bad)}
+  .mot-slogan{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px}
+  .mot-slogan span{font-size:11.5px;font-weight:700;background:var(--brand-soft);color:var(--brand);
+    border-radius:999px;padding:4px 11px}
+  .mot-empty{padding:30px 15px;text-align:center;color:var(--muted);font-size:13px}
+
+  /* ── 서비스 매뉴얼 › 문서형 뷰 (서비스 매뉴얼·용어사전·행사 응대) ── */
+  .svc-ch{margin:0 0 20px}
+  .svc-ch>h3{margin:0 0 10px;font-size:15px;font-weight:800;color:var(--brand-deep);
+    display:flex;align-items:center;gap:9px}
+  .svc-ch>h3 .no{background:var(--brand-deep);color:#fff;border-radius:6px;font-size:11px;
+    padding:2px 9px;font-weight:800;flex-shrink:0}
+  .svc-ch>h3 .pg{margin-left:auto;font-size:11px;font-weight:600;color:var(--muted)}
+  /* 표가 긴 블록은 페이지를 넘겨 이어지게(빈 여백 방지), 대신 행은 쪼개지지 않게 */
+  .svc-b{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:13px 15px;margin:0 0 11px;box-shadow:var(--shadow)}
+  .svc-b tr,.svc-say,.svc-qa,.svc-step{break-inside:avoid}
+  .svc-b>h4{margin:0 0 9px;font-size:13px;font-weight:800;color:var(--ink)}
+  .svc-b table{width:100%;border-collapse:collapse;font-size:12.5px}
+  .svc-b th{background:var(--brand-soft);color:var(--brand-deep);font-weight:700;text-align:left;
+    padding:7px 9px;border:1px solid var(--line);white-space:nowrap}
+  /* 이 대시보드의 기본 표는 숫자용이라 우측 정렬이다 — 매뉴얼 표는 글이라 좌측으로 되돌린다 */
+  .svc-b td{padding:7px 9px;border:1px solid var(--line);line-height:1.6;
+    vertical-align:top;text-align:left}
+  .svc-b td:first-child{font-weight:700;color:var(--brand-deep);white-space:nowrap}
+  .svc-tw{overflow-x:auto}
+  .svc-b ul{margin:0;padding-left:19px}
+  .svc-b li{font-size:12.5px;line-height:1.7;margin-bottom:3px}
+  .svc-step{display:flex;gap:11px;padding:9px 0;border-top:1px solid #f0f3f7}
+  .svc-step:first-of-type{border-top:0}
+  .svc-step .n{background:var(--brand);color:#fff;border-radius:50%;width:22px;height:22px;
+    flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:800}
+  .svc-step .t{font-size:13px;font-weight:700;margin-bottom:4px}
+  .svc-say{border-left:3px solid var(--brand);background:var(--bg);border-radius:0 8px 8px 0;
+    padding:9px 13px;margin:0 0 9px}
+  .svc-say .w{font-size:12px;font-weight:800;color:var(--brand-deep);margin-bottom:5px}
+  .svc-say .s{font-size:12.5px;line-height:1.7;color:var(--ink)}
+  .svc-say .nt{font-size:11.5px;line-height:1.6;color:var(--muted);margin-top:6px}
+  .svc-qa{padding:9px 0;border-top:1px solid #f0f3f7}
+  .svc-qa:first-of-type{border-top:0}
+  .svc-qa .q{font-size:12.5px;font-weight:800;color:var(--brand-deep);margin-bottom:5px}
+  .svc-qa .q::before{content:"Q. "}
+  .svc-qa .a{font-size:12.5px;line-height:1.7;color:var(--ink);padding-left:15px}
+  .svc-qa .a::before{content:"A. ";font-weight:800;color:var(--good);margin-left:-15px}
+  .svc-note{font-size:12.5px;line-height:1.75;color:var(--ink)}
+  /* 매뉴얼 사진 — manuals_images.py 로 반입된 슬롯만 렌더된다 */
+  .svc-figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+  .svc-fig{margin:0;break-inside:avoid}
+  .svc-fig img{width:100%;height:auto;display:block;border:1px solid var(--line);
+    border-radius:9px;background:#fff}
+  .svc-fig figcaption{font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.5}
+  .svc-fig .mz{color:var(--brand);font-weight:700}
+
+  /* ── 서비스 매뉴얼 › 자료실 (카테고리별 인덱스) ── */
+  .mlib-sec{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:0;margin:0 0 14px;box-shadow:var(--shadow);overflow:hidden;scroll-margin-top:14px}
+  .mlib-sec>h3{margin:0;padding:11px 15px;background:var(--brand-soft);color:var(--brand-deep);
+    font-size:14px;font-weight:800;display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
+  .mlib-sec>h3 .cnt{margin-left:auto;font-size:11.5px;font-weight:700;color:var(--brand);
+    background:#fff;border:1px solid var(--line);border-radius:999px;padding:1px 9px}
+  .mlib-sec>h3 .caret{font-size:11px;color:var(--brand);transition:.15s}
+  .mlib-sec.closed>h3 .caret{transform:rotate(-90deg)}
+  .mlib-sec.closed .mlib-list{display:none}
+  .mlib-list{padding:4px 0 6px}
+  .mlib-row{display:flex;align-items:center;gap:9px;padding:8px 15px;border-top:1px solid #f0f3f7}
+  .mlib-row:first-child{border-top:0}
+  .mlib-row:hover{background:#fbfcfe}
+  .mlib-row .nm{flex:1;min-width:0;font-size:13px;color:var(--ink);font-weight:600;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mlib-row .meta{font-size:11px;color:var(--muted);font-weight:400;margin-left:7px;white-space:nowrap}
+  .mlib-row .acts{display:flex;gap:5px;flex-shrink:0}
+  .fmt{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.2px;border-radius:4px;
+    padding:2px 6px;color:#fff;flex-shrink:0}
+  .fmt.PDF{background:#c0392b} .fmt.PPT{background:#d35400}
+  .fmt.XLS{background:#1e7145} .fmt.DOC{background:#1f5fbf}
+  .bbadge{display:inline-block;font-size:10.5px;font-weight:700;border-radius:999px;padding:2px 8px;
+    background:var(--brand-soft);color:var(--brand);flex-shrink:0}
+  .mlib-btn{border:1px solid var(--line);background:#fff;color:var(--brand);border-radius:6px;
+    padding:3px 9px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;text-decoration:none}
+  .mlib-btn:hover{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .mlib-btn.done{background:var(--good);color:#fff;border-color:var(--good)}
+  .mlib-btn.open{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .mlib-btn.open:hover{filter:brightness(1.08)}
+  .mlib-btn.ghost{opacity:.55}                 /* https 공유 사이트: 파일 열기 불가 안내용 */
+  .mlib-find{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 12px}
+  .mlib-find input{flex:1;min-width:220px;padding:8px 12px;border:1px solid var(--line);
+    border-radius:8px;font-size:13px;background:var(--card);color:var(--ink)}
+  .mlib-find .hit{font-size:11.5px;color:var(--muted)}
+  .mlib-doc{margin:0 15px 8px;padding:11px 14px;background:#f7f9fc;border-left:3px solid var(--brand);
+    border-radius:0 8px 8px 0;font-size:12.4px;line-height:1.7;color:#3d4757}
+  .mlib-doc b{display:block;color:var(--brand-deep);margin-bottom:4px;font-size:12.6px}
+  .mlib-doc ol{margin:0;padding-left:20px} .mlib-doc li{margin:0 0 2px}
+  .mlib-doc .src{margin-top:7px;padding-top:6px;border-top:1px dashed var(--line);
+    font-size:11px;color:var(--muted);word-break:break-all}
+  .mlib-lock{color:#b9801a;font-size:11px;font-weight:700;flex-shrink:0}
+  @media(max-width:640px){
+    .mlib-row{flex-wrap:wrap}
+    .mlib-row .nm{flex:1 0 100%;white-space:normal}
+  }
   /* table */
   .tbl-wrap{max-height:380px;overflow:auto}
   table{width:100%;border-collapse:collapse;font-size:12.5px}
@@ -259,6 +532,38 @@ window.__BUILD__='__BUILD_TOKEN__';
   .ai .bulb{background:var(--brand);color:#fff;border-radius:6px;font-size:11px;padding:2px 7px;font-weight:700}
   .ai ul{margin:0;padding-left:18px}
   .ai li{margin:5px 0;font-size:13px}
+  .ai-rng{font-size:11.5px;color:var(--muted);font-weight:600;margin-left:7px}
+  .ai-mo+.ai-mo{border-top:1px dashed #cfe2f7;margin-top:14px;padding-top:12px}
+  /* 월 헤더: 월 배지 + 담당 부서 */
+  .ai-mo-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:9px}
+  .ai-mo-h{background:var(--brand-deep);color:#fff;font-size:11.5px;font-weight:800;letter-spacing:.03em;
+    border-radius:6px;padding:3px 9px;flex:0 0 auto}
+  .ai-dept{display:inline-flex;gap:5px;flex-wrap:wrap;margin-left:auto}
+  .ai-dept span{background:#eef4fb;border:1px solid #d7e6f7;color:var(--brand-deep);
+    font-size:10.5px;font-weight:700;border-radius:999px;padding:2px 8px;white-space:nowrap}
+  /* 진단 / 조치 / 발전 3열 */
+  .ai-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  @media(max-width:1180px){.ai-cols{grid-template-columns:1fr}}
+  .ai-col{background:#fff;border:1px solid #dbe8f6;border-radius:10px;padding:9px 12px 10px}
+  .ai-col h4{margin:0 0 6px;font-size:11px;font-weight:800;letter-spacing:.04em;display:flex;align-items:center;gap:6px}
+  .ai-col h4 i{width:7px;height:7px;border-radius:2px;font-style:normal}
+  .ai-col h4 b{margin-left:auto;font-size:10.5px;font-weight:800;opacity:.55}
+  .ai-col.diag{border-top:2px solid #14559b} .ai-col.diag h4{color:#14559b} .ai-col.diag h4 i{background:#14559b}
+  .ai-col.act{border-top:2px solid #1e7a55}  .ai-col.act h4{color:#1e7a55}  .ai-col.act h4 i{background:#1e7a55}
+  .ai-col.next{border-top:2px solid #6b40c4} .ai-col.next h4{color:#6b40c4} .ai-col.next h4 i{background:#6b40c4}
+  .ai-col ul{list-style:none;margin:0;padding:0}
+  .ai-col li{font-size:12.5px;line-height:1.55;margin:6px 0;padding-left:15px;position:relative;color:#28323f}
+  .ai-col li:before{content:'';position:absolute;left:2px;top:7px;width:5px;height:5px;border-radius:50%;background:#c3d3e6}
+  .ai-col.diag li:before{background:#14559b} .ai-col.act li:before{background:#1e7a55} .ai-col.next li:before{background:#6b40c4}
+  .ai-col li em{font-style:normal;color:var(--muted)}
+  /* 리스크 배너 */
+  .ai-risk{margin:0 0 10px;background:#fff5f5;border:1px solid #f3c9c9;border-left:3px solid var(--bad);
+    border-radius:9px;padding:9px 12px;font-size:12.5px;line-height:1.55;color:#28323f}
+  .ai-risk+.ai-risk{margin-top:-4px}
+  .ai-risk .rl{display:inline-block;background:var(--bad);color:#fff;font-size:10px;font-weight:800;
+    border-radius:5px;padding:2px 7px;margin-right:7px;vertical-align:1px}
+  .ai-win{background:#fffaef;border-color:#f0dfae;border-left-color:#c99a1e}
+  .ai-win .rl{background:#c99a1e}
   .foot{color:var(--muted);font-size:11.5px;margin-top:8px}
   @media(max-width:860px){.grid2,.grid3{grid-template-columns:1fr}}
   /* 결과 보고서 */
@@ -287,6 +592,15 @@ window.__BUILD__='__BUILD_TOKEN__';
     .sidebar,.sb-toggle,.sb-backdrop,.ctrl{display:none!important}
     .main{margin-left:0} .wrap{padding:0;max-width:none} body{background:#fff}
     .rep-sec{box-shadow:none;break-inside:avoid;border-color:#ccc}
+    /* 매뉴얼 뷰 → PDF 저장: 조작 UI는 빼고 내용만, 단계 카드가 페이지 경계에서 잘리지 않게 */
+    .mot-tabs,.mot-tools,.mlib-find,.mlib-row .acts,.fp-nav{display:none!important}
+    .mot-step,.mlib-sec{box-shadow:none;border-color:#ccc;break-inside:avoid}
+    .mot-step>h3,.mlib-sec>h3{background:#f2f6fb!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .mot-tag{background:#fff!important;border-color:#ddd}
+    .mot-say li::before{color:#1e7145!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .mot-dont li::before{color:#c0392b!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .mlib-sec.closed .mlib-list{display:block}   /* 접어둔 항목도 인쇄물에는 나오게 */
+    a[href^="file:"]{text-decoration:none;color:inherit}
   }
 </style>
 </head>
@@ -296,8 +610,11 @@ window.__BUILD__='__BUILD_TOKEN__';
 <aside class="sidebar" id="sidebar">
   <div class="sb-brand"><img src="logo.png" alt="삼천리 SL&C" onerror="this.style.display='none'"><div class="t"><b>삼천리 SL&C</b><span>VOC 리뷰 대시보드</span></div></div>
   <nav class="snav">
+    <div class="grp">월간 회의</div>
+    <button class="tab active" data-v="vmeet">🗓 월간 회의 보고 <span style="opacity:.6">(1장 요약)</span></button>
+    <button class="tab" data-v="vdaily">📅 일별 리서치 <span style="opacity:.6">(전일 유입)</span></button>
     <div class="grp">리뷰 분석</div>
-    <button class="tab active" data-v="v1">① 브랜드별 리뷰 종합</button>
+    <button class="tab" data-v="v1">① 브랜드별 리뷰 종합</button>
     <button class="tab" data-v="v2">② TOP3 불만매장 개선 방안</button>
     <button class="tab" data-v="v3">③ SL&C 고객의 소리</button>
     <button class="tab" data-v="v5">④ 매장 검색·드릴다운</button>
@@ -312,6 +629,9 @@ window.__BUILD__='__BUILD_TOKEN__';
     <button class="tab" data-v="vreport">📝 결과 보고서</button>
     <button class="tab" data-v="vkpi">📊 월별 KPI 평가</button>
     <button class="tab" data-v="vincentive">🎁 분기별 인센티브 행사</button>
+    <div class="grp">서비스 매뉴얼</div>
+    <button class="tab" data-v="vmot">💬 브랜드별 MOT 멘트</button>
+    <button class="tab" data-v="vfloor">📐 플로어플랜</button>
   </nav>
   <div class="sb-meta" id="meta"></div>
 </aside>
@@ -365,8 +685,536 @@ window.__BUILD__='__BUILD_TOKEN__';
     <div id="vinc-body"></div>
   </section>
 
+  <!-- 서비스 매뉴얼 › 브랜드별 MOT 멘트 (출처: 10 서비스 교육자료_브랜드별 MOT 멘트.pptx, 교육팀)
+       내용은 manuals_mot.js(window.MOT)에서 읽어 렌더링한다. -->
+  <section class="view" id="vmot">
+    <div class="vhead"><h2>브랜드별 MOT 멘트 <span class="note">고객 접점 10단계 응대 화법 · 교육팀</span></h2></div>
+    <div class="man-lead" id="mot-lead"></div>
+    <div class="mot-ctl">
+      <div class="mot-tabs" id="mot-tabs"></div>
+      <div class="mot-tools">
+        <input type="search" id="mot-find" placeholder="멘트·금지행동 검색 (예: 벨, 알러지, 환송)">
+        <span class="hit" id="mot-hit"></span>
+        <button class="mlib-btn" id="mot-print">🖨 PDF로 저장</button>
+      </div>
+    </div>
+    <div id="mot-body"></div>
+  </section>
+
+  <!-- 서비스 매뉴얼 › 플로어플랜 (출처: 플로어플랜_운영매뉴얼_완성본.pptx, 교육팀) -->
+  <section class="view" id="vfloor">
+    <div class="vhead"><h2>플로어플랜 운영 매뉴얼 <span class="note">전 매장 홀(FOH) 공통 표준 · 교육팀</span></h2></div>
+
+    <div class="man-lead">
+      <p>· 본 매뉴얼은 전 매장 홀(FOH) 플로어 플랜의 <b>제작 · 표기 · 운영</b>에 관한 공통 표준입니다.</p>
+      <p>· 적용 범위 : 전 매장 홀 운영 전 직급. 매장마다 도면과 인원 규모만 다를 뿐, 표기 규칙과 운영 원칙은 동일하게 적용합니다.</p>
+      <p>· 개정 : 표기 규칙과 배치 기준은 본부 승인 후 개정되니, 매장에서 임의로 바꾸지 말아 주세요.</p>
+    </div>
+
+    <div class="man-nav">
+      <a href="#fp-def">정의 · 목적 · 3요소</a>
+      <a href="#fp-rnr">역할과 책임</a>
+      <a href="#fp-overview">운영 매뉴얼 개요</a>
+      <a href="#fp-make">보드 제작 6단계</a>
+      <a href="#fp-rule">표기 규칙 표준</a>
+      <a href="#fp-cmp">매장별 배치 기준</a>
+      <a href="#fp-pos">매장별 POS 배치도</a>
+      <a href="#fp-day">하루 운영 타임라인</a>
+      <a href="#fp-case">상황별 대응 규칙</a>
+      <a href="#fp-check">점검 · 자주 생기는 실수</a>
+      <a href="#fp-foh">FOH 직급별 서비스 매뉴얼</a>
+    </div>
+
+    <!-- ══ PART 1 ══ -->
+    <div class="man-part">PART 1. 정의와 권한</div>
+
+    <div class="man-sec" id="fp-def">
+      <h3>플로어 플랜 정의 · 목적 · 구성 3요소<span class="pg">p.03</span></h3>
+      <div class="man-grid">
+        <div class="man-card"><b>① 정의</b><ul>
+          <li>플로어 플랜은 매장 평면도 위에 구역별 책임자를 자석으로 표시하는 <b>홀 인력 배치판</b>입니다.</li>
+          <li>근무표가 출근 인원을 정한다면, 플로어 플랜은 <b>담당 구역</b>을 정합니다.</li>
+          <li>자석 1개는 근무자 1명이며, 자석이 놓인 구역이 그분의 책임 구역입니다.</li>
+          <li>자석 보드를 쓰는 이유는 피크 중 배치 변경을 바로 반영하기 위해서입니다.</li>
+        </ul></div>
+        <div class="man-card"><b>② 목적</b><ul>
+          <li><b>책임 범위 확정</b> : 모든 테이블에 담당자가 늘 지정되어 있습니다.</li>
+          <li><b>응대 누락 차단</b> : 담당자가 없는 구역이 한눈에 보입니다.</li>
+          <li><b>재배치 속도</b> : 자석만 옮기면 배치 지시가 끝납니다.</li>
+          <li><b>품질 관리</b> : 구역 단위로 서비스 이력과 컴플레인 원인을 살펴볼 수 있습니다.</li>
+          <li><b>인수인계</b> : 다음 근무조가 보드만 보고도 직전 배치를 알 수 있습니다.</li>
+        </ul></div>
+        <div class="man-card"><b>③ 구성 3요소</b><ul>
+          <li><b>도면</b> (고정 요소) — 테이블 번호는 POS 실사용 번호와 100% 맞춰 주세요.</li>
+          <li><b>자석</b> (가변 요소) — 직무별 5색으로 구분하고 라벨에 실명을 적어 주세요.</li>
+          <li><b>규칙</b> (운영 요소) — 런치 · 브레이크 · 디너 전환 시 이동 기준을 정해 주세요.</li>
+        </ul></div>
+        <div class="man-card"><b>④ 설치 · 확인 · 변경 권한</b><ul>
+          <li><b>설치 위치</b> : 출근길에 꼭 지나는 백룸 입구나 타임카드 옆에 걸어 주세요.</li>
+          <li><b>확인 시점</b> : 출근 · 오픈 미팅 · 피크 전환 · 마감 전 <b>하루 4회</b> 확인해 주세요.</li>
+          <li><b>변경 권한</b> : 점장이 확정하고 매니저가 조정합니다. 그 외 직급은 자석을 옮기지 말아 주세요.</li>
+          <li>배정 구역을 확인하지 않은 채로 홀에 들어가지 말아 주세요.</li>
+        </ul></div>
+      </div>
+    </div>
+
+    <div class="man-sec" id="fp-rnr">
+      <h3>역할과 책임 (R&amp;R)<span class="pg">p.04</span></h3>
+      <div class="man-lead">
+        <p>· 배치는 <b>점장이 확정</b>하고, <b>매니저가 조정</b>하며, 전 직원이 함께 확인합니다.</p>
+        <p>· 보드 제작의 최종 책임은 점장에게 있고, 제작 실무는 매니저 또는 점장이 지정한 담당자가 진행합니다.</p>
+        <p>· 배정 구역을 확인하지 않은 채 홀에 들어가는 일은 전 직급 공통으로 삼가 주세요.</p>
+      </div>
+      <div class="tbl-wrap"><table class="man">
+        <thead><tr><th>구분</th><th>역할</th><th>실행 시점</th></tr></thead>
+        <tbody>
+          <tr><td>점장</td><td>보드 최종 승인 · 당일 배치 확정<br>인원 과부족 판단 · 변경 승인</td>
+              <td>오픈 10분 전 미팅에서 배치 확정 → 피크 전환 시 재확정 → 마감 시 익일 기준 전달</td></tr>
+          <tr><td>매니저</td><td>보드 제작 실무 · 구역 밸런스 조정<br>결원 시 대체 배치 · 실시간 갱신</td>
+              <td>오픈 60분 전 도면 · 자석 점검 → 피크 중 상시 조정 → 조정 즉시 구두 공유</td></tr>
+          <tr><td>캐셔 / 안내</td><td>예약 · 웨이팅 현황을 배치 기준으로 제공</td>
+              <td>오픈 미팅에서 예약 건수 · 단체 유무 보고 → 입장 지연 시 담당 구역 서버에 인계</td></tr>
+          <tr><td>서버<br>(PT, 정직원)</td><td>배정 구역 확인 · 이석 시 사전 보고</td>
+              <td>출근 시 확인 → 구역 변경 · 휴게 이동 시 매니저 보고 후 자석 이동</td></tr>
+          <tr><td>BACK<br>(러너 · 티카)</td><td>담당 서버 구역 매칭 · 지원 구역 확정</td>
+              <td>출근 시 확인 → 피크 전 리필 · 세팅 동선 확정 → 요청 시 해당 구역으로 이동</td></tr>
+          <tr><td>교육 대상 인력</td><td>지정 멘토 인접 구역에 배치<br>단독 구역 배정은 삼가 주세요</td>
+              <td>출근 시 멘토 구역 확인 → 멘토 이석 시 대체 멘토를 즉시 지정하고 보드에 반영</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- ══ PART 2 ══ -->
+    <div class="man-part">PART 2. 제작과 표기</div>
+
+    <div class="man-sec" id="fp-overview">
+      <h3>운영 매뉴얼 개요<span class="pg">p.05</span></h3>
+      <div class="man-grid">
+        <div class="man-card"><b>예시 사진 — 매장 보드 실물</b>
+          <div style="padding:11px 12px"><img class="man-photo" src="assets/floorplan_board.jpg" alt="매장 플로어플랜 보드 실물"></div>
+        </div>
+        <div class="man-card"><b>※ 운영법 — 보드를 실제로 굴리는 방법</b><ul>
+          <li>오픈 10분 전 전체 미팅에서 인원 배치를 확정하고 공유해 주세요.</li>
+          <li>직원 스킬에 맞춰 담당 서버를 구분해 배정해 주세요.</li>
+          <li>런치 / 디너 / 휴게 시간에 맞춰 자석을 옮겨 주세요.</li>
+          <li>화이트보드 공란은 예약 · 전달 사항 기록용으로 비워 두세요.</li>
+          <li>전 직원이 출근할 때 화이트보드를 확인하는 습관을 들여 주세요.</li>
+        </ul></div>
+        <div class="man-card"><b>① 만드는 법 (보드 제작)</b><ul>
+          <li>화이트 자석보드 구매 — 매장 크기에 맞게 A3 / A4 사이즈</li>
+          <li>원형 자석 구매 — 직무 5색 구분용</li>
+          <li>매장 평면도 출력 · 코팅 후 부착 (도면이 없으면 PPT로 간단히 제작)</li>
+          <li>테이블 번호는 POS 실사용 번호와 100% 일치, 입구 · 홀 · 룸 · BACK 구분</li>
+          <li style="color:var(--muted)">구매처 : smartstore.naver.com/hakwonmall (자석보드) · smartstore.naver.com/earthmagnet (원형 자석)</li>
+        </ul></div>
+        <div class="man-card"><b>② 작성법 (배치 표기)</b><ul>
+          <li>자석 1개는 근무자 1명, 라벨에 실명을 적어 주세요.</li>
+          <li>담당 구역 중앙에 자석을 놓아 책임을 분명히 해 주세요.</li>
+          <li>미배치 인원은 보드 하단 대기열에 정렬해 주세요.</li>
+          <li>캐셔 / 호스트 · 서버 · 버서 · BACK 공간별로 자석을 세팅해 주세요.</li>
+        </ul></div>
+      </div>
+    </div>
+
+    <div class="man-sec" id="fp-make">
+      <h3>보드 제작 6단계<span class="pg">p.06</span></h3>
+      <div class="man-lead">
+        <p>· 각 단계의 완료 기준을 채우지 못했다면 다음 단계로 넘어가지 말아 주세요.</p>
+        <p>· 제작을 마치면 점장 승인을 받고 실물 사진을 매장 공통 채널에 올려 주세요.</p>
+      </div>
+      <div class="tbl-wrap"><table class="man">
+        <thead><tr><th>단계</th><th>작업 내용</th><th>완료 기준</th></tr></thead>
+        <tbody>
+          <tr><td>1단계<br>준비물 구매</td><td>화이트 자석보드(A3~A4) · 원형 자석 · 네임 라벨 · 보드마카를 구매해 주세요.</td>
+              <td>보드가 벽면에 고정되고 자석이 잘 붙어야 합니다<br>자석 수량 = 최대 근무 인원 + 예비 2개</td></tr>
+          <tr><td>2단계<br>도면 확보</td><td>인테리어 평면도를 사용해 주세요.<br>도면이 없는 매장은 PPT 도형으로 대신 만들어 주세요.</td>
+              <td>홀 전체가 1장에 담기고, 3m 거리에서 테이블이 구분되어야 합니다</td></tr>
+          <tr><td>3단계<br>테이블 번호 기입</td><td>POS · 예약 시스템의 실사용 번호를 그대로 적어 주세요.</td>
+              <td>임의 번호 · 중복 번호가 0건이어야 합니다<br>서버 3인이 같은 번호로 답해야 합니다</td></tr>
+          <tr><td>4단계<br>구역 분할</td><td>입구 · 홀 · 룸 · BACK 4개 영역을 실선으로 나누고 구역명을 적어 주세요.</td>
+              <td>모든 테이블이 1개 구역에만 속해야 합니다 / 미소속 테이블 0개</td></tr>
+          <tr><td>5단계<br>출력 · 코팅 · 부착</td><td>A3 컬러로 출력해 코팅한 뒤 보드에 붙여 주세요.<br>마카 필기와 삭제가 되는 상태로 유지해 주세요.</td>
+              <td>마카를 지운 뒤에도 인쇄 도면이 상하지 않아야 합니다</td></tr>
+          <tr><td>6단계<br>자석 라벨 세팅</td><td>직무별 5색을 구분해 실명 라벨을 붙이고, 미배치 인원은 보드 하단 대기열에 정렬해 주세요.</td>
+              <td>라벨만으로 직무와 성명을 알 수 있어야 합니다<br>점장 승인 및 실물 사진 등록 완료</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="man-sec" id="fp-rule">
+      <h3>표기 규칙 표준<span class="pg">p.07</span></h3>
+      <div class="man-lead">
+        <p>· 표기 규칙은 <b>매장 재량 없이 전 매장 공통으로 고정</b>합니다.</p>
+        <p>· 규칙이 매장마다 다르면 지원 근무 인력과 전배 인력이 보드를 읽기 어렵습니다.</p>
+        <p>· 변경이 필요하면 본부 승인을 받아 매뉴얼을 개정한 뒤 적용해 주세요.</p>
+      </div>
+      <div class="tbl-wrap"><table class="man">
+        <thead><tr><th>항목</th><th>표준 규칙</th><th>주의 사항</th></tr></thead>
+        <tbody>
+          <tr><td>자석 5색</td>
+              <td><span class="who mgr">점장·매니저 검정</span> <span class="who cash">캐셔·안내 블루</span>
+                  <span class="who srv">서버 그린</span> <span class="who run">버서·러너 오렌지</span>
+                  <span class="who back">BACK 레드</span></td>
+              <td>매장별 색상을 임의로 바꾸지 말아 주세요</td></tr>
+          <tr><td>라벨 기재</td><td>한글 실명으로 적고, 교육 대상 인력은 성명 뒤에 <b>(N)</b>을 붙여 주세요.</td>
+              <td>닉네임 · 이니셜 · 사번만 적지 말아 주세요<br>알아보기 어려운 필기는 피해 주세요</td></tr>
+          <tr><td>배치 위치</td><td>담당 구역 정중앙에 자석을 놓아 책임 범위를 분명히 해 주세요.</td>
+              <td>구역 경계선 위에 놓거나 자석을 겹쳐 두지 말아 주세요</td></tr>
+          <tr><td>미배치 인원</td><td>보드 하단 대기열에 좌 → 우 순서로 정렬하고 휴게 · 미출근을 구분해 표기해 주세요.</td>
+              <td>보드 밖에 보관하거나 개인이 갖고 있지 말아 주세요<br>대기열에 표기하지 않은 채 자석을 빼지 말아 주세요</td></tr>
+          <tr><td>공란 · 메모</td><td>우측 공란에 예약 · 전달사항 · 품절 메뉴를 적고 기재 일자도 함께 남겨 주세요.</td>
+              <td>전일 메모를 그대로 두거나, 보드에 적지 않고 말로만 전달하지 말아 주세요</td></tr>
+          <tr><td>갱신 · 공유</td><td>자석을 옮길 때는 말로도 함께 공유하고, 변경 사유를 공란에 적어 주세요.</td>
+              <td>보드만 바꾸고 공유하지 않는 일은 없도록 해 주세요</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- ══ PART 3 ══ -->
+    <div class="man-part">PART 3. 매장별 배치</div>
+
+    <div class="man-sec" id="fp-cmp">
+      <h3>매장별 배치 기준 요약 (4개 매장)<span class="pg">p.08</span></h3>
+      <div class="man-lead">
+        <p>· 매장마다 POS 테이블 구성이 다르니 구역 분할과 1인당 담당 테이블 수는 매장 기준으로 적용해 주세요.</p>
+        <p>· <b>1인당 담당 테이블이 10개를 넘는 구역은 혼자 맡지 않고 2인으로 나눠 주세요.</b></p>
+        <p>· 포장 · 배달 · 임시 등 비착석 단위에는 자석을 두지 않고 캐셔가 일괄 관리합니다.</p>
+      </div>
+      <div class="tbl-wrap"><table class="man">
+        <thead><tr><th>구분</th><th>이타마에</th><th>미아</th><th>롯데월드</th><th>올공</th></tr></thead>
+        <tbody>
+          <tr><td>POS 구성</td><td>카운터 9 + 테이블 11<br>포장 2</td><td>테이블 28 + 룸 3<br>배달 · 포장 8</td>
+              <td>테이블 29 + 바 3<br>포장 · 임시 5</td><td>테이블 40<br>(5개 홀 구역)</td></tr>
+          <tr><td>표준 상주</td><td>매니저 1 · 서버 2<br>BACK 1 = 4명</td><td>매니저 1 · 캐셔 1<br>서버 3 · BACK 1 = 6명</td>
+              <td>매니저 1 · 캐셔 1 · 서버 3<br>러너 1 · BACK 1 = 7명</td><td>점장 1 · 매니저 1 · 캐셔 1<br>서버 4 · 러너 1 · BACK 1 = 9명</td></tr>
+          <tr><td>구역 분할</td><td>카운터 / 홀 A · B · C<br>포장</td><td>홀 A · B · C · D<br>룸 / 배달 · 포장</td>
+              <td>홀 A · B · C · D<br>바 / 포장 · 임시</td><td>홀 A · B · C · D · E</td></tr>
+          <tr><td>1인 담당 한도</td><td>카운터 9석 고정<br>홀 최대 6테이블</td><td>홀 최대 8테이블</td>
+              <td>홀 A 15테이블<br>→ 서버 2인 분할</td><td>홀 B 12테이블<br>→ 서버 2인 분할</td></tr>
+          <tr><td>비착석 단위</td><td>포장 1 · 2<br>캐셔 화면 관리</td><td>배달 3사 · 포장 · 대기<br>캐셔 일괄 관리</td>
+              <td>포장 1·2 / 임시 1·2<br>점장 승인 후 개방</td><td>해당 없음</td></tr>
+          <tr><td>증원 트리거</td><td>카운터 만석 +<br>홀 6테이블 착석</td><td>룸 3실 +<br>홀 20테이블 착석</td>
+              <td>홀 A 만석 +<br>웨이팅 3팀</td><td>만석 + 웨이팅 5팀<br>30분 지속</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="man-sec" id="fp-pos">
+      <h3>매장별 POS 배치도 · 구역 배정<span class="pg">p.09~12</span></h3>
+      <div class="man-lead">
+        <p>· 아래는 원본 매뉴얼의 POS 배치도를 <b>구역별 테이블 번호와 담당자 배정</b> 기준으로 정리한 것입니다.</p>
+        <p>· 실제 도면 형태의 배치도는 원본 PPT(p.09~12)를 참고해 주세요.</p>
+      </div>
+
+      <div class="man-grid" style="grid-template-columns:1fr">
+        <div class="man-card"><b>① 이타마에 잠실롯데월드몰점 — 카운터 9 · 홀 11 · 포장 2 / 총 4명</b>
+          <div style="padding:11px 13px">
+            <div class="zone"><b>스시 카운터 001~009 <span class="who srv">서버① 고정</span></b>
+              <span class="tnum">001</span><span class="tnum">002</span><span class="tnum">003</span><span class="tnum">004</span><span class="tnum">005</span><span class="tnum">006</span><span class="tnum">007</span><span class="tnum">008</span><span class="tnum">009</span></div>
+            <div class="zone"><b>홀 A 011~013 · 021~023 <span class="who srv">서버②</span></b>
+              <span class="tnum">011</span><span class="tnum">012</span><span class="tnum">013</span><span class="tnum">021</span><span class="tnum">022</span><span class="tnum">023</span></div>
+            <div class="zone"><b>홀 B 031~033 <span class="who mgr">매니저</span> <span style="font-weight:400;color:var(--muted);font-size:11.5px">계산 · 포장 겸임</span></b>
+              <span class="tnum">031</span><span class="tnum">032</span><span class="tnum">033</span></div>
+            <div class="zone"><b>홀 C 041 · 042 <span class="who back">BACK</span> <span style="font-weight:400;color:var(--muted);font-size:11.5px">리필 · 퇴식 겸임</span></b>
+              <span class="tnum">041</span><span class="tnum">042</span></div>
+            <div class="zone"><b>포장1 · 포장2 <span style="font-weight:400;color:var(--muted);font-size:11.5px">자석 미배치 · 캐셔 화면으로만 관리</span></b></div>
+            <ul style="margin:9px 0 0;padding-left:20px;font-size:12.7px;color:#333c4a">
+              <li>카운터 담당은 카운터를 비우지 말아 주세요. <b>홀 지원은 하지 않습니다.</b></li>
+              <li>매니저는 홀 B를 기본 위치로 두고 계산 · 포장 픽업을 먼저 처리합니다.</li>
+              <li>BACK은 홀 A · B · C 전 구역의 퇴식과 리필을 맡고, 퇴식은 5분 내 마쳐 주세요.</li>
+              <li>카운터 만석(9석)일 때는 홀 워크인 착석을 조정해서 받아 주세요.</li>
+              <li>포장 주문이 3건 이상 밀리면 매니저가 홀 B 응대를 BACK에게 넘겨 주세요.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="man-card"><b>② 차이797 미아점 — 홀 4구역 · 룸 3실 · 배달/포장 8 / 총 6명</b>
+          <div style="padding:11px 13px">
+            <div class="zone"><b>홀 A 041~047 <span class="who srv">서버①</span></b>
+              <span class="tnum">041</span><span class="tnum">042</span><span class="tnum">043</span><span class="tnum">044</span><span class="tnum">045</span><span class="tnum">046</span><span class="tnum">047</span></div>
+            <div class="zone"><b>홀 B 001~006 <span class="who srv">서버②</span></b>
+              <span class="tnum">001</span><span class="tnum">002</span><span class="tnum">003</span><span class="tnum">004</span><span class="tnum">005</span><span class="tnum">006</span></div>
+            <div class="zone"><b>홀 C 011~026 <span class="who srv">서버③</span></b>
+              <span class="tnum">011</span><span class="tnum">012</span><span class="tnum">013</span><span class="tnum">016</span><span class="tnum">021</span><span class="tnum">022</span><span class="tnum">023</span><span class="tnum">026</span></div>
+            <div class="zone"><b>홀 D 031~037 <span class="who back">BACK</span> <span style="font-weight:400;color:var(--muted);font-size:11.5px">퇴식 · 리필 병행</span></b>
+              <span class="tnum">031</span><span class="tnum">032</span><span class="tnum">033</span><span class="tnum">034</span><span class="tnum">035</span><span class="tnum">036</span><span class="tnum">037</span></div>
+            <div class="zone"><b>룸 R1 · R2 · R3 <span class="who mgr">매니저 전담</span></b>
+              <span class="tnum">R1</span><span class="tnum">R2</span><span class="tnum">R3</span></div>
+            <div class="zone"><b>배달 · 포장 · 대기 <span class="who cash">캐셔 일괄</span></b>
+              <span class="tnum">쿠팡1</span><span class="tnum">쿠팡2</span><span class="tnum">쿠팡3</span><span class="tnum">배민1</span><span class="tnum">배민2</span><span class="tnum">요기요</span><span class="tnum">포장</span><span class="tnum">대기</span></div>
+            <ul style="margin:9px 0 0;padding-left:20px;font-size:12.7px;color:#333c4a">
+              <li>홀 A와 홀 B는 동선이 나뉘어 있어 <b>서로 지원을 전제하지 않습니다.</b></li>
+              <li>룸 3실을 동시에 쓸 때 매니저는 룸에 머물고 홀 지원은 하지 않습니다.</li>
+              <li>캐셔는 배달 3사 주문을 접수 순서대로 처리하고, 픽업이 늦어지면 알려 주세요.</li>
+              <li>룸 3실이 동시 예약되면 홀 워크인은 홀 C까지만 배정해 주세요.</li>
+              <li>배달 주문이 5건 이상 밀리면 홀 착석 접수를 잠시 멈춰 주세요.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="man-card"><b>③ 차이797 롯데월드몰점 — 홀 4구역 · 바 3 · 포장/임시 5 / 총 7명</b>
+          <div style="padding:11px 13px">
+            <div class="zone"><b>홀 A 13~15 · 21~26 · 31~36 (15테이블) <span class="who srv">서버① + 서버②</span></b>
+              <span class="tnum">13</span><span class="tnum">14</span><span class="tnum">15</span><span class="tnum">21</span><span class="tnum">22</span><span class="tnum">23</span><span class="tnum">24</span><span class="tnum">25</span><span class="tnum">26</span><span class="tnum">31</span><span class="tnum">32</span><span class="tnum">33</span><span class="tnum">34</span><span class="tnum">35</span><span class="tnum">36</span>
+              <div style="margin-top:6px;font-size:11.8px;color:var(--muted)">└ 서버① 13~15 · 21~26 / 서버② 31~36</div></div>
+            <div class="zone"><b>바 · 홀 B 11 · 12 · B1~B3 <span class="who mgr">매니저 전담</span></b>
+              <span class="tnum">11</span><span class="tnum">12</span><span class="tnum">B1</span><span class="tnum">B2</span><span class="tnum">B3</span></div>
+            <div class="zone"><b>홀 C 51~54 · 61~64 <span class="who srv">서버③</span></b>
+              <span class="tnum">51</span><span class="tnum">52</span><span class="tnum">53</span><span class="tnum">54</span><span class="tnum">61</span><span class="tnum">62</span><span class="tnum">63</span><span class="tnum">64</span></div>
+            <div class="zone"><b>홀 D 41~46 <span class="who run">러너①</span> <span class="who back">BACK</span> <span style="font-weight:400;color:var(--muted);font-size:11.5px">퇴식 · 리필 병행</span></b>
+              <span class="tnum">41</span><span class="tnum">42</span><span class="tnum">43</span><span class="tnum">44</span><span class="tnum">45</span><span class="tnum">46</span></div>
+            <div class="zone"><b>포장1·2 / 임시1·2 <span class="who cash">캐셔 관리 · 자석 1개만</span></b>
+              <span class="tnum">포장1</span><span class="tnum">포장2</span><span class="tnum">임시1</span><span class="tnum">임시2</span></div>
+            <ul style="margin:9px 0 0;padding-left:20px;font-size:12.7px;color:#333c4a">
+              <li>홀 A는 15테이블이라 혼자 맡지 않고 <b>꼭 2인으로 나눠 주세요.</b></li>
+              <li>바(B1~B3)는 주문 · 제공 · 계산이 한자리에서 이뤄져 매니저가 전담합니다.</li>
+              <li>홀 A에 12테이블 이상 동시 착석하면 홀 C 신규 착석을 조정해 주세요.</li>
+              <li>임시1 · 임시2 · 포장은 착석 구역이 아니며, 사용 중일 때만 보드 공란에 사유를 적어 주세요.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="man-card"><b>④ 차이 딤섬앤누들바 올림픽공원점 — 홀 A~E · 총 40테이블 / 총 8명</b>
+          <div style="padding:11px 13px">
+            <div class="zone"><b>홀 A 31~37 (7) <span class="who srv">서버①</span></b>
+              <span class="tnum">31</span><span class="tnum">32</span><span class="tnum">33</span><span class="tnum">34</span><span class="tnum">35</span><span class="tnum">36</span><span class="tnum">37</span></div>
+            <div class="zone"><b>홀 B 11~28 (12) <span class="who srv">서버② + 서버④</span></b>
+              <span class="tnum">11</span><span class="tnum">12</span><span class="tnum">13</span><span class="tnum">14</span><span class="tnum">21</span><span class="tnum">22</span><span class="tnum">23</span><span class="tnum">24</span><span class="tnum">25</span><span class="tnum">26</span><span class="tnum">27</span><span class="tnum">28</span>
+              <div style="margin-top:6px;font-size:11.8px;color:var(--muted)">└ 11~14 · 21~24 / 25~28 로 분담</div></div>
+            <div class="zone"><b>홀 C 1~6 (6) <span class="who srv">서버③</span></b>
+              <span class="tnum">1</span><span class="tnum">2</span><span class="tnum">3</span><span class="tnum">4</span><span class="tnum">5</span><span class="tnum">6</span></div>
+            <div class="zone"><b>홀 D 61~64 (4) <span class="who cash">캐셔 겸임</span></b>
+              <span class="tnum">61</span><span class="tnum">62</span><span class="tnum">63</span><span class="tnum">64</span></div>
+            <div class="zone"><b>홀 E 41~45 · 51~56 (11) <span class="who mgr">매니저</span> <span class="who run">러너①</span> <span class="who back">BACK</span></b>
+              <span class="tnum">41</span><span class="tnum">42</span><span class="tnum">43</span><span class="tnum">44</span><span class="tnum">45</span><span class="tnum">51</span><span class="tnum">52</span><span class="tnum">53</span><span class="tnum">54</span><span class="tnum">55</span><span class="tnum">56</span></div>
+            <ul style="margin:9px 0 0;padding-left:20px;font-size:12.7px;color:#333c4a">
+              <li>점장 자석은 고정 구역 없이 보드 상단 <b>'순회'</b> 칸에 따로 배치해 주세요.</li>
+              <li>구역 간 교차 응대는 삼가 주세요. 지원이 필요하면 매니저가 자석을 옮깁니다.</li>
+              <li>점장은 특정 구역에 머물지 않고 <b>지연 15분 이상 구역</b>에 먼저 들어갑니다.</li>
+              <li>홀 B에 8테이블 이상 동시 주문 시 홀 A 착석을 5분 간격으로 조정해 주세요.</li>
+              <li>만석 + 웨이팅 5팀 이상이 이어지면 착석 간격을 10분 단위로 조정해 주세요.</li>
+              <li><b>보고 기준</b> — 만석 + 웨이팅 5팀이 30분 이어지면 점장이 익일 인력 재편성을 보고합니다.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="legend">
+        <span><span class="who mgr">점장·매니저</span> 검정</span>
+        <span><span class="who cash">캐셔·안내</span> 블루</span>
+        <span><span class="who srv">서버</span> 그린</span>
+        <span><span class="who run">버서·러너</span> 오렌지</span>
+        <span><span class="who back">BACK</span> 레드</span>
+      </div>
+    </div>
+
+    <!-- ══ PART 4 ══ -->
+    <div class="man-part">PART 4. 운영과 서비스</div>
+
+    <div class="man-sec" id="fp-day">
+      <h3>하루 운영 타임라인<span class="pg">p.13</span></h3>
+      <div class="man-lead">
+        <p>· <b>자석 이동과 구두 공유는 꼭 함께</b> 해 주세요.</p>
+        <p>· 보드만 바꾸고 공유하지 않으면 이중 응대나 응대 누락이 생길 수 있습니다.</p>
+        <p>· 전 직원은 출근 시 · 피크 전환 시 · 휴게 복귀 시 최소 3회 보드를 확인해 주세요.</p>
+      </div>
+      <div class="tbl-wrap"><table class="man">
+        <thead><tr><th>시점</th><th>보드 조치</th><th>담당</th></tr></thead>
+        <tbody>
+          <tr><td>오픈 60분 전</td><td>예약 · 웨이팅 현황을 확인해 필요 인원을 정하고 지각 · 병가 등 결원을 파악해 주세요. 도면 · 자석 · 마카 상태도 함께 점검해 주세요.</td><td>점장 · 캐셔</td></tr>
+          <tr><td>오픈 10분 전<br>(전체 미팅)</td><td>자석 배치를 확정하고 구역별 담당자를 호명해 주세요. 예약 · 품절 · 신규 메뉴 등 전달사항은 공란에 적어 주세요.</td><td>점장</td></tr>
+          <tr><td>오픈 ~ 런치 피크</td><td>혼잡한 구역으로 자석을 더 옮기고, 주문이 지연된 테이블이 있는 구역을 먼저 보강해 주세요.</td><td>매니저</td></tr>
+          <tr><td>브레이크 전환</td><td>휴게 인원의 자석을 하단 대기열로 옮기고, 그 구역의 대체 담당자를 지정해 바로 공유해 주세요.</td><td>매니저</td></tr>
+          <tr><td>디너 피크</td><td>예약이 몰린 구역을 기준으로 재배치해 주세요. 교육 대상 인력의 자석은 멘토 인접 구역에 놓아 주세요.</td><td>점장 · 매니저</td></tr>
+          <tr><td>마감</td><td>당일 메모를 지우고 익일 예약 · 전달사항을 적어 주세요.</td><td>마감 책임자</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="man-sec" id="fp-case">
+      <h3>상황별 대응 규칙<span class="pg">p.14</span></h3>
+      <div class="man-lead">
+        <p>· 판단 기준은 숫자로 정해 두었습니다. <b>기준에 닿으면 보고보다 조치를 먼저</b> 해 주세요.</p>
+        <p>· 모든 조치는 <b>자석 이동 → 구두 공유 → 보드 메모 기재</b> 순서로 마무리해 주세요.</p>
+        <p>· 조치 결과는 마감 미팅에서 구역 단위로 공유해 주세요.</p>
+      </div>
+      <div class="tbl-wrap"><table class="man">
+        <thead><tr><th>상황</th><th>판단 기준</th><th>조치 순서</th></tr></thead>
+        <tbody>
+          <tr><td>결원 발생<br>(지각 · 병가)</td><td>결원 구역의 테이블 4대 이상</td>
+              <td>인접 구역 서버가 흡수 → BACK 1명을 해당 구역 전담 지원으로 이동 → 점장 보고</td></tr>
+          <tr><td>단체 · 예약 집중</td><td>동시 입장 8인 이상 또는<br>한 구역 예약 3건 이상</td>
+              <td>해당 구역에 자석 2개 배치 → 캐셔가 입장 예정 시간 사전 공유 → 세팅 선제 완료</td></tr>
+          <tr><td>특정 구역 지연</td><td>주문 후 15분 이상 미제공 테이블 발생</td>
+              <td>매니저 자석을 해당 구역으로 이동해 직접 투입 → 고객 선제 안내 → 점장 즉시 보고</td></tr>
+          <tr><td>교육 대상 인력<br>단독 상황</td><td>멘토의 휴게 · 이석 발생 시</td>
+              <td>단독 구역 배정은 지양 → 대체 멘토 자석을 인접 구역에 부착 → 성명 호명으로 상호 확인</td></tr>
+          <tr><td>컴플레인 발생</td><td>고객 불만 접수 시</td>
+              <td>담당 자석 위치로 담당자 확인 → 점장이 3분 내 테이블 방문 → 마감 미팅에서 구역 단위 원인 공유</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="man-sec" id="fp-check">
+      <h3>보드 점검 항목 · 자주 생기는 실수<span class="pg">p.15</span></h3>
+      <div class="man-grid">
+        <div class="man-card"><b>일일 점검 항목</b>
+          <div style="padding:10px 14px">
+            <b style="font-size:12.6px;color:var(--brand)">▪ 오픈 60분 전</b>
+            <ul style="margin:3px 0 9px;padding-left:20px;font-size:12.7px">
+              <li>도면 훼손 · 번호 누락 여부 확인</li><li>자석 수량 대조 (최대 근무 인원 + 예비 2개)</li>
+              <li>마카 필기 상태 확인</li><li>전일 메모 삭제 여부 확인</li></ul>
+            <b style="font-size:12.6px;color:var(--brand)">▪ 오픈 10분 전</b>
+            <ul style="margin:3px 0 9px;padding-left:20px;font-size:12.7px">
+              <li>전 구역 담당자 지정 완료</li><li>미배치 인원 대기열 정렬</li>
+              <li>전달사항 기재 및 일자 병기</li><li>상주 인원 대비 오픈 구역 적정성 확인</li></ul>
+            <b style="font-size:12.6px;color:var(--brand)">▪ 피크 전환 시</b>
+            <ul style="margin:3px 0 9px;padding-left:20px;font-size:12.7px">
+              <li>예약 집중 구역 자석 보강</li><li>휴게 순번 및 대체 담당 표기</li>
+              <li>교육 대상 인력의 멘토 인접 배치 확인</li></ul>
+            <b style="font-size:12.6px;color:var(--brand)">▪ 마감</b>
+            <ul style="margin:3px 0 0;padding-left:20px;font-size:12.7px">
+              <li>당일 메모 삭제</li><li>익일 예약 · 전달사항 기재</li>
+              <li>자석 원위치 및 분실 · 파손 확인</li><li>익일 상주 인원 기준 오픈 구역 사전 표기</li></ul>
+          </div>
+        </div>
+        <div class="man-card"><b>자주 생기는 실수와 그 영향</b>
+          <div style="padding:11px 13px">
+            <div class="man-warn"><b>⚠ 자석 이동 후 구두 공유 누락</b>→ 같은 테이블에 이중 응대가 되거나 응대가 빠질 수 있습니다.</div>
+            <div class="man-warn"><b>⚠ 도면 번호와 POS 번호 불일치</b>→ 오배식으로 바로 이어집니다. 번호는 실사용 번호와 100% 맞춰 주세요.</div>
+            <div class="man-warn"><b>⚠ 미배치 자석의 보드 외 보관</b>→ 실시간 상주 인원을 알기 어렵습니다. 꼭 하단 대기열에 정렬해 주세요.</div>
+            <div class="man-warn"><b>⚠ 전일 메모 미삭제</b>→ 보드 정보의 신뢰가 떨어져 확인 습관이 무너집니다.</div>
+            <div class="man-warn"><b>⚠ 인원 미달 상태의 전 구역 오픈</b>→ 담당자가 없는 구역이 생깁니다. 인원이 아니라 구역을 줄여 주세요.</div>
+            <div class="man-warn" style="margin-bottom:0"><b>⚠ 교육 대상 인력의 단독 구역 배정</b>→ 컴플레인 1차 대응이 어렵습니다. 멘토 인접 구역에만 배치해 주세요.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="man-sec" id="fp-foh">
+      <h3>FOH 직급별 서비스 매뉴얼<span class="pg">p.16~21</span></h3>
+      <div class="man-lead"><p>· 보드 배치와 직급별 응대 기준을 1:1로 연결한 기준표입니다.</p></div>
+      <div class="tbl-wrap"><table class="man">
+        <thead><tr><th>직급</th><th>핵심 역할</th><th>서비스 기본 동선 (3-Step)</th></tr></thead>
+        <tbody>
+          <tr><td>점장</td><td>전체 배치 확정 · 구역 조정<br>컴플레인 최종 응대</td>
+              <td>오픈 미팅 진행 → 피크 시 혼잡 구역 실시간 재배치 → 불만 발생 시 3분 내 직접 테이블 방문</td></tr>
+          <tr><td>매니저</td><td>구역 서비스 품질 관리<br>신입 및 PT 지도</td>
+              <td>테이블 회전 · 코스 진행 속도 관리 → 서버 요청 즉시 지원 → 구역 청결 · 세팅 최종 확인</td></tr>
+          <tr><td>서버<br>(PT, 정직원)</td><td>주문 · 서빙<br>테이블 관리 전반</td>
+              <td>착석 3분 내 인사 · 메뉴 안내 → 메인 제공 2분 후 만족도 확인 → 빈 그릇 · 잔 상시 정리</td></tr>
+          <tr><td>캐셔 / 안내</td><td>예약 확인 · 웨이팅 관리<br>좌석 배정</td>
+              <td>입장 즉시 인사 · 예약자명 확인 → 대기 시 예상 시간 안내 → 담당 서버에게 인계 후 이동</td></tr>
+          <tr><td>BACK<br>(러너 · 티카)</td><td>세팅 · 리필 · 퇴식<br>서버 보조</td>
+              <td>물 · 반찬은 요청 전 선제 리필 → 퇴식 후 5분 내 재세팅 → 그 외 요청 사항은 담당 서버에 즉시 전달</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3 style="margin-top:20px">서비스 상세 매뉴얼 — 점장<span class="pg">p.17</span></h3>
+      <div class="tbl-wrap"><table class="man">
+        <thead><tr><th>응대 구간</th><th>고객 응대 기준</th><th>서비스 기본 동선 (3-Step)</th></tr></thead>
+        <tbody>
+          <tr><td>운영 총괄</td><td>전체 배치 확정 · 구역 조정<br>컴플레인 최종 응대</td><td>오픈 미팅 진행 → 예약 / 인력 / 피크 시간 공유 → 책임자 · 보고 기준 확정</td></tr>
+          <tr><td>입장 · 대기</td><td>혼잡 시 입구 상황 확인 및 좌석 조정</td><td>대기 고객 직접 인사 → 예상 대기시간 안내 → 필요 시 좌석 / 구역 재조정</td></tr>
+          <tr><td>식사 중 케어</td><td>홀 순회하며 불편 신호 확인<br>불만 발생 시 직접 방문</td><td>불만 발생 3분 내 테이블 방문 → 사과 / 해결안 제시 → 조치 완료 확인</td></tr>
+          <tr><td>피크 운영</td><td>혼잡 구역 실시간 재배치<br>서버 요청 즉시 지원</td><td>병목 구역 파악 → 인력 재배치 → 지연 테이블 우선 확인</td></tr>
+          <tr><td>마감 · 피드백</td><td>VOC · 칭찬 · 불만 체크 및<br>다음 근무자 인수인계</td><td>원인 / 조치 공유 → 재발 방지 포인트 정리 → 다음 근무조 전달</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3 style="margin-top:20px">서비스 상세 매뉴얼 — 매니저<span class="pg">p.18</span></h3>
+      <div class="tbl-wrap"><table class="man">
+        <thead><tr><th>응대 구간</th><th>고객 응대 기준</th><th>서비스 기본 동선 (3-Step)</th></tr></thead>
+        <tbody>
+          <tr><td>구역 품질 관리</td><td>구역 서비스 품질 관리<br>신입 및 PT 지도</td><td>테이블 상태 확인 → 회전 / 세팅 속도 관리 → 구역 청결 최종 확인</td></tr>
+          <tr><td>예약 · 입장 지원</td><td>캐셔 / 안내와 예약 · 웨이팅 확인<br>자리 배정 오류 방지</td><td>예약자명 확인 → 좌석 배정 공유 → 담당 서버에게 인계</td></tr>
+          <tr><td>주문 · 서빙 지원</td><td>서버가 바쁜 테이블 요청 대행<br>코스 · 구이 · 세트 진행 속도 확인</td><td>고객 요청 수신 → 즉시 지원 → 지연 예상 시 먼저 안내</td></tr>
+          <tr><td>불편 1차 대응</td><td>고객 톤에 맞춰 사과 · 사실 확인<br>즉시 가능한 조치 실행</td><td>고객 말 끊지 않기 → 사과 / 해결안 제시 → 점장 보고</td></tr>
+          <tr><td>마감 · 교육</td><td>신입 / PT 서비스 멘트 · 세팅<br>실수 사례 피드백</td><td>마감 후 사례 공유 → 개선 행동 1개 지정 → 다음 근무 전 재확인</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3 style="margin-top:20px">서비스 상세 매뉴얼 — 서버 (PT · 정직원)<span class="pg">p.19</span></h3>
+      <div class="tbl-wrap"><table class="man">
+        <thead><tr><th>응대 구간</th><th>고객 응대 기준</th><th>서비스 기본 동선 (3-Step)</th></tr></thead>
+        <tbody>
+          <tr><td>착석 인사</td><td>주문 · 서빙 · 테이블 관리 전반</td><td>착석 3분 내 인사 → 물 / 기본 제공 → 메뉴 · 추천 · 품절 안내</td></tr>
+          <tr><td>주문 확인</td><td>주문 복창 · 알레르기 / 맵기 / 굽기 / 취식 속도 확인</td><td>주문 수신 → 고객 앞 복창 → 주방 전달 전 특이사항 재확인</td></tr>
+          <tr><td>식사 중 관찰</td><td>빈 그릇 · 잔 · 냅킨 확인 및 선제 응대</td><td>메인 제공 2분 후 만족도 확인 → 추가 필요 확인 → 상시 정리</td></tr>
+          <tr><td>불편 발생</td><td>변명보다 먼저 사과<br>매니저 / 점장 호출</td><td>즉시 사과 → 상급자 연결 → 조치 후 추가 불편 여부 확인</td></tr>
+          <tr><td>퇴점 마무리</td><td>빈 그릇 정리 · 계산 / 포장 요청 전달<br>감사 인사</td><td>퇴점 인사 → 계산 / 포장 확인 → 테이블 즉시 리셋</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3 style="margin-top:20px">서비스 상세 매뉴얼 — 캐셔 / 안내<span class="pg">p.20</span></h3>
+      <div class="tbl-wrap"><table class="man">
+        <thead><tr><th>응대 구간</th><th>고객 응대 기준</th><th>서비스 기본 동선 (3-Step)</th></tr></thead>
+        <tbody>
+          <tr><td>첫인상 관리</td><td>입장 즉시 인사 · 예약자명 및 인원 확인</td><td>눈맞춤 인사 → 예약 / 인원 확인 → 대기 · 좌석 상황 안내</td></tr>
+          <tr><td>예약 · 웨이팅</td><td>예약 변경 · 노쇼 · 대기 순서 관리<br>동명이인 확인</td><td>예약자명 확인 → 예상 대기시간 안내 → 변동 시 즉시 공유</td></tr>
+          <tr><td>좌석 안내</td><td>고객 요청사항 확인 후<br>담당 서버에게 인계</td><td>좌석 안내 → 유아의자 / 창가 / 룸 등 요청 전달 → 서버 인계 후 이동</td></tr>
+          <tr><td>계산 응대</td><td>영수증 · 할인 · 쿠폰 확인<br>결제 대기 줄 관리</td><td>결제 요청 확인 → 혜택 / 영수증 확인 → 오류 시 침착하게 재확인</td></tr>
+          <tr><td>클레임 연결</td><td>불만 고객을 세워 두지 않고<br>바로 상급자 연결</td><td>즉시 사과 → 매니저 호출 → 처리 완료 후 감사 인사</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3 style="margin-top:20px">서비스 상세 매뉴얼 — BACK (러너 · 티카)<span class="pg">p.21</span></h3>
+      <div class="tbl-wrap"><table class="man">
+        <thead><tr><th>응대 구간</th><th>고객 응대 기준</th><th>서비스 기본 동선 (3-Step)</th></tr></thead>
+        <tbody>
+          <tr><td>세팅 준비</td><td>물 · 반찬 · 리필 · 퇴식 · 서버 보조</td><td>피크 전 물 / 반찬 / 리필품 확인 → 부족품 보충 → 위치 공유</td></tr>
+          <tr><td>요청 전달</td><td>고객 직접 요청 수신 시<br>담당 서버에게 즉시 전달</td><td>“확인하겠습니다” 응답 → 담당 서버 전달 → 처리 여부 확인</td></tr>
+          <tr><td>제공 지원</td><td>음식 / 찬 / 음료 제공 전<br>테이블 번호 확인</td><td>테이블 번호 확인 → 제공 멘트 → 필요한 추가 요청 확인</td></tr>
+          <tr><td>퇴식 · 리셋</td><td>퇴식 후 5분 내 재세팅<br>식기 / 바닥 / 의자 상태 확인</td><td>퇴식 → 테이블 / 의자 정돈 → 다음 고객 입장 가능 상태 확인</td></tr>
+          <tr><td>돌발 지원</td><td>그릇 파손 · 오염 · 추가 요청 발생 시<br>즉시 공유</td><td>상황 확인 → 매니저 / 서버 전달 → 고객 불편 최소화 조치</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="man-lead" style="margin-top:16px">
+      <p>출처 : 교육팀 「플로어플랜_운영매뉴얼_완성본.pptx」 (전 21p) · 표기 규칙과 배치 기준 개정은 본부 승인 후 반영됩니다.</p>
+    </div>
+  </section>
+
+  <!-- 월간 회의 보고 (대표 보고용 1장 요약) -->
+  <section class="view active" id="vmeet">
+    <div class="mt">
+      <div class="mt-hd">
+        <span class="rule"><i></i><i></i><i></i></span>
+        <h2>월간 회의 보고</h2>
+        <select id="mt-month"></select>
+        <span class="rt">리뷰 · SL&amp;C 고객의 소리 종합</span>
+      </div>
+
+      <div class="mt-band b1">
+        <div class="mt-bt"><span class="no">01</span><span class="ti">월간 요약</span>
+          <span class="bsub" id="mt-sub"></span>
+          <button class="mt-more sp" data-mt="kpi">지표 상세</button></div>
+        <div class="mt-kpis" id="mt-kpis"></div>
+      </div>
+
+      <div class="mt-band b2">
+        <div class="mt-bt"><span class="no">02</span><span class="ti">불만 매장 TOP3</span>
+          <span class="bsub" id="mt-top3-b"></span>
+          <button class="mt-more sp" data-mt="top3">상세</button></div>
+        <div class="mt-rank" id="mt-rank"></div>
+      </div>
+
+      <div class="mt-band b3">
+        <div class="mt-bt"><span class="no">03</span><span class="ti">개선 과제</span>
+          <span class="bsub">TOP3 매장 · 원인 키워드와 조치</span></div>
+        <div class="mt-row r4" id="mt-stores"></div>
+      </div>
+    </div>
+    <div class="sc-modal" id="mt-modal">
+      <div class="sc-mbox">
+        <div class="sc-mhd"><h3 id="mt-mtitle"></h3><button class="x" id="mt-mclose">✕</button></div>
+        <div class="sc-mbd" id="mt-mbody"></div>
+      </div>
+    </div>
+  </section>
+
   <!-- VIEW 1 -->
-  <section class="view active" id="v1">
+  <section class="view" id="v1">
     <div class="ctrl" id="v1-ctrl">
       <span>기간</span>
       <select id="v1-from"></select> ~ <select id="v1-to"></select>
@@ -377,11 +1225,14 @@ window.__BUILD__='__BUILD_TOKEN__';
     </div>
     <div class="hero" id="v1-hero"></div>
     <div class="grid2">
-      <div class="panel"><h3>전체 불만율 그래프</h3><div class="chart" id="c-trend"></div></div>
-      <div class="panel"><h3>브랜드별 월 불만율 그래프 <span class="note">브랜드별</span></h3><div class="chart" id="c-trendbrand"></div></div>
+      <div class="panel"><h3><span>전체 불만율 그래프</span>
+        <span class="seg seg-sm" id="trend-mode"><button data-m="month" class="on">월별</button><button data-m="range">기간별</button></span></h3>
+        <div class="chart" id="c-trend"></div></div>
+      <div class="panel"><h3><span>브랜드별 불만율 <span class="note" id="v1-mlabel"></span></span>
+        <span class="seg seg-sm" id="trendbrand-mode"><button data-m="month" class="on">월별</button><button data-m="range">기간별</button></span></h3>
+        <div class="chart" id="c-trendbrand"></div></div>
     </div>
     <p class="ctrl-note" style="margin:-6px 2px 14px;line-height:1.5">※ <b>2025년</b>은 팀 월간 분석 워크북의 <b>브랜드·월 집계</b> 기준(매장 단위·리뷰 원문 없음 → 매장 랭킹·드릴다운은 2026년~), <b>2026년</b>은 리뷰 원문 집계 기준. 분류 방식 차이로 2025년 불만율이 다소 높게 표기될 수 있습니다.</p>
-    <div class="panel" style="margin-bottom:14px"><h3>브랜드별 불만율 <span class="note" id="v1-mlabel"></span></h3><div class="chart" id="c-brandrate"></div></div>
     <div class="panel" style="margin-bottom:14px"><h3><span>매장 리뷰 랭킹</span>
         <span style="display:flex;align-items:center;gap:7px">
           <span class="seg" id="store-sort">
@@ -448,6 +1299,37 @@ window.__BUILD__='__BUILD_TOKEN__';
       <span class="ctrl-note" id="v5-count"></span>
     </div>
     <div id="v5-result"></div>
+  </section>
+
+  <!-- 일별 리서치 (전일 유입 리뷰를 날짜별로 확인) -->
+  <section class="view" id="vdaily">
+    <div class="vhead"><h2>일별 리서치 <span class="note" id="vd-src"></span></h2></div>
+    <div class="ctrl">
+      <div class="seg seg-sm" id="vd-mode">
+        <button data-m="d" class="on">작성일 기준</button><button data-m="seen">수집일 기준</button>
+      </div>
+      <span>기준일</span><select id="vd-day"></select>
+      <div class="seg seg-sm" id="vd-range">
+        <button data-r="1" class="on">해당일</button><button data-r="7">최근 7일</button><button data-r="30">최근 30일</button>
+      </div>
+      <span>브랜드</span><select id="vd-brand"></select>
+      <span class="ctrl-note">원문 필터</span>
+      <div class="seg seg-sm" id="vd-sent">
+        <button data-s="" class="on">전체</button><button data-s="불만">불만</button><button data-s="칭찬">칭찬</button><button data-s="중립">중립</button>
+      </div>
+      <input id="vd-q" placeholder="매장·내용 검색" style="min-width:200px">
+      <button id="vd-csv" class="ghost" style="margin-left:auto">⬇ CSV 다운로드</button>
+    </div>
+    <div class="kpis" id="vd-kpi"></div>
+    <div class="panel" style="margin-bottom:14px">
+      <h3>일별 리뷰 유입 추이 <span class="note" id="vd-chartsub"></span></h3>
+      <div id="c-vd" style="height:270px"></div>
+    </div>
+    <div class="grid2">
+      <div class="panel"><h3>브랜드별 <span class="note" id="vd-bsub"></span></h3><div id="vd-brandbox"></div></div>
+      <div class="panel"><h3>매장 TOP <span class="note">건수 많은 순 · 원문 보관분 기준</span></h3><div id="vd-storebox"></div></div>
+    </div>
+    <div class="panel"><h3>리뷰 원문 <span class="note" id="vd-listsub"></span></h3><div id="vd-list"></div></div>
   </section>
 
   <!-- VIEW 5: CS 체크리스트 점검현황 (ECK 연동) -->
@@ -520,6 +1402,10 @@ const R = D.reviews, V = D.voc;
 const BRAND_COLOR = {"Chai":"#14559b","호우섬":"#e0772b","서리재":"#2f9e6f","이타마에":"#8a5cd1","정육점":"#c0405a"};
 const SENT_COLOR = {"칭찬":"#2f9e6f","중립":"#9aa3b2","불만":"#d64545"};
 const charts = {};
+// 각 뷰의 '기간' 조회 범위 — AI 인사이트 블록이 이 범위의 달을 순서대로 보여준다
+const AI_RANGE = {};
+// AI 인사이트 정의는 파일 아래쪽에 있다 — 그 전에 호출되면 무시하고, 준비된 뒤 한 번 그린다
+var aiReady = false;
 function fmt(n){return (n==null)?"–":n.toLocaleString('ko-KR');}
 
 // header
@@ -560,7 +1446,68 @@ function renderStoreTable(){
     const a=b.querySelector('.arr'); if(a) a.textContent = on ? (v1dir==='desc'?'▼':'▲') : '▾';
   });
 }
+/* 추세 차트 조회 모드
+   month = 전 기간 월별 추이(선택 구간 음영) · range = 상단에서 고른 기간만 집계 */
+let trendMode='month', trendBrandMode='month', v1From=null, v1To=null;
+function segOn(id,mode){
+  document.querySelectorAll('#'+id+' button').forEach(b=>b.classList.toggle('on', b.dataset.m===mode));
+}
+function rangeMonths(){
+  const ms=R.months.filter(m=>m>=v1From&&m<=v1To);
+  return ms.length?ms:[v1From];
+}
+function drawTrend(){
+  if(!charts.trend||!v1From) return;
+  segOn('trend-mode',trendMode);
+  const isR = trendMode==='range', ms = isR?rangeMonths():R.months;
+  const a = aggRange(v1From,v1To), avg = rate(a.tot['불만'],a.tot.total);
+  charts.trend.setOption({
+    grid:{left:42,right:isR?92:18,top:isR?32:24,bottom:30},
+    tooltip:{trigger:'axis'},
+    xAxis:{type:'category',data:ms}, yAxis:{type:'value',axisLabel:{formatter:'{value}%'}},
+    series:[{name:'전체 불만율',type:isR?'bar':'line',smooth:true,barWidth:'46%',barMaxWidth:64,
+      data:ms.map(m=>{const t=R.by_month_total[m];return t?t['불만율']:0;}),
+      itemStyle:{color:'#d64545'}, areaStyle:isR?undefined:{color:'rgba(214,69,69,.10)'},
+      label:{show:true,position:isR?'top':'top',formatter:'{c}%',fontSize:11},
+      markArea: (!isR&&v1From&&v1To)?{silent:true,itemStyle:{color:'rgba(20,85,155,.08)'},
+        data:[[{xAxis:v1From},{xAxis:v1To}]]}:{data:[]},
+      markLine: isR?{silent:true,symbol:'none',lineStyle:{color:'#14559b',type:'dashed',width:1.5},
+        label:{formatter:'기간 평균\n'+avg+'%',fontSize:11,lineHeight:14,position:'end',color:'#14559b',align:'left',padding:[0,0,0,4]},
+        data:[{yAxis:avg}]}:{data:[]}}]
+  }, true);
+}
+function drawTrendBrand(){
+  if(!charts.trendbrand||!v1From) return;
+  segOn('trendbrand-mode',trendBrandMode);
+  if(trendBrandMode==='range'){
+    // 기간별 — 선택 기간을 브랜드별로 합산한 불만율(+불만 건수)
+    const br=aggRange(v1From,v1To).br;
+    charts.trendbrand.setOption({
+      grid:{left:42,right:18,top:28,bottom:30},
+      tooltip:{trigger:'item',formatter:p=>`${p.name}<br/>불만율 <b>${p.value}%</b><br/>불만 ${p.data.bad}건 / 총 ${fmt(p.data.tot)}건`},
+      legend:{show:false},
+      xAxis:{type:'category',data:R.brands}, yAxis:{type:'value',axisLabel:{formatter:'{value}%'}},
+      series:[{type:'bar',barWidth:'52%',
+        data:R.brands.map(b=>({name:b,value:rate(br[b]['불만'],br[b].total),bad:br[b]['불만'],tot:br[b].total,
+          itemStyle:{color:BRAND_COLOR[b]}})),
+        label:{show:true,position:'top',fontSize:11,lineHeight:14,formatter:p=>`${p.value}%\n${p.data.bad}건`}}]
+    }, true);
+    return;
+  }
+  // 월별 — 브랜드별 월 추이
+  const ms=R.months, val=(m,b)=>{const o=(R.by_month_brand[m]||{})[b];return o?o['불만율']:0;};
+  charts.trendbrand.setOption({
+    grid:{left:42,right:14,top:34,bottom:28},
+    tooltip:{trigger:'axis',valueFormatter:v=>v+'%'},
+    legend:{top:0,type:'scroll',itemWidth:12,itemHeight:8,textStyle:{fontSize:11}},
+    xAxis:{type:'category',data:ms}, yAxis:{type:'value',axisLabel:{formatter:'{value}%'}},
+    series:R.brands.map(b=>({name:b,type:'line',smooth:true,symbolSize:5,
+      data:ms.map(m=>val(m,b)),
+      itemStyle:{color:BRAND_COLOR[b]},lineStyle:{color:BRAND_COLOR[b]}}))
+  }, true);
+}
 function renderV1(fromM,toM){
+  AI_RANGE.view1=[fromM,toM]; renderAIBlocks();
   const single=fromM===toM, idx=R.months.indexOf(fromM);
   const prevM = single&&idx>0 ? R.months[idx-1] : null;
   const brand=(document.getElementById('v1-brand')||{}).value||'';
@@ -595,40 +1542,23 @@ function renderV1(fromM,toM){
     ${tSrc}${tTop3}${tKw}`;
   document.getElementById('v1-range').textContent = '';
   document.getElementById('v1-mlabel').textContent = single?fromM:`${fromM}~${toM}`;
-  // 브랜드별 불만율 (+ 불만 건수)
-  charts.brandrate.setOption({
-    grid:{left:42,right:18,top:28,bottom:30},
-    tooltip:{trigger:'item',formatter:p=>`${p.name}<br/>불만율 <b>${p.value}%</b><br/>불만 ${p.data.bad}건 / 총 ${p.data.tot}건`},
-    xAxis:{type:'category',data:R.brands}, yAxis:{type:'value',axisLabel:{formatter:'{value}%'}},
-    series:[{type:'bar',barWidth:'52%',
-      data:R.brands.map(b=>({value:rate(a.br[b]['불만'],a.br[b].total),bad:a.br[b]['불만'],tot:a.br[b].total,itemStyle:{color:BRAND_COLOR[b]}})),
-      label:{show:true,position:'top',fontSize:11,lineHeight:14,formatter:p=>`${p.value}%\n${p.data.bad}건`}}]
-  });
-  // 추세 차트: 선택 구간 강조
-  charts.trend.setOption({series:[{markArea:{silent:true,itemStyle:{color:'rgba(20,85,155,.08)'},
-    data:[[{xAxis:fromM},{xAxis:toM}]]}}]});
+  // 추세 차트: 월별(전체 추이·선택 구간 음영) / 기간별(선택 구간만 집계)
+  v1From=fromM; v1To=toM;
+  drawTrend(); drawTrendBrand();
   // 매장 랭킹 (선택 기간) — 정렬 버튼으로 재정렬
   v1stores = stores;
   renderStoreTable();
 }
 function v1charts(){
   charts.trend = echarts.init(document.getElementById('c-trend'));
-  charts.trend.setOption({
-    grid:{left:42,right:18,top:24,bottom:30}, tooltip:{trigger:'axis'},
-    xAxis:{type:'category',data:R.months}, yAxis:{type:'value',axisLabel:{formatter:'{value}%'}},
-    series:[{name:'전체 불만율',type:'line',smooth:true,data:R.months.map(m=>R.by_month_total[m]['불만율']),
-      itemStyle:{color:'#d64545'},areaStyle:{color:'rgba(214,69,69,.10)'},label:{show:true,formatter:'{c}%',fontSize:11}}]
-  });
   charts.trendbrand = echarts.init(document.getElementById('c-trendbrand'));
-  charts.trendbrand.setOption({
-    grid:{left:42,right:14,top:34,bottom:28}, tooltip:{trigger:'axis',valueFormatter:v=>v+'%'},
-    legend:{top:0,type:'scroll',itemWidth:12,itemHeight:8,textStyle:{fontSize:11}},
-    xAxis:{type:'category',data:R.months}, yAxis:{type:'value',axisLabel:{formatter:'{value}%'}},
-    series:R.brands.map(b=>({name:b,type:'line',smooth:true,symbolSize:5,
-      data:R.months.map(m=>R.by_month_brand[m][b]?R.by_month_brand[m][b]['불만율']:0),
-      itemStyle:{color:BRAND_COLOR[b]},lineStyle:{color:BRAND_COLOR[b]}}))
-  });
-  charts.brandrate = echarts.init(document.getElementById('c-brandrate'));
+  // 월별/기간별 전환 버튼
+  document.querySelectorAll('#trend-mode button').forEach(b=>b.addEventListener('click',()=>{
+    trendMode=b.dataset.m; drawTrend();
+  }));
+  document.querySelectorAll('#trendbrand-mode button').forEach(b=>b.addEventListener('click',()=>{
+    trendBrandMode=b.dataset.m; drawTrendBrand();
+  }));
   document.querySelectorAll('#store-sort button').forEach(b=>b.addEventListener('click',()=>{
     if(v1sort===b.dataset.k){ v1dir = v1dir==='desc'?'asc':'desc'; }
     else { v1sort=b.dataset.k; v1dir='desc'; }
@@ -742,6 +1672,7 @@ function aggStoreRange(fromM,toM){
   return out;
 }
 function renderTop3(fromM,toM){
+  AI_RANGE.view2=[fromM,toM]; renderAIBlocks();
   const single = fromM===toM;
   const ranked = aggStoreRange(fromM,toM).filter(s=>s.total>=10).sort((a,b)=>b['불만']-a['불만'] || b['불만율']-a['불만율'] || (a.store<b.store?-1:1)).slice(0,3);
   document.getElementById('v2-range').textContent = single?`${fromM} 단월 기준`:`${fromM} ~ ${toM} 합산 기준`;
@@ -922,6 +1853,7 @@ function v3Agg(fromM,toM,brand){
     inqC, critical:recs.filter(r=>r.critical)};
 }
 function renderV3(fromM,toM){
+  AI_RANGE.view3=[fromM,toM]; renderAIBlocks();
   if(!V) return;
   const single=fromM===toM;
   const brand=(document.getElementById('v3-brand')||{}).value||'';
@@ -1011,26 +1943,70 @@ function v3charts(){
       markArea:ci===0?{silent:true,itemStyle:{color:'rgba(20,85,155,0.08)'},data:[[{xAxis:fM},{xAxis:tM}]]}:undefined}))});
 }
 
-/* ---------- AI insight blocks (월별 조회) ---------- */
+/* ---------- AI insight blocks — 각 뷰의 '기간' 조회 범위에 든 달을 오름차순으로 표시 ---------- */
 const AI_INS = AI.insights || {};
 // 월별 구조(키가 YYYY-MM) 감지 — 아니면 과거 flat 구조로 취급
 const AI_INS_MONTHS = Object.keys(AI_INS).filter(k=>/^\d{4}-\d{2}$/.test(k)).sort();
-function insightsFor(m){ return AI_INS_MONTHS.length ? (AI_INS[m]||{}) : AI_INS; }
-let aiMonth = AI_INS_MONTHS.length ? AI_INS_MONTHS[AI_INS_MONTHS.length-1] : (AI.month||'');
 const AI_BLOCKS=[['ai-v1','경영 모니터링 제안','view1'],['ai-v2','시사점 분석','view2'],['ai-v3','리스크 대응 제안','view3']];
-function renderAIBlocks(){
-  const src=insightsFor(aiMonth);
-  const sel = AI_INS_MONTHS.length
-    ? `<select class="ai-mon" style="margin-left:8px;font-size:12px;padding:2px 6px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink)">`
-      +AI_INS_MONTHS.map(m=>`<option value="${m}"${m===aiMonth?' selected':''}>${m}</option>`).join('')+`</select>`
+// ── 인사이트 항목 파싱: 문장 앞의 [의미]·[개선]·[발전]·[성과]·[!심각] 태그를 분류 ──
+const AI_DEPTS=['영업팀','QC팀','R&D팀','서비스교육팀'];
+function aiSplit(x){
+  const m=/^\[([^\]]{1,8})\]\s*/.exec(x);
+  if(!m) return {kind:'diag', text:x, label:''};
+  const raw=m[1], text=x.slice(m[0].length);
+  const kind = raw==='개선'?'act' : raw==='발전'?'next' : raw==='성과'?'win'
+             : raw.charAt(0)==='!'?'risk' : 'diag';
+  return {kind:kind, text:text, label:raw.replace('!','')};
+}
+function aiMonthsIn(key){
+  const r=AI_RANGE[key];
+  if(!AI_INS_MONTHS.length) return [];
+  if(!r) return [AI_INS_MONTHS[AI_INS_MONTHS.length-1]];
+  const a=r[0], b=r[1], ms=AI_INS_MONTHS.filter(m=>m>=a&&m<=b);
+  // 조회 기간에 정리된 달이 없으면 기간 종료월 이전의 가장 최근 달을 보여준다
+  if(ms.length) return ms;
+  const before=AI_INS_MONTHS.filter(m=>m<=b);
+  return before.length?[before[before.length-1]]:[];
+}
+function aiMonthBlock(m,key,ms){
+  const src=AI_INS[m]||{}, arr=src[key]||[];
+  if(!arr.length) return '';
+  const g={diag:[],act:[],next:[],risk:[],win:[]};
+  arr.map(aiSplit).forEach(o=>g[o.kind].push(o));
+  const depts=AI_DEPTS.filter(d=>arr.some(x=>x.indexOf(d)>=0));
+  const col=(cls,name,items)=>items.length
+    ? '<div class="ai-col '+cls+'"><h4><i></i>'+name+'<b>'+items.length+'</b></h4><ul>'
+      +items.map(o=>'<li>'+o.text+'</li>').join('')+'</ul></div>'
     : '';
+  const cols=col('diag','진단',g.diag)+col('act','개선방안',g.act)+col('next','발전',g.next);
+  const banners=g.win.map(o=>'<div class="ai-risk ai-win"><span class="rl">성과</span>'+o.text+'</div>').join('')
+    +g.risk.map(o=>'<div class="ai-risk"><span class="rl">'+(o.label||'리스크')+'</span>'+o.text+'</div>').join('');
+  return '<div class="ai-mo"><div class="ai-mo-top"><span class="ai-mo-h">'+m+'</span>'
+    +(depts.length?'<span class="ai-dept">'+depts.map(d=>'<span>'+d+'</span>').join('')+'</span>':'')
+    +'</div>'+banners
+    +(cols?'<div class="ai-cols">'+cols+'</div>':'')+'</div>';
+}
+function renderAIBlocks(){
+  if(!aiReady) return;
   AI_BLOCKS.forEach(([id,title,key])=>{
     const el=document.getElementById(id); if(!el) return;
-    const arr=(src&&src[key])||[];
-    el.innerHTML=`<h3><span class="bulb">AI 인사이트</span> ${title}${sel}</h3><ul>${arr.map(x=>`<li>${x}</li>`).join('')||'<li>—</li>'}</ul>`;
+    if(!AI_INS_MONTHS.length){   // 과거 flat 구조
+      const arr=(AI_INS&&AI_INS[key])||[];
+      el.innerHTML='<h3><span class="bulb">AI 인사이트</span> '+title+'</h3><ul>'
+        +(arr.map(x=>'<li>'+x+'</li>').join('')||'<li>—</li>')+'</ul>';
+      return;
+    }
+    const ms=aiMonthsIn(key), r=AI_RANGE[key];
+    const rng = r ? (r[0]===r[1]?r[0]:(r[0]+' ~ '+r[1])) : '';
+    const body = ms.map(m=>aiMonthBlock(m,key,ms)).join('')
+      || '<div class="ai-mo"><ul><li>해당 기간에 정리된 인사이트가 없습니다.</li></ul></div>';
+    el.innerHTML='<h3><span class="bulb">AI 인사이트</span> '+title
+      +(rng?'<span class="ai-rng">'+rng+'</span>':'')
+      +(ms.length>1?'<span class="ai-rng">월별 '+ms.length+'개</span>':'')
+      +'</h3>'+body;
   });
-  document.querySelectorAll('.ai-mon').forEach(s=>s.addEventListener('change',e=>{aiMonth=e.target.value;renderAIBlocks();}));
 }
+aiReady = true;
 renderAIBlocks();
 
 /* ---------- VIEW 5/6: ECK 연동 (CS 체크리스트 / QSCS 교육일지) — 월별·기간 조회 ---------- */
@@ -1843,21 +2819,686 @@ function kpiExcel(){
   renderKPI(def);
 })();
 
+/* ---------- 서비스 매뉴얼 › 브랜드별 MOT 멘트 (manuals_mot.js) ---------- */
+(function(){
+  const M = window.MOT;
+  const body = document.getElementById('mot-body');
+  if(!body) return;
+  if(!M || !M.brands || !M.brands.length){
+    body.innerHTML = '<div class="mot-empty">MOT 멘트 데이터가 없습니다 — <code>python mot_build.py</code> 를 먼저 실행하세요.</div>';
+    return;
+  }
+
+  const esc = s => String(s==null?'':s).replace(/[&<>"']/g,
+    c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  document.getElementById('mot-lead').innerHTML =
+      `<p>· 고객 접점(MOT) 단계별로 <b>실제로 할 말</b>과 <b>하지 말아야 할 행동</b>을 정리한 응대 화법 표준입니다.</p>`
+    + `<p>· 출처 : ${esc(M.source)} · ${esc(M.generated)} 기준 — 화법 개정은 본부 승인 후 반영됩니다.</p>`
+    + `<p>· 원본에서 금지 행동이 여러 단계를 한 칸에 묶어 둔 곳이 있어, <b>등장 순서 그대로</b> 배치했습니다. `
+    + `단계 경계가 애매한 항목은 원본을 함께 확인해 주세요.</p>`;
+
+  /* 탭 = 브랜드 7 + 중점 10계명 3 */
+  const TABS = M.brands.map((b,i) => ({key:'b'+i, name:b.name, kind:'brand', data:b}))
+    .concat((M.creeds||[]).map((c,i) => ({key:'c'+i, name:'중점 10계명 · '+c.name, kind:'creed', data:c})));
+
+  const tabsEl = document.getElementById('mot-tabs');
+  tabsEl.innerHTML = TABS.map((t,i) =>
+    `<button class="mot-tab${i?'':' on'}" data-k="${t.key}">${esc(t.name)}</button>`).join('');
+
+  function renderBrand(b){
+    let h = '';
+    if(b.slogans && b.slogans.length)
+      h += `<div class="mot-slogan">${b.slogans.map(s=>`<span>${esc(s)}</span>`).join('')}</div>`;
+    b.stages.forEach((s,i)=>{
+      const head = s.label || (s.tags[0] || '단계 ' + (i+1));
+      h += `<div class="mot-step" data-k="${esc([head, s.tags.join(' '), s.say.join(' '), s.dont.join(' ')].join(' ').toLowerCase())}">`
+         + `<h3><span class="no">${i+1}</span>${esc(head)}</h3><div class="mot-in">`
+         + (s.tags.length ? s.tags.map(t=>`<span class="mot-tag">${esc(t)}</span>`).join('') : '')
+         + (s.say.length ? `<div class="mot-cap">이렇게 말합니다</div><ul class="mot-say">`
+              + s.say.map(x=>`<li>${esc(x)}</li>`).join('') + `</ul>` : '')
+         + (s.dont.length ? `<div class="mot-cap no">이런 행동은 금지</div><ul class="mot-dont">`
+              + s.dont.map(x=>`<li>${esc(x)}</li>`).join('') + `</ul>` : '')
+         + `</div></div>`;
+    });
+    return h;
+  }
+
+  function renderCreed(c){
+    let h = c.items.map(it =>
+        `<div class="mot-step" data-k="${esc([it.title, it.lines.join(' ')].join(' ').toLowerCase())}">`
+      + `<h3><span class="no">${it.no}</span>${esc(it.title)}</h3><div class="mot-in">`
+      + `<ul class="mot-say">${it.lines.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`
+      + `</div></div>`).join('');
+    if(c.notes && c.notes.length)
+      h += `<div class="man-lead">${c.notes.map(n=>`<p>· ${esc(n)}</p>`).join('')}</div>`;
+    return h;
+  }
+
+  const find = document.getElementById('mot-find'), hit = document.getElementById('mot-hit');
+
+  function show(key){
+    const t = TABS.find(x=>x.key===key) || TABS[0];
+    body.innerHTML = t.kind === 'brand' ? renderBrand(t.data) : renderCreed(t.data);
+    tabsEl.querySelectorAll('.mot-tab').forEach(b=>b.classList.toggle('on', b.dataset.k===t.key));
+    if(find.value) filter();
+  }
+
+  function filter(){
+    const q = find.value.trim().toLowerCase();
+    let n = 0;
+    body.querySelectorAll('.mot-step').forEach(s=>{
+      const on = !q || s.dataset.k.includes(q);
+      s.style.display = on ? '' : 'none';
+      if(on) n++;
+    });
+    hit.textContent = q ? `${n}개 단계` : '';
+  }
+
+  tabsEl.addEventListener('click', e=>{
+    const b = e.target.closest('.mot-tab');
+    if(b) show(b.dataset.k);
+  });
+  find.addEventListener('input', filter);
+  document.getElementById('mot-print').addEventListener('click', ()=>window.print());
+  show(TABS[0].key);
+})();
+
+/* ---------- 서비스 매뉴얼 › 문서형 뷰 3종 (manuals_svc.js) ----------
+   사이드바 탭과 본문 섹션을 문서 수만큼 만들고, 블록 종류별로 렌더한다. */
+(function(){
+  const S = window.SVC_MANUALS;
+  if(!S || !Array.isArray(S.docs) || !S.docs.length) return;
+  const nav  = document.querySelector('.snav');
+  const wrap = document.querySelector('.main .wrap');
+  const anchor = document.querySelector('.tab[data-v="vmot"]');
+  if(!nav || !wrap) return;
+
+  const esc = s => String(s==null?'':s).replace(/[&<>"']/g,
+    c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  /* lead 문구에는 <b> 강조를 허용해야 하므로 이스케이프하지 않는다(데이터는 우리가 작성) */
+  const raw = s => String(s==null?'':s);
+
+  const BLOCK = {
+    table: b => `<div class="svc-tw"><table><thead><tr>`
+      + b.head.map(h=>`<th>${esc(h)}</th>`).join('') + `</tr></thead><tbody>`
+      + b.rows.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')
+      + `</tbody></table></div>`,
+    list: b => `<ul>${b.items.map(i=>`<li>${esc(i)}</li>`).join('')}</ul>`,
+    steps: b => b.items.map(i =>
+      `<div class="svc-step"><div class="n">${esc(i.no)}</div><div>`
+      + `<div class="t">${esc(i.title)}</div>`
+      + `<ul>${i.lines.map(l=>`<li>${esc(l)}</li>`).join('')}</ul></div></div>`).join(''),
+    say: b => b.items.map(i =>
+      `<div class="svc-say"><div class="w">${esc(i.when)}</div>`
+      + `<div class="s">${esc(i.script)}</div>`
+      + (i.note ? `<div class="nt">${esc(i.note)}</div>` : '') + `</div>`).join(''),
+    qa: b => b.items.map(i =>
+      `<div class="svc-qa"><div class="q">${esc(i.q)}</div><div class="a">${esc(i.a)}</div></div>`).join(''),
+    note: b => `<div class="svc-note">${esc(b.text)}</div>`,
+    /* 사진 — 반입된 슬롯만 그린다 (없으면 figure 블록 자체를 만들지 않음) */
+    figure: b => `<div class="svc-figs">` + b.slots.map(id=>{
+        const im = IMG[id];
+        return `<figure class="svc-fig"><img src="${esc(im.file)}" alt="${esc(im.cap)}" loading="lazy">`
+             + `<figcaption>${esc(im.cap)}`
+             + (im.mosaic ? ` <span class="mz">· 모자이크 ${im.mosaic}곳</span>` : '')
+             + `</figcaption></figure>`;
+      }).join('') + `</div>`
+  };
+  const IMG = (window.MANUAL_IMAGES && window.MANUAL_IMAGES.slots) || {};
+  const haveSlots = b => b.kind !== 'figure' || (b.slots || []).some(id => IMG[id]);
+
+  let after = anchor;
+  S.docs.forEach(doc=>{
+    /* 1) 사이드바 버튼 — 📐 플로어플랜 앞쪽(💬 MOT 다음)에 순서대로 */
+    const btn = document.createElement('button');
+    btn.className = 'tab';
+    btn.dataset.v = doc.id;
+    btn.textContent = doc.tab;
+    if(after && after.parentNode){ after.parentNode.insertBefore(btn, after.nextSibling); after = btn; }
+    else { nav.appendChild(btn); after = btn; }
+
+    /* 2) 본문 */
+    const sec = document.createElement('section');
+    sec.className = 'view';
+    sec.id = doc.id;
+    let h = `<div class="vhead"><h2>${esc(doc.name)} <span class="note">${esc(doc.note)}</span></h2></div>`
+          + `<div class="man-lead">${doc.lead.map(l=>`<p>· ${raw(l)}</p>`).join('')}`
+          + `<p>· 출처 : ${esc(doc.source)} · ${esc(S.generated)} 기준</p></div>`
+          + `<div class="mot-ctl"><div></div><div class="mot-tools">`
+          + `<input type="search" class="svc-find" placeholder="이 문서에서 검색 (항목·멘트·용어)">`
+          + `<span class="hit"></span>`
+          + `<button class="mlib-btn svc-print">🖨 PDF로 저장</button></div></div>`;
+
+    doc.chapters.forEach(ch=>{
+      h += `<div class="svc-ch"><h3><span class="no">${esc(ch.no)}</span>${esc(ch.title)}`
+         + `<span class="pg">${esc(ch.pg)}</span></h3>`;
+      ch.blocks.forEach(b=>{
+        if(!haveSlots(b)) return;                       // 사진이 아직 없는 figure 블록은 건너뛴다
+        const bb = b.kind === 'figure'
+          ? Object.assign({}, b, {slots: b.slots.filter(id=>IMG[id])})   // 있는 것만
+          : b;
+        const inner = (BLOCK[bb.kind] || BLOCK.note)(bb);
+        h += `<div class="svc-b">${bb.title?`<h4>${esc(bb.title)}</h4>`:''}${inner}</div>`;
+      });
+      h += `</div>`;
+    });
+    sec.innerHTML = h;
+    wrap.appendChild(sec);
+
+    /* 3) 검색 — 블록 단위로 걸러내고, 남는 게 없는 장은 통째로 숨긴다 */
+    const find = sec.querySelector('.svc-find'), hit = sec.querySelector('.hit');
+    find.addEventListener('input', ()=>{
+      const q = find.value.trim().toLowerCase();
+      let n = 0;
+      sec.querySelectorAll('.svc-ch').forEach(ch=>{
+        let vis = 0;
+        ch.querySelectorAll('.svc-b').forEach(b=>{
+          const on = !q || b.textContent.toLowerCase().includes(q);
+          b.style.display = on ? '' : 'none';
+          if(on) vis++;
+        });
+        ch.style.display = vis ? '' : 'none';
+        n += vis;
+      });
+      hit.textContent = q ? `${n}개 항목` : '';
+    });
+    sec.querySelector('.svc-print').addEventListener('click', ()=>window.print());
+  });
+})();
+
+/* ---------- 서비스 매뉴얼 › 자료실 (manuals_data.js 로 카테고리 탭·목록 자동 생성) ---------- */
+(function(){
+  const M = window.MANUALS;
+  if(!M || !Array.isArray(M.cats) || !M.cats.length) return;
+  const nav    = document.querySelector('.snav');
+  const anchor = document.querySelector('.tab[data-v="vfloor"]');
+  const wrap   = document.querySelector('.main .wrap');
+  if(!nav || !wrap) return;
+
+  const esc = s => String(s==null?'':s).replace(/[&<>"']/g,
+    c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const sz  = n => n>=1048576 ? (n/1048576).toFixed(1)+'MB' : Math.max(1,Math.round(n/1024))+'KB';
+  const ROOT = M.root || '';
+  const winPath = p => (ROOT ? ROOT + '\\' : '') + String(p).replace(/\//g,'\\');
+  /* 로컬(file://)로 열었을 때만 원본 파일을 바로 열 수 있다.
+     https(공유 사이트)에서는 브라우저가 file:// 이동을 차단하므로 '열기'를 만들지 않는다. */
+  const LOCAL = location.protocol === 'file:';
+  const fileURL = p => 'file:///' + encodeURI(((ROOT ? ROOT + '/' : '') + String(p)).replace(/\\/g,'/'))
+                         .replace(/#/g,'%23').replace(/\?/g,'%3F');
+
+  let after = anchor;                       // 사이드바: 📐 플로어플랜 다음에 카테고리 버튼을 붙인다
+  M.cats.forEach(cat=>{
+    /* 1) 사이드바 버튼 */
+    const btn = document.createElement('button');
+    btn.className = 'tab';
+    btn.dataset.v = cat.id;
+    btn.innerHTML = `${esc(cat.icon)} ${esc(cat.name)} <span style="opacity:.6;font-weight:600">${cat.n}</span>`;
+    if(after && after.parentNode){ after.parentNode.insertBefore(btn, after.nextSibling); after = btn; }
+    else { nav.appendChild(btn); after = btn; }
+
+    /* 2) 본문 뷰 */
+    const sec = document.createElement('section');
+    sec.className = 'view';
+    sec.id = cat.id;
+    let h = `<div class="vhead"><h2>${esc(cat.icon)} ${esc(cat.name)}`
+          + `<span class="note">${esc(cat.desc)}</span></h2></div>`
+          + `<div class="man-lead"><p>· 교육팀 매뉴얼 원본 <b>${cat.n}건</b>을 하위 항목으로 분류했습니다. `
+          + `제목을 누르면 원문에서 뽑은 <b>목차·요약</b>이 열립니다.</p>`
+          + `<p>· 원본 위치 : <code>${esc(ROOT)}</code> — 사내 문서보안(DRM) 문서라 파일 자체는 동봉하지 않습니다.</p>`
+          + (LOCAL
+              ? `<p>· <b>열기</b>를 누르면 내 PC의 원본 PDF·PPT가 바로 열립니다(이 파일을 로컬에서 열었을 때만 동작). `
+                + `열리지 않으면 <b>경로 복사</b> 후 탐색기 주소창에 붙여넣으세요.</p></div>`
+              : `<p>· <b>공유 사이트(웹 주소)에서는 PDF·PPT가 열리지 않습니다</b> — 브라우저 보안 정책상 웹페이지가 `
+                + `보는 사람 PC의 파일을 직접 열 수 없기 때문입니다. <b>경로 복사</b> 후 탐색기 주소창에 붙여넣거나, `
+                + `공유받은 <code>dashboard-share.html</code> 파일을 내 PC에 저장해서 열면 <b>열기</b> 버튼이 활성화됩니다.</p></div>`)
+          + `<div class="mlib-find"><input type="search" placeholder="이 카테고리에서 매뉴얼 검색 (제목·브랜드·연도)">`
+          + `<span class="hit"></span></div>`;
+
+    cat.subs.forEach((sub,si)=>{
+      h += `<div class="mlib-sec${si>2?' closed':''}"><h3><span class="caret">▼</span>${esc(sub.name)}`
+         + `<span class="cnt">${sub.items.length}건</span></h3><div class="mlib-list">`;
+      sub.items.forEach(it=>{
+        const key = [it.t, it.b, it.y, sub.name, (it.f||[]).join(' ')].join(' ').toLowerCase();
+        const fmts = (it.f||[]).map(f=>`<span class="fmt ${esc(f)}">${esc(f)}</span>`).join('');
+        const meta = [it.y, sz(it.sz), it.d].filter(Boolean).join(' · ');
+        h += `<div class="mlib-row" data-k="${esc(key)}">${fmts}`
+           + `<span class="nm">${esc(it.t)}<span class="meta">${esc(meta)}</span></span>`
+           + (it.b?`<span class="bbadge">${esc(it.b)}</span>`:'')
+           + `<span class="acts">`
+           + (it.s && it.s.length ? `<button class="mlib-btn doc">내용</button>` : '')
+           + (LOCAL
+               ? `<a class="mlib-btn open" href="${esc(fileURL(it.p))}" target="_blank" rel="noopener"
+                     title="원본 파일 열기 (${esc(winPath(it.p))})">열기</a>`
+               : `<button class="mlib-btn cp ghost" data-p="${esc(winPath(it.p))}"
+                     title="공유 사이트(https)에서는 브라우저 보안 정책상 내 PC 파일을 직접 열 수 없습니다. 경로를 복사해 탐색기 주소창에 붙여넣으세요.">열기</button>`)
+           + `<button class="mlib-btn cp" data-p="${esc(winPath(it.p))}">경로 복사</button></span></div>`;
+        if(it.s && it.s.length){
+          h += `<div class="mlib-doc" hidden><b>${esc(it.n||'원문 목차')}</b><ol>`
+             + it.s.map(x=>`<li>${esc(x)}</li>`).join('')
+             + `</ol><div class="src">원본 : ${esc(winPath(it.p))}</div></div>`;
+        }
+      });
+      h += `</div></div>`;
+    });
+    sec.innerHTML = h;
+    wrap.appendChild(sec);
+
+    /* 3) 상호작용 : 접기 · 내용 토글 · 경로 복사 · 검색 */
+    sec.querySelectorAll('.mlib-sec>h3').forEach(t=>
+      t.addEventListener('click',()=>t.parentNode.classList.toggle('closed')));
+
+    sec.addEventListener('click', ev=>{
+      const doc = ev.target.closest('.mlib-btn.doc');
+      if(doc){
+        const d = doc.closest('.mlib-row').nextElementSibling;
+        if(d && d.classList.contains('mlib-doc')){ d.hidden = !d.hidden; doc.textContent = d.hidden?'내용':'닫기'; }
+        return;
+      }
+      const cp = ev.target.closest('.mlib-btn.cp');
+      if(cp){
+        const p = cp.dataset.p;
+        const label = cp.dataset.label || (cp.dataset.label = cp.textContent);  // '열기'/'경로 복사' 원래 라벨 유지
+        const done = ()=>{ cp.textContent='복사됨'; cp.classList.add('done');
+                           setTimeout(()=>{cp.textContent=label; cp.classList.remove('done');},1400); };
+        if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(p).then(done,()=>prompt('경로',p)); }
+        else { prompt('경로', p); }
+      }
+    });
+
+    const inp = sec.querySelector('.mlib-find input'), hit = sec.querySelector('.mlib-find .hit');
+    inp.addEventListener('input', ()=>{
+      const q = inp.value.trim().toLowerCase();
+      let n = 0;
+      sec.querySelectorAll('.mlib-sec').forEach(g=>{
+        let vis = 0;
+        g.querySelectorAll('.mlib-row').forEach(r=>{
+          const on = !q || r.dataset.k.includes(q);
+          r.style.display = on ? '' : 'none';
+          const d = r.nextElementSibling;
+          if(d && d.classList.contains('mlib-doc')){ d.style.display = on ? '' : 'none'; }
+          if(on) vis++;
+        });
+        g.style.display = vis ? '' : 'none';
+        if(q && vis) g.classList.remove('closed');
+        n += vis;
+      });
+      hit.textContent = q ? `${n}건 검색됨` : '';
+    });
+  });
+
+  /* 사이드바 하단 메타에 생성 시각 표기 */
+  const meta = document.getElementById('meta');
+  if(meta && M.generated){
+    const d = document.createElement('div');
+    d.style.cssText = 'margin-top:6px;font-size:10.5px;opacity:.75';
+    d.textContent = `매뉴얼 자료실 ${M.total}건 · ${M.generated} 기준`;
+    meta.appendChild(d);
+  }
+})();
+
+/* ---------- 월간 회의 보고 (대표 보고용 1장 요약 · 상세는 버튼) ---------- */
+const MT_DEPTS=['영업팀','QC팀','R&D팀','서비스교육팀'];
+const mtMd=v=>String(v).replace(/</g,'&lt;').replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
+const mtTx=v=>String(v).replace(/</g,'&lt;').replace(/\*\*(.+?)\*\*/g,'$1').replace(/\[!\S+?\]\s*/g,'');
+function mtShort(v,n){ const t=mtTx(v).trim(); return t.length>n?t.slice(0,n-1).replace(/[\s(·,]+$/,'')+'…':t; }
+// 수치만 나열한 문장은 원인으로 부적합 → 실제 원인 문장을 고른다
+const mtIsStat=x=>/건\s?중|건\(|%\s*→|전월|불만율|연속/.test(String(x).replace(/\*\*/g,'').slice(0,44));
+function mtPick(arr){ if(!arr||!arr.length) return null; return arr.find(x=>!mtIsStat(x))||arr[0]; }
+// 불만요약에서 원인 키워드만 추출 (문장 앞 **굵은 글씨** 우선)
+function mtKeywords(n){
+  if(!n||!n['불만요약']) return [];
+  const items=n['불만요약'].filter(x=>!mtIsStat(x))
+    .map(x=>String(x).replace(/^\[!\S+?\]\s*/,'').trim());
+  // 문장 앞 **굵은 글씨**만 키워드로 사용 — 없으면 첫 문장을 짧게 잘라 대체
+  let out=items.map(t=>{const m=/^\*\*(.+?)\*\*/.exec(t);return m?m[1]:null;}).filter(Boolean);
+  if(!out.length && items.length) out=[mtShort(items[0].split(' — ')[0],18)];
+  return out.map(x=>x.length>18?x.slice(0,17)+'…':x).slice(0,4);
+}
+function mtVocSum(o){ return o?((o['불만']||0)+(o['칭찬']||0)+(o['기타']||0)+(o['문의']||0)):0; }
+function mtPrev(m){ const i=R.months.indexOf(m); return i>0?R.months[i-1]:null; }
+function mtRecs(m){ return (V&&V.records)?V.records.filter(r=>r.month===m):[]; }
+function mtCrit(m){ return mtRecs(m).filter(r=>r.critical&&r.category!=='칭찬'); }
+function mtDelta(prev,cur,unit,goodWhenDown){
+  if(prev==null||cur==null) return '<span class="dl flat">–</span>';
+  const s=Math.round((cur-prev)*10)/10;
+  const cls=(goodWhenDown===null||s===0)?'flat':((s>0)===!!goodWhenDown?'bad':'good');
+  return `<span class="dl ${cls}">${s>0?'▲':s<0?'▼':'–'}${Math.abs(s)}${unit==='%'?'%p':unit||''}</span>`;
+}
+// ── 01 월간 요약: 리뷰 접수 · 불만율 (전월 ↔ 당월) ──
+function mtKpi(cls,label,pm,pv,m,cv,unit,goodWhenDown){
+  const side=(k,ym,v)=>`<div class="side ${k}"><span class="ym">${ym||'전월'}</span>`
+    +`<span class="num">${v==null?'–':fmt(v)}<small>${unit||''}</small></span></div>`;
+  return `<div class="mt-k ${cls}"><div class="l">${label}</div><div class="cmp">`
+    +side('prev',pm,pv)+'<span class="ar">→</span>'+side('cur',m,cv)
+    +mtDelta(pv,cv,unit,goodWhenDown)+'</div></div>';
+}
+function mtRenderKpis(m){
+  const pm=mtPrev(m), t=R.by_month_total[m]||{}, p=pm?(R.by_month_total[pm]||{}):null;
+  document.getElementById('mt-kpis').innerHTML =
+     mtKpi('','리뷰 접수',pm,p?p.total:null,m,t.total,'건',null)
+    +mtKpi('accent','불만율',pm,p?p['불만율']:null,m,t['불만율'],'%',true);
+  document.getElementById('mt-sub').textContent = pm?`${pm} → ${m}`:m;
+}
+// ── 02 불만 매장 TOP3: 순위 · 건수 · 비율 ──
+function mtTop3(m){ return aggStoreRange(m,m).filter(s=>s.total>=10)
+  .sort((a,b)=>b['불만']-a['불만']||b['불만율']-a['불만율']||(a.store<b.store?-1:1)).slice(0,3); }
+function mtRenderRank(m){
+  const top=mtTop3(m);
+  document.getElementById('mt-top3-b').textContent = top.length?'표본 10건 이상':'해당 없음';
+  document.getElementById('mt-rank').innerHTML = top.length
+    ? top.map((s,i)=>`<div class="mt-ri r${i+1}"><span class="no">${i+1}</span>`
+        +`<span class="nm"><b>${s.store}</b><span>${s.brand}</span></span>`
+        +`<span class="vv"><b>${s['불만']}<small>건</small></b><span>${s['불만율']}%</span></span></div>`).join('')
+    : '<div class="mt-empty">해당 월에 표본 10건 이상 매장이 없습니다.</div>';
+}
+// ── 03 개선 과제: 원인 키워드 + 조치 1줄 + 상세 버튼 ──
+function mtRenderStores(m){
+  const top=mtTop3(m), wrap=document.getElementById('mt-stores');
+  if(!top.length){ wrap.innerHTML='<div class="mt-c"><div class="mt-empty">해당 월에 표본 10건 이상 매장이 없습니다.</div></div>'; return; }
+  wrap.innerHTML = top.map((s,i)=>{
+    const n=(NOTE_IDX[s.store]||{})[m];
+    const kws=mtKeywords(n);
+    const actRaw=n?mtPick(n['개선방안']):null;
+    const act=actRaw?mtShort(actRaw,68):'분석 노트 없음';
+    const all=[].concat((n&&n['개선방안'])||[],(n&&n['완료방법'])||[]);
+    const depts=MT_DEPTS.filter(d=>all.some(x=>x.indexOf(d)>=0));
+    return `<div class="mt-c"><h4><span class="rk">${i+1}</span><span class="nm">${s.store}</span></h4>`
+      +`<div class="mt-f"><span class="k">원인 키워드</span><div class="mt-chips">`
+      +(kws.length?kws.map(k=>`<span>${mtTx(k)}</span>`).join(''):'<span>분석 노트 없음</span>')+`</div></div>`
+      +`<div class="mt-f"><span class="k act">조치</span><div class="t">${act}</div></div>`
+      +`<div class="foot"><span class="mt-dept">${depts.map(d=>`<span>${d}</span>`).join('')}</span>`
+      +`<button class="mt-more" data-mt="store" data-store="${s.store}" style="margin-left:auto">상세 ▸</button></div></div>`;
+  }).join('');
+}
+// ── 상세 모달 ──
+function mtModal(title,html){
+  document.getElementById('mt-mtitle').textContent=title;
+  document.getElementById('mt-mbody').innerHTML=html;
+  document.getElementById('mt-modal').classList.add('on');
+}
+function mtDetail(kind,arg,m){
+  const pm=mtPrev(m), t=R.by_month_total[m]||{}, p=pm?(R.by_month_total[pm]||{}):null;
+  const vc=(V&&V.by_month)?V.by_month[m]:null, vp=(V&&V.by_month&&pm)?V.by_month[pm]:null;
+  if(kind==='kpi'){
+    const stCnt=x=>{let n=0;for(const s in R.store_month){const o=R.store_month[s][x];if(o&&o.total)n++;}return n;};
+    const kw=((R.by_month_keywords||{})[m]||{}).complaint||[];
+    const rows=[['리뷰 접수',p?p.total:null,t.total,'건'],['불만 리뷰',p?p['불만']:null,t['불만'],'건'],
+      ['불만율',p?p['불만율']:null,t['불만율'],'%'],['칭찬율',p?p['칭찬율']:null,t['칭찬율'],'%'],
+      ['집계 매장',pm?stCnt(pm):null,stCnt(m),'개'],
+      ['VOC 접수',vp?mtVocSum(vp):null,mtVocSum(vc),'건'],['VOC 불만',vp?(vp['불만']||0):null,vc?(vc['불만']||0):0,'건'],
+      ['VOC 칭찬',vp?(vp['칭찬']||0):null,vc?(vc['칭찬']||0):0,'건'],
+      ['크리티컬',pm?mtCrit(pm).length:null,mtCrit(m).length,'건']];
+    const br=R.by_month_brand[m]||{}, bp=pm?(R.by_month_brand[pm]||{}):{};
+    const crit=mtCrit(m);
+    return mtModal(`지표 상세 · ${pm?pm+' 대비 ':''}${m}`,
+      '<h5>전월 대비 종합</h5><table><thead><tr><th>지표</th><th>'+(pm||'전월')+'</th><th>'+m+'</th><th>증감</th></tr></thead><tbody>'
+      +rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]==null?'–':fmt(r[1])}</td><td><b>${r[2]==null?'–':fmt(r[2])}</b>${r[3]}</td>`
+        +`<td>${r[1]==null||r[2]==null?'–':(Math.round((r[2]-r[1])*10)/10>0?'+':'')+Math.round((r[2]-r[1])*10)/10}</td></tr>`).join('')
+      +'</tbody></table><h5>브랜드별 불만율</h5><table><thead><tr><th>브랜드</th><th>리뷰</th><th>불만</th><th>불만율</th><th>전월</th></tr></thead><tbody>'
+      +R.brands.filter(b=>br[b]).sort((a,b)=>br[b]['불만율']-br[a]['불만율']).map(b=>
+        `<tr><td>${b}</td><td>${fmt(br[b].total)}</td><td>${br[b]['불만']}</td><td><b>${br[b]['불만율']}%</b></td>`
+        +`<td>${bp[b]?bp[b]['불만율']+'%':'–'}</td></tr>`).join('')+'</tbody></table>'
+      +'<h5>리뷰 불만 키워드</h5><table><thead><tr><th>키워드</th><th>건수</th></tr></thead><tbody>'
+      +(kw.slice(0,8).map(([k,n])=>`<tr><td>${k}</td><td><b>${n}</b></td></tr>`).join('')||'<tr><td>–</td><td>–</td></tr>')
+      +'</tbody></table>'
+      +(crit.length?'<h5>크리티컬 접수</h5><ul>'+crit.map(r=>`<li><b>${mtTx(r.store||'')}</b> — ${mtTx(r.title||'')}</li>`).join('')+'</ul>':''));
+  }
+  if(kind==='top3'){
+    const all=aggStoreRange(m,m).filter(s=>s.total>=10&&s['불만']>0);
+    return mtModal(`불만 매장 상세 · ${m}`,
+      '<h5>불만 건수 상위 매장 (표본 10건 이상)</h5><table><thead><tr><th>순위</th><th>매장</th><th>브랜드</th><th>리뷰</th><th>불만</th><th>불만율</th></tr></thead><tbody>'
+      +all.sort((a,b)=>b['불만']-a['불만']||b['불만율']-a['불만율']).slice(0,12).map((s,i)=>
+        `<tr><td>${i+1}</td><td>${s.store}</td><td>${s.brand}</td><td>${fmt(s.total)}</td><td><b>${s['불만']}</b></td><td>${s['불만율']}%</td></tr>`).join('')
+      +'</tbody></table>');
+  }
+  if(kind==='store'){
+    const n=(NOTE_IDX[arg]||{})[m], s=mtTop3(m).find(x=>x.store===arg)||{};
+    if(!n) return mtModal(`${arg} · ${m}`,'<div class="mt-empty">이 달 매장 분석 노트가 없습니다.</div>');
+    const sec=(t,arr)=>arr&&arr.length?`<h5>${t}</h5><ul>${arr.map(x=>`<li>${mtMd(x)}</li>`).join('')}</ul>`:'';
+    return mtModal(`${arg} · ${m}`,
+      `<h5>현황</h5><ul><li>불만 <b>${s['불만']||0}건</b> / 리뷰 ${fmt(s.total||0)}건 · 불만율 <b>${s['불만율']||0}%</b></li></ul>`
+      +sec('핵심 불만',n['불만요약'])+sec('개선 방안',n['개선방안'])+sec('부서별 실행 계획',n['완료방법']));
+  }
+}
+function renderMeet(m){ mtRenderKpis(m); mtRenderRank(m); mtRenderStores(m); }
+function vmeetInit(){
+  const sel=document.getElementById('mt-month'); if(!sel) return;
+  R.months.slice().reverse().forEach(m=>sel.add(new Option(m,m)));
+  sel.value=R.current_month;
+  sel.addEventListener('change',()=>renderMeet(sel.value));
+  document.getElementById('vmeet').addEventListener('click',e=>{
+    const b=e.target.closest('.mt-more'); if(!b) return;
+    mtDetail(b.dataset.mt, b.dataset.store||'', sel.value);
+  });
+  const mo=document.getElementById('mt-modal');
+  document.getElementById('mt-mclose').addEventListener('click',()=>mo.classList.remove('on'));
+  mo.addEventListener('click',e=>{ if(e.target===mo) mo.classList.remove('on'); });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') mo.classList.remove('on'); });
+  renderMeet(sel.value);
+}
+/* ---------- VIEW: 일별 리서치 (전일 유입 리뷰를 날짜별로 확인) ----------
+   월별 집계와 달리 "언제 올라온 리뷰인가"를 본다.
+   · 작성일 기준 = 고객이 리뷰를 올린 날 (by_day, 최근 180일)
+   · 수집일 기준 = 우리 자동수집이 그 리뷰를 처음 가져온 날 (first_seen, 원문 보관분)   */
+const DLY = R.daily || null;
+let DREC = [], dlyMode = 'd', dlyRange = 1, dlySent = '', dlyBrand = '', dlyDay = '', dlyAll = false;
+const DLY_LIMIT = 250;
+
+function dEsc(v){ return String(v==null?'':v).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'})[c]); }
+function dAdd(iso,n){ const p=iso.split('-'); const t=new Date(Date.UTC(+p[0],+p[1]-1,+p[2]+n)); return t.toISOString().slice(0,10); }
+function dSrcName(s){ return s==='naver'?'네이버':s==='catchtable'?'캐치테이블':(s||'기타'); }
+function dWd(iso){ return ['일','월','화','수','목','금','토'][new Date(iso+'T00:00:00Z').getUTCDay()]; }
+function dLabel(iso){ return iso+' ('+dWd(iso)+')'; }
+
+function dlyDayList(){ return (dlyMode==='d' ? DLY.days : DLY.collected_days) || []; }
+function dlyRangeDays(){                       // 기준일에서 거슬러 dlyRange 일
+  const out=[]; for(let i=0;i<dlyRange;i++) out.push(dAdd(dlyDay,-i));
+  return out;
+}
+function dlyKey(r){ return dlyMode==='d' ? r.d : r.seen; }
+
+/* 기간 집계 — 작성일 모드는 by_day(180일 전체), 수집일 모드는 원문 보관분에서 */
+function dlyAgg(days){
+  const a={total:0,'칭찬':0,'불만':0,'중립':0};
+  if(dlyMode==='d'){
+    days.forEach(d=>{ const o=DLY.by_day[d]; if(!o) return;
+      if(dlyBrand){ const b=o.brand[dlyBrand]; if(!b) return;
+        a.total+=b[0]; a['칭찬']+=b[1]; a['불만']+=b[2]; a['중립']+=b[3];
+      } else { a.total+=o.total; a['칭찬']+=o['칭찬']; a['불만']+=o['불만']; a['중립']+=o['중립']; }
+    });
+  } else {
+    const set=new Set(days);
+    DREC.forEach(r=>{ if(!r.seen||!set.has(r.seen)) return; if(dlyBrand&&r.brand!==dlyBrand) return;
+      a.total++; a[r.s]++; });
+  }
+  return a;
+}
+/* 원문 목록 — 기간·브랜드·감성·검색어 필터 */
+function dlyFiltered(days){
+  const set=new Set(days), q=(document.getElementById('vd-q').value||'').trim().toLowerCase();
+  return DREC.filter(r=>{
+    const k=dlyKey(r); if(!k||!set.has(k)) return false;
+    if(dlyBrand&&r.brand!==dlyBrand) return false;
+    if(dlySent&&r.s!==dlySent) return false;
+    if(q&&!((r.store+' '+r.text+' '+(r.author||'')).toLowerCase().includes(q))) return false;
+    return true;
+  });
+}
+
+function vdailyInit(){
+  if(!DLY){ document.getElementById('vd-kpi').innerHTML='<div class="panel">일별 데이터가 없습니다 — build.py 를 다시 실행해 주세요.</div>'; return; }
+  DREC = (DLY.records||[]).map(a=>{ const st=DLY.stores[a[2]];
+    return {d:a[0],vd:a[1],store:st,brand:DLY.store_brand[st]||'(미상)',s:a[3],src:a[4],cat:a[5],author:a[6],seen:a[7],text:a[8]}; });
+  document.getElementById('vd-src').textContent =
+    '작성일 '+DLY.agg_from+'~'+DLY.to+' 집계 · 원문 '+DLY.rec_from+'~ 보관('+fmt(DLY.n_rec)+'건) · 자동수집 최신 '+(DLY.last_collected||'–');
+  const bs=document.getElementById('vd-brand');
+  bs.innerHTML='<option value="">전체</option>'+R.brands.map(b=>'<option>'+b+'</option>').join('');
+  bs.addEventListener('change',()=>{ dlyBrand=bs.value; dlyAll=false; renderDaily(); });
+  document.getElementById('vd-day').addEventListener('change',e=>{ dlyDay=e.target.value; dlyAll=false; renderDaily(); });
+  document.getElementById('vd-mode').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return;
+    dlyMode=b.dataset.m; document.querySelectorAll('#vd-mode button').forEach(x=>x.classList.toggle('on',x===b));
+    dlyDay=''; dlyAll=false; fillDlyDays(); renderDaily(); });
+  document.getElementById('vd-range').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return;
+    dlyRange=+b.dataset.r; document.querySelectorAll('#vd-range button').forEach(x=>x.classList.toggle('on',x===b));
+    dlyAll=false; renderDaily(); });
+  document.getElementById('vd-sent').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return;
+    dlySent=b.dataset.s; document.querySelectorAll('#vd-sent button').forEach(x=>x.classList.toggle('on',x===b));
+    dlyAll=false; renderDaily(); });
+  let t=null; document.getElementById('vd-q').addEventListener('input',()=>{ clearTimeout(t); t=setTimeout(()=>{dlyAll=false;renderDaily();},200); });
+  document.getElementById('vd-csv').addEventListener('click',exportDaily);
+  charts.vd = echarts.init(document.getElementById('c-vd'));
+  charts.vd.on('click',p=>{ if(!p.name) return; dlyDay=p.name; dlyAll=false; fillDlyDays(); renderDaily(); });
+  fillDlyDays(); renderDaily();
+}
+
+function fillDlyDays(){
+  let days=dlyDayList(); const sel=document.getElementById('vd-day');
+  if(!dlyDay) dlyDay = days[0] || DLY.to;
+  // 차트에서 리뷰 0건인 날을 클릭했을 수도 있다 → 목록에 없으면 끼워 넣어 선택 유지
+  if(!days.includes(dlyDay)) days = days.concat([dlyDay]).sort().reverse();
+  sel.innerHTML = days.map(d=>{
+    const n = dlyMode==='d' ? ((DLY.by_day[d]||{}).total||0) : (DLY.by_seen[d]||0);
+    return '<option value="'+d+'"'+(d===dlyDay?' selected':'')+'>'+dLabel(d)+' · '+n+'건</option>';
+  }).join('');
+}
+
+function renderDaily(){
+  const days=dlyRangeDays(), a=dlyAgg(days);
+  const prevDays=[]; for(let i=1;i<=dlyRange;i++) prevDays.push(dAdd(days[days.length-1],-i));
+  const pa=dlyAgg(prevDays);
+  const dl=a.total-pa.total, sign=dl>0?'▲':dl<0?'▼':'–';
+  const rate=a.total?Math.round(a['불만']/a.total*1000)/10:0;
+  const grate=a.total?Math.round(a['칭찬']/a.total*1000)/10:0;
+  const label=dlyRange===1?dLabel(dlyDay):days[days.length-1]+' ~ '+dlyDay;
+  const modeName=dlyMode==='d'?'작성일':'수집일';
+  const newest=DLY.last_collected||'–';
+  document.getElementById('vd-kpi').innerHTML=kpiHtml([
+    {lab:'리뷰 ('+modeName+' '+(dlyRange===1?'당일':dlyRange+'일')+')', val:fmt(a.total),
+     sub:label+(dlyBrand?' · '+dlyBrand:'')+' · 직전 동기간 '+fmt(pa.total)+'건 '+sign+fmt(Math.abs(dl)), color:'var(--brand)'},
+    {lab:'불만', val:fmt(a['불만']), sub:'불만율 '+rate+'%', color:a['불만']?'var(--bad)':'var(--good)'},
+    {lab:'칭찬', val:fmt(a['칭찬']), sub:'칭찬율 '+grate+'%', color:'var(--good)'},
+    {lab:'최근 자동수집', val:newest.slice(5), sub:'신규 '+fmt(DLY.by_seen[newest]||0)+'건 유입', color:'var(--brand)'}
+  ]);
+  dlyChart(); dlyBrandBox(days,a); dlyList(days);
+}
+
+function dlyChart(){
+  const N=60, endD = dlyMode==='d' ? DLY.to : ((DLY.collected_days||[])[0]||DLY.to);
+  const axis=[]; for(let i=N-1;i>=0;i--) axis.push(dAdd(endD,-i));
+  const good=[],neu=[],bad=[];
+  if(dlyMode==='d'){
+    axis.forEach(d=>{ const o=DLY.by_day[d];
+      if(!o){good.push(0);neu.push(0);bad.push(0);return;}
+      if(dlyBrand){ const b=o.brand[dlyBrand]||[0,0,0,0]; good.push(b[1]);bad.push(b[2]);neu.push(b[3]); }
+      else { good.push(o['칭찬']);bad.push(o['불만']);neu.push(o['중립']); }
+    });
+  } else {
+    const m={}; DREC.forEach(r=>{ if(!r.seen) return; if(dlyBrand&&r.brand!==dlyBrand) return;
+      (m[r.seen]=m[r.seen]||{'칭찬':0,'불만':0,'중립':0})[r.s]++; });
+    axis.forEach(d=>{ const o=m[d]||{}; good.push(o['칭찬']||0); bad.push(o['불만']||0); neu.push(o['중립']||0); });
+  }
+  document.getElementById('vd-chartsub').textContent =
+    '최근 60일 · '+(dlyMode==='d'?'작성일':'수집일(자동수집 실행일)')+' 기준'+(dlyBrand?' · '+dlyBrand:'')+' · 막대를 클릭하면 그 날로 이동';
+  charts.vd.setOption({
+    grid:{left:46,right:20,top:30,bottom:46},
+    tooltip:{trigger:'axis',axisPointer:{type:'shadow'}},
+    legend:{top:0,data:['칭찬','중립','불만']},
+    xAxis:{type:'category',data:axis,axisLabel:{fontSize:10,formatter:v=>v.slice(5),interval:Math.floor(axis.length/15)}},
+    yAxis:{type:'value',name:'건'},
+    series:[
+      {name:'칭찬',type:'bar',stack:'t',itemStyle:{color:'#2f9e6f'},data:good},
+      {name:'중립',type:'bar',stack:'t',itemStyle:{color:'#c3cedb'},data:neu},
+      {name:'불만',type:'bar',stack:'t',itemStyle:{color:'#c0405a'},data:bad}
+    ]
+  },true);
+  charts.vd.resize();
+}
+
+function dlyBrandBox(days,a){
+  const rows=R.brands.map(b=>{
+    let t=0,g=0,bd=0;
+    if(dlyMode==='d'){ days.forEach(d=>{ const o=DLY.by_day[d]; if(!o)return; const x=o.brand[b]; if(!x)return; t+=x[0];g+=x[1];bd+=x[2]; }); }
+    else { const set=new Set(days); DREC.forEach(r=>{ if(r.brand!==b||!r.seen||!set.has(r.seen))return; t++; if(r.s==='칭찬')g++; if(r.s==='불만')bd++; }); }
+    return {b:b,t:t,g:g,bd:bd,rate:t?Math.round(bd/t*1000)/10:0};
+  }).filter(x=>x.t).sort((x,y)=>y.t-x.t);
+  document.getElementById('vd-bsub').textContent = a.total?fmt(a.total)+'건':'해당 기간 리뷰 없음';
+  document.getElementById('vd-brandbox').innerHTML = rows.length
+    ? '<table><thead><tr><th>브랜드</th><th>리뷰</th><th>칭찬</th><th>불만</th><th>불만율</th></tr></thead><tbody>'
+      + rows.map(x=>'<tr><td><span class="pill brand">'+x.b+'</span></td><td>'+fmt(x.t)+'</td>'
+        +'<td style="color:var(--good)">'+fmt(x.g)+'</td><td style="color:var(--bad)"><b>'+fmt(x.bd)+'</b></td>'
+        +'<td><b>'+x.rate+'%</b></td></tr>').join('')+'</tbody></table>'
+    : '<p style="color:var(--muted);font-size:13px">해당 기간 리뷰가 없습니다.</p>';
+}
+
+function dlyList(days){
+  const recs=dlyFiltered(days);
+  const sb={}; recs.forEach(r=>{ const o=sb[r.store]=sb[r.store]||{t:0,bd:0}; o.t++; if(r.s==='불만')o.bd++; });
+  const top=Object.entries(sb).sort((a,b)=>b[1].t-a[1].t).slice(0,12);
+  document.getElementById('vd-storebox').innerHTML = top.length
+    ? '<table><thead><tr><th>매장</th><th>리뷰</th><th>불만</th></tr></thead><tbody>'
+      + top.map(e=>'<tr><td>'+dEsc(e[0])+'</td><td>'+fmt(e[1].t)+'</td>'
+        +'<td style="color:'+(e[1].bd?'var(--bad)':'var(--muted)')+'"><b>'+e[1].bd+'</b></td></tr>').join('')+'</tbody></table>'
+    : '<p style="color:var(--muted);font-size:13px">해당 기간 원문이 없습니다.</p>';
+
+  const oldRange = days[days.length-1] < DLY.rec_from;
+  const cut = dlyAll ? recs.length : Math.min(recs.length, DLY_LIMIT);
+  document.getElementById('vd-listsub').textContent =
+    fmt(recs.length)+'건'+(dlySent?' · '+dlySent:'')+(cut<recs.length?' · '+fmt(cut)+'건 표시':'');
+  let html = recs.slice(0,cut).map(dlyCard).join('');
+  if(!recs.length){
+    html = '<p style="color:var(--muted);font-size:13px">'
+      + (oldRange ? '원문은 최근 '+DLY.rec_window+'일('+DLY.rec_from+'~)만 보관합니다. 그 이전 기간은 위 집계·추이로만 확인할 수 있습니다.'
+                  : '조건에 맞는 리뷰가 없습니다.') + '</p>';
+  } else if(cut<recs.length){
+    html += '<div style="text-align:center;margin-top:8px"><button onclick="dlyAll=true;renderDaily()" '
+      + 'style="border:1px solid #c7d2e0;background:#fff;color:var(--brand);border-radius:8px;padding:8px 16px;font-weight:700;cursor:pointer">'
+      + '전체 '+fmt(recs.length)+'건 보기</button></div>';
+  }
+  document.getElementById('vd-list').innerHTML = html;
+}
+
+function dlyCard(r){
+  const cls = r.s==='불만'?'bad':r.s==='칭찬'?'good':'gray';
+  const txt = dEsc(r.text) || '<span style="color:var(--muted)">(내용 없음 · 별점만 남긴 리뷰)</span>';
+  return '<div class="voc'+(r.s==='불만'?' crit':'')+'"><div class="vtop">'
+    + '<b>'+dEsc(r.store)+'</b><span class="pill brand">'+dEsc(r.brand)+'</span>'
+    + '<span class="pill '+cls+'">'+r.s+'</span><span class="pill gray">'+dSrcName(r.src)+'</span>'
+    + (r.cat?'<span class="pill gray">'+dEsc(r.cat)+'</span>':'')
+    + '<span>작성 '+r.d+'</span>'
+    + (r.vd&&r.vd!==r.d?'<span>· 방문 '+r.vd+'</span>':'')
+    + (r.seen?'<span>· 수집 '+r.seen+'</span>':'')
+    + (r.author?'<span>· '+dEsc(r.author)+'</span>':'')
+    + '</div><div class="ct">'+txt+'</div></div>';
+}
+
+function exportDaily(){
+  const recs=dlyFiltered(dlyRangeDays());
+  if(!recs.length){ alert('내려받을 리뷰가 없습니다.'); return; }
+  const rows=[['작성일','방문일','수집일','브랜드','매장','감성','출처','카테고리','작성자','리뷰내용']]
+    .concat(recs.map(r=>[r.d,r.vd,r.seen,r.brand,r.store,r.s,dSrcName(r.src),r.cat,r.author,r.text]));
+  const span = dlyRange===1 ? dlyDay : dAdd(dlyDay,-(dlyRange-1))+'_'+dlyDay;
+  downloadCsv(rows, '일별리서치_'+(dlyMode==='d'?'작성일':'수집일')+'_'+span+'.csv');
+}
+
 /* ---------- tabs & lazy chart init ---------- */
 const built={};
 function build(v){
   if(built[v])return; built[v]=true;
-  if(v==='v1')v1charts(); if(v==='v2')v2charts(); if(v==='v3')v3charts();
+  if(v==='v1')v1charts(); if(v==='v2')v2charts(); if(v==='v3')v3charts(); if(v==='vmeet')vmeetInit();
+  if(v==='vdaily')vdailyInit();
 }
 document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
   document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
   t.classList.add('active');
   const v=t.dataset.v; document.getElementById(v).classList.add('active');
+  document.querySelector('.wrap').classList.toggle('wide', v==='vmeet');
   build(v); setTimeout(()=>Object.values(charts).forEach(c=>c&&c.resize()),30);
   closeSidebar();   // 모바일: 탭 선택 시 사이드바 닫기
 }));
-build('v1');
+document.querySelector('.wrap').classList.add('wide');
+build('vmeet');
 /* 모바일 사이드바 토글 */
 function closeSidebar(){ const s=document.getElementById('sidebar'),b=document.getElementById('sb-backdrop'); if(s)s.classList.remove('open'); if(b)b.classList.remove('on'); }
 (function(){
@@ -1866,7 +3507,17 @@ function closeSidebar(){ const s=document.getElementById('sidebar'),b=document.g
   if(bd) bd.addEventListener('click',closeSidebar);
 })();
 // URL 해시(#v2 등)로 특정 탭 바로 열기 (북마크/공유용)
-(function(){const h=location.hash.slice(1);const b=h&&document.querySelector(`.tab[data-v="${h}"]`);if(b)b.click();})();
+// #v2 처럼 탭 id 면 그 탭을, #fp-cmp 처럼 뷰 안의 앵커면 부모 탭을 연 뒤 그 위치로 스크롤
+(function(){
+  const h=location.hash.slice(1); if(!h) return;
+  const b=document.querySelector(`.tab[data-v="${h}"]`);
+  if(b){ b.click(); return; }
+  const el=document.getElementById(h); if(!el) return;
+  const view=el.closest('.view'); if(!view) return;
+  const t=document.querySelector(`.tab[data-v="${view.id}"]`); if(!t) return;
+  t.click();
+  setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'start'}),150);
+})();
 window.addEventListener('resize',()=>Object.values(charts).forEach(c=>c&&c.resize()));
 </script>
 </body>
