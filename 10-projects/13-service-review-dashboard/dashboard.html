@@ -1316,6 +1316,7 @@ window.__BUILD__='__BUILD_TOKEN__';
       <input id="vd-q" placeholder="매장·내용 검색" style="min-width:200px">
       <button id="vd-csv" class="ghost" style="margin-left:auto">⬇ CSV 다운로드</button>
     </div>
+    <div class="kpis" id="vd-kpi"></div>
     <div class="panel"><h3>리뷰 원문 <span class="note" id="vd-listsub"></span></h3><div id="vd-list"></div></div>
   </section>
 
@@ -3280,17 +3281,22 @@ function dLabel(iso){ return iso+' ('+dWd(iso)+')'; }
 function dlyKey(r){ return dlyMode==='d' ? r.d : r.seen; }
 function dlyDayList(){ return (dlyMode==='d' ? DLY.days : DLY.collected_days) || []; }
 
-/* 기간·브랜드·감성·검색 필터 (기간은 시작~종료 경계 비교, ISO 문자열이라 사전순=날짜순) */
-function dlyFilteredRange(){
+/* 기간·브랜드·검색 필터 (감성 제외) — 요약 밴드는 항상 전체 구성을 보여주려고 감성을 빼고 집계.
+   기간은 시작~종료 경계 비교, ISO 문자열이라 사전순=날짜순 */
+function dlyFilteredBase(){
   const q=(document.getElementById('vd-q').value||'').trim().toLowerCase();
   let lo=dlyFrom, hi=dlyTo; if(lo>hi){ const t=lo; lo=hi; hi=t; }
   return DREC.filter(r=>{
     const k=dlyKey(r); if(!k||k<lo||k>hi) return false;
     if(dlyBrand&&r.brand!==dlyBrand) return false;
-    if(dlySent&&r.s!==dlySent) return false;
     if(q&&!((r.store+' '+r.text+' '+(r.author||'')).toLowerCase().includes(q))) return false;
     return true;
   });
+}
+/* 목록·CSV용 = 밴드 기준(base)에 감성 필터까지 */
+function dlyFilteredRange(){
+  const base=dlyFilteredBase();
+  return dlySent ? base.filter(r=>r.s===dlySent) : base;
 }
 
 function vdailyInit(){
@@ -3326,7 +3332,18 @@ function fillDlyDates(reset){
 }
 
 function renderDaily(){
-  const recs=dlyFilteredRange();
+  const base=dlyFilteredBase();
+  const c={t:base.length,'칭찬':0,'불만':0,'중립':0}; base.forEach(r=>c[r.s]++);
+  const rate=c.t?Math.round(c['불만']/c.t*1000)/10:0, grate=c.t?Math.round(c['칭찬']/c.t*1000)/10:0;
+  document.getElementById('vd-kpi').innerHTML=kpiHtml([
+    {lab:'총 리뷰', val:fmt(c.t), sub:(dlyBrand||'전체 브랜드')+' · '+(dlyMode==='d'?'작성일':'수집일')+' 기준', color:'var(--brand)'},
+    {lab:'칭찬', val:fmt(c['칭찬']), sub:'칭찬율 '+grate+'%', color:'var(--good)'},
+    {lab:'불만', val:fmt(c['불만']), sub:'불만율 '+rate+'%', color:c['불만']?'var(--bad)':'var(--good)'},
+    {lab:'중립', val:fmt(c['중립']), sub:'별점·단문 등', color:'var(--muted)'}
+  ]);
+  // 원문 정렬: 불만 → 칭찬 → 중립 (각 그룹 안은 최신순 유지 = 안정 정렬)
+  const SORD={'불만':0,'칭찬':1,'중립':2};
+  const recs = (dlySent ? base.filter(r=>r.s===dlySent) : base.slice()).sort((a,b)=>SORD[a.s]-SORD[b.s]);
   let lo=dlyFrom, hi=dlyTo; if(lo>hi){ const t=lo; lo=hi; hi=t; }
   const span = lo===hi ? dLabel(lo) : (lo+' ~ '+hi);
   const cut = dlyAll ? recs.length : Math.min(recs.length, DLY_LIMIT);
@@ -3360,7 +3377,8 @@ function dlyCard(r){
 }
 
 function exportDaily(){
-  const recs=dlyFilteredRange();
+  const SORD={'불만':0,'칭찬':1,'중립':2};
+  const recs=dlyFilteredRange().sort((a,b)=>SORD[a.s]-SORD[b.s]);
   if(!recs.length){ alert('내려받을 리뷰가 없습니다.'); return; }
   const rows=[['작성일','방문일','수집일','브랜드','매장','감성','출처','카테고리','작성자','리뷰내용']]
     .concat(recs.map(r=>[r.d,r.vd,r.seen,r.brand,r.store,r.s,dSrcName(r.src),r.cat,r.author,r.text]));
