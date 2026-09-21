@@ -320,45 +320,29 @@ def build_2025():
 # 자동수집(naver_collected_YYYYMMDD)은 파일명이 수집일이라, 같은 리뷰의 최초 등장 파일 =
 # 우리가 그 리뷰를 처음 인지한 날(first_seen) → "전일 새로 들어온 리뷰" 판별에 쓴다.
 # 원문(records)은 용량 때문에 최근 REC_WINDOW 일만, 일별 건수(by_day)는 AGG_WINDOW 일까지.
-AGG_WINDOW = 180
-REC_WINDOW = 62
+# 원문(records)만 담는다 — UI가 추이·집계 없이 원문 목록만 보여주므로 by_day/by_seen 불필요.
+# 기간(from~to)을 사용자가 정해 조회하므로 WINDOW 안의 리뷰를 전문(全文, 자르지 않음)으로 싣는다.
+DAILY_WINDOW = 120       # 원문 보관 기간(일). 이 안이면 어느 날짜든 전문 조회 가능.
 DAILY_COLS = ["d", "vd", "si", "s", "src", "cat", "author", "seen", "text"]
 
 
-def build_daily(rows, agg_window=AGG_WINDOW, rec_window=REC_WINDOW):
+def build_daily(rows, window=DAILY_WINDOW):
     today = datetime.date.today()
     end = today.isoformat()
-    agg_from = (today - datetime.timedelta(days=agg_window - 1)).isoformat()
-    rec_from = (today - datetime.timedelta(days=rec_window - 1)).isoformat()
+    start = (today - datetime.timedelta(days=window - 1)).isoformat()
 
     sel = []
     for r in rows:
         d = r.get("wdate") or r.get("date")     # 올라온 날(작성일) 우선, 없으면 방문일
-        if not d or d < agg_from or d > end:
+        if not d or d < start or d > end:
             continue
         sel.append((d, r))
     sel.sort(key=lambda x: (x[0], x[1]["store"], x[1].get("author") or ""), reverse=True)
 
-    # brand 는 [총, 칭찬, 불만, 중립] 4칸 배열 — 브랜드 필터를 걸어도 감성 분해가 되도록
-    SI = {"칭찬": 1, "불만": 2, "중립": 3}
-    by_day, by_seen = {}, collections.Counter()
-    for d, r in sel:
-        o = by_day.setdefault(d, {"total": 0, "칭찬": 0, "불만": 0, "중립": 0, "brand": {}, "src": {}})
-        o["total"] += 1
-        o[r["sentiment"]] += 1
-        bb = o["brand"].setdefault(r["brand"], [0, 0, 0, 0])
-        bb[0] += 1
-        bb[SI[r["sentiment"]]] += 1
-        o["src"][r["source"]] = o["src"].get(r["source"], 0) + 1
-        if r.get("first_seen"):
-            by_seen[r["first_seen"]] += 1
-
-    # 원문 목록 — 최근 rec_window 일. 매장명은 인덱스로 접어 용량을 줄인다.
+    # 원문 목록. 매장명은 인덱스로 접어 용량을 줄인다. 텍스트는 자르지 않는다(줄바꿈만 정리).
     store_idx, stores, store_brand = {}, [], {}
     records = []
     for d, r in sel:
-        if d < rec_from:
-            continue
         st = r["store"]
         if st not in store_idx:
             store_idx[st] = len(stores)
@@ -367,18 +351,17 @@ def build_daily(rows, agg_window=AGG_WINDOW, rec_window=REC_WINDOW):
         txt = (r.get("text") or "").replace(chr(10), " ").replace(chr(13), " ").strip()
         records.append([d, r.get("date"), store_idx[st], r["sentiment"], r["source"],
                         r.get("cat") or "", r.get("author") or "", r.get("first_seen") or "",
-                        txt[:400]])
+                        txt])
 
+    days = sorted({d for d, _ in sel}, reverse=True)                              # 작성일 기준 날짜
     collected_days = sorted({r.get("first_seen") for _, r in sel if r.get("first_seen")}, reverse=True)
     return {
-        "agg_from": agg_from, "rec_from": rec_from, "to": end,
-        "agg_window": agg_window, "rec_window": rec_window,
-        "days": sorted(by_day.keys(), reverse=True), "by_day": by_day,
+        "from": start, "to": end, "window": window,
+        "days": days, "collected_days": collected_days,
         "cols": DAILY_COLS, "stores": stores, "store_brand": store_brand,
         "records": records,
-        "by_seen": dict(by_seen), "collected_days": collected_days,
         "last_collected": collected_days[0] if collected_days else None,
-        "n_agg": len(sel), "n_rec": len(records),
+        "n": len(records),
     }
 
 

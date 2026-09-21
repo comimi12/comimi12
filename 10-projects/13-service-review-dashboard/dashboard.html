@@ -612,7 +612,7 @@ window.__BUILD__='__BUILD_TOKEN__';
   <nav class="snav">
     <div class="grp">월간 회의</div>
     <button class="tab active" data-v="vmeet">🗓 월간 회의 보고 <span style="opacity:.6">(1장 요약)</span></button>
-    <button class="tab" data-v="vdaily">📅 일별 리서치 <span style="opacity:.6">(전일 유입)</span></button>
+    <button class="tab" data-v="vdaily">📅 일일리뷰유입요약</button>
     <div class="grp">리뷰 분석</div>
     <button class="tab" data-v="v1">① 브랜드별 리뷰 종합</button>
     <button class="tab" data-v="v2">② TOP3 불만매장 개선 방안</button>
@@ -1301,33 +1301,20 @@ window.__BUILD__='__BUILD_TOKEN__';
     <div id="v5-result"></div>
   </section>
 
-  <!-- 일별 리서치 (전일 유입 리뷰를 날짜별로 확인) -->
+  <!-- 일별 리서치 (기간을 정해 리뷰 원문을 전문으로 확인) -->
   <section class="view" id="vdaily">
-    <div class="vhead"><h2>일별 리서치 <span class="note" id="vd-src"></span></h2></div>
+    <div class="vhead"><h2>일일리뷰유입요약 <span class="note" id="vd-src"></span></h2></div>
     <div class="ctrl">
       <div class="seg seg-sm" id="vd-mode">
         <button data-m="d" class="on">작성일 기준</button><button data-m="seen">수집일 기준</button>
       </div>
-      <span>기준일</span><select id="vd-day"></select>
-      <div class="seg seg-sm" id="vd-range">
-        <button data-r="1" class="on">해당일</button><button data-r="7">최근 7일</button><button data-r="30">최근 30일</button>
-      </div>
+      <span>기간</span><select id="vd-from"></select> ~ <select id="vd-to"></select>
       <span>브랜드</span><select id="vd-brand"></select>
-      <span class="ctrl-note">원문 필터</span>
       <div class="seg seg-sm" id="vd-sent">
         <button data-s="" class="on">전체</button><button data-s="불만">불만</button><button data-s="칭찬">칭찬</button><button data-s="중립">중립</button>
       </div>
       <input id="vd-q" placeholder="매장·내용 검색" style="min-width:200px">
       <button id="vd-csv" class="ghost" style="margin-left:auto">⬇ CSV 다운로드</button>
-    </div>
-    <div class="kpis" id="vd-kpi"></div>
-    <div class="panel" style="margin-bottom:14px">
-      <h3>일별 리뷰 유입 추이 <span class="note" id="vd-chartsub"></span></h3>
-      <div id="c-vd" style="height:270px"></div>
-    </div>
-    <div class="grid2">
-      <div class="panel"><h3>브랜드별 <span class="note" id="vd-bsub"></span></h3><div id="vd-brandbox"></div></div>
-      <div class="panel"><h3>매장 TOP <span class="note">건수 많은 순 · 원문 보관분 기준</span></h3><div id="vd-storebox"></div></div>
     </div>
     <div class="panel"><h3>리뷰 원문 <span class="note" id="vd-listsub"></span></h3><div id="vd-list"></div></div>
   </section>
@@ -3277,48 +3264,28 @@ function vmeetInit(){
   document.addEventListener('keydown',e=>{ if(e.key==='Escape') mo.classList.remove('on'); });
   renderMeet(sel.value);
 }
-/* ---------- VIEW: 일별 리서치 (전일 유입 리뷰를 날짜별로 확인) ----------
-   월별 집계와 달리 "언제 올라온 리뷰인가"를 본다.
-   · 작성일 기준 = 고객이 리뷰를 올린 날 (by_day, 최근 180일)
-   · 수집일 기준 = 우리 자동수집이 그 리뷰를 처음 가져온 날 (first_seen, 원문 보관분)   */
+/* ---------- VIEW: 일일리뷰유입요약 (기간을 정해 리뷰 원문을 전문으로 확인) ----------
+   추이·집계 없이 원문만 본다. 텍스트는 자르지 않고 전문 표시.
+   · 작성일 기준 = 고객이 리뷰를 올린 날
+   · 수집일 기준 = 우리 자동수집이 그 리뷰를 처음 가져온 날(first_seen)
+   기간(시작일~종료일)을 골라 그 안의 원문을 모두 본다.                                */
 const DLY = R.daily || null;
-let DREC = [], dlyMode = 'd', dlyRange = 1, dlySent = '', dlyBrand = '', dlyDay = '', dlyAll = false;
-const DLY_LIMIT = 250;
+let DREC = [], dlyMode = 'd', dlySent = '', dlyBrand = '', dlyFrom = '', dlyTo = '', dlyAll = false;
+const DLY_LIMIT = 300;
 
 function dEsc(v){ return String(v==null?'':v).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'})[c]); }
-function dAdd(iso,n){ const p=iso.split('-'); const t=new Date(Date.UTC(+p[0],+p[1]-1,+p[2]+n)); return t.toISOString().slice(0,10); }
 function dSrcName(s){ return s==='naver'?'네이버':s==='catchtable'?'캐치테이블':(s||'기타'); }
 function dWd(iso){ return ['일','월','화','수','목','금','토'][new Date(iso+'T00:00:00Z').getUTCDay()]; }
 function dLabel(iso){ return iso+' ('+dWd(iso)+')'; }
-
-function dlyDayList(){ return (dlyMode==='d' ? DLY.days : DLY.collected_days) || []; }
-function dlyRangeDays(){                       // 기준일에서 거슬러 dlyRange 일
-  const out=[]; for(let i=0;i<dlyRange;i++) out.push(dAdd(dlyDay,-i));
-  return out;
-}
 function dlyKey(r){ return dlyMode==='d' ? r.d : r.seen; }
+function dlyDayList(){ return (dlyMode==='d' ? DLY.days : DLY.collected_days) || []; }
 
-/* 기간 집계 — 작성일 모드는 by_day(180일 전체), 수집일 모드는 원문 보관분에서 */
-function dlyAgg(days){
-  const a={total:0,'칭찬':0,'불만':0,'중립':0};
-  if(dlyMode==='d'){
-    days.forEach(d=>{ const o=DLY.by_day[d]; if(!o) return;
-      if(dlyBrand){ const b=o.brand[dlyBrand]; if(!b) return;
-        a.total+=b[0]; a['칭찬']+=b[1]; a['불만']+=b[2]; a['중립']+=b[3];
-      } else { a.total+=o.total; a['칭찬']+=o['칭찬']; a['불만']+=o['불만']; a['중립']+=o['중립']; }
-    });
-  } else {
-    const set=new Set(days);
-    DREC.forEach(r=>{ if(!r.seen||!set.has(r.seen)) return; if(dlyBrand&&r.brand!==dlyBrand) return;
-      a.total++; a[r.s]++; });
-  }
-  return a;
-}
-/* 원문 목록 — 기간·브랜드·감성·검색어 필터 */
-function dlyFiltered(days){
-  const set=new Set(days), q=(document.getElementById('vd-q').value||'').trim().toLowerCase();
+/* 기간·브랜드·감성·검색 필터 (기간은 시작~종료 경계 비교, ISO 문자열이라 사전순=날짜순) */
+function dlyFilteredRange(){
+  const q=(document.getElementById('vd-q').value||'').trim().toLowerCase();
+  let lo=dlyFrom, hi=dlyTo; if(lo>hi){ const t=lo; lo=hi; hi=t; }
   return DREC.filter(r=>{
-    const k=dlyKey(r); if(!k||!set.has(k)) return false;
+    const k=dlyKey(r); if(!k||k<lo||k>hi) return false;
     if(dlyBrand&&r.brand!==dlyBrand) return false;
     if(dlySent&&r.s!==dlySent) return false;
     if(q&&!((r.store+' '+r.text+' '+(r.author||'')).toLowerCase().includes(q))) return false;
@@ -3327,133 +3294,53 @@ function dlyFiltered(days){
 }
 
 function vdailyInit(){
-  if(!DLY){ document.getElementById('vd-kpi').innerHTML='<div class="panel">일별 데이터가 없습니다 — build.py 를 다시 실행해 주세요.</div>'; return; }
+  if(!DLY){ document.getElementById('vd-list').innerHTML='<div class="panel">일별 데이터가 없습니다 — build.py 를 다시 실행해 주세요.</div>'; return; }
   DREC = (DLY.records||[]).map(a=>{ const st=DLY.stores[a[2]];
     return {d:a[0],vd:a[1],store:st,brand:DLY.store_brand[st]||'(미상)',s:a[3],src:a[4],cat:a[5],author:a[6],seen:a[7],text:a[8]}; });
   document.getElementById('vd-src').textContent =
-    '작성일 '+DLY.agg_from+'~'+DLY.to+' 집계 · 원문 '+DLY.rec_from+'~ 보관('+fmt(DLY.n_rec)+'건) · 자동수집 최신 '+(DLY.last_collected||'–');
+    DLY.from+' ~ '+DLY.to+' 원문 '+fmt(DLY.n)+'건 보관 · 자동수집 최신 '+(DLY.last_collected||'–');
   const bs=document.getElementById('vd-brand');
   bs.innerHTML='<option value="">전체</option>'+R.brands.map(b=>'<option>'+b+'</option>').join('');
   bs.addEventListener('change',()=>{ dlyBrand=bs.value; dlyAll=false; renderDaily(); });
-  document.getElementById('vd-day').addEventListener('change',e=>{ dlyDay=e.target.value; dlyAll=false; renderDaily(); });
+  document.getElementById('vd-from').addEventListener('change',e=>{ dlyFrom=e.target.value; dlyAll=false; renderDaily(); });
+  document.getElementById('vd-to').addEventListener('change',e=>{ dlyTo=e.target.value; dlyAll=false; renderDaily(); });
   document.getElementById('vd-mode').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return;
     dlyMode=b.dataset.m; document.querySelectorAll('#vd-mode button').forEach(x=>x.classList.toggle('on',x===b));
-    dlyDay=''; dlyAll=false; fillDlyDays(); renderDaily(); });
-  document.getElementById('vd-range').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return;
-    dlyRange=+b.dataset.r; document.querySelectorAll('#vd-range button').forEach(x=>x.classList.toggle('on',x===b));
-    dlyAll=false; renderDaily(); });
+    dlyAll=false; fillDlyDates(true); renderDaily(); });
   document.getElementById('vd-sent').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return;
     dlySent=b.dataset.s; document.querySelectorAll('#vd-sent button').forEach(x=>x.classList.toggle('on',x===b));
     dlyAll=false; renderDaily(); });
   let t=null; document.getElementById('vd-q').addEventListener('input',()=>{ clearTimeout(t); t=setTimeout(()=>{dlyAll=false;renderDaily();},200); });
   document.getElementById('vd-csv').addEventListener('click',exportDaily);
-  charts.vd = echarts.init(document.getElementById('c-vd'));
-  charts.vd.on('click',p=>{ if(!p.name) return; dlyDay=p.name; dlyAll=false; fillDlyDays(); renderDaily(); });
-  fillDlyDays(); renderDaily();
+  fillDlyDates(true); renderDaily();
 }
 
-function fillDlyDays(){
-  let days=dlyDayList(); const sel=document.getElementById('vd-day');
-  if(!dlyDay) dlyDay = days[0] || DLY.to;
-  // 차트에서 리뷰 0건인 날을 클릭했을 수도 있다 → 목록에 없으면 끼워 넣어 선택 유지
-  if(!days.includes(dlyDay)) days = days.concat([dlyDay]).sort().reverse();
-  sel.innerHTML = days.map(d=>{
-    const n = dlyMode==='d' ? ((DLY.by_day[d]||{}).total||0) : (DLY.by_seen[d]||0);
-    return '<option value="'+d+'"'+(d===dlyDay?' selected':'')+'>'+dLabel(d)+' · '+n+'건</option>';
-  }).join('');
+function fillDlyDates(reset){
+  const days=dlyDayList();
+  if(reset || !days.includes(dlyTo))   dlyTo   = days[0] || DLY.to;
+  if(reset || !days.includes(dlyFrom)) dlyFrom = days[0] || DLY.to;   // 기본=최신 하루
+  const cnt={}; DREC.forEach(r=>{ const k=dlyKey(r); if(k) cnt[k]=(cnt[k]||0)+1; });
+  const opt=sel=>days.map(d=>'<option value="'+d+'"'+(d===sel?' selected':'')+'>'+dLabel(d)+' · '+(cnt[d]||0)+'건</option>').join('');
+  document.getElementById('vd-from').innerHTML=opt(dlyFrom);
+  document.getElementById('vd-to').innerHTML=opt(dlyTo);
 }
 
 function renderDaily(){
-  const days=dlyRangeDays(), a=dlyAgg(days);
-  const prevDays=[]; for(let i=1;i<=dlyRange;i++) prevDays.push(dAdd(days[days.length-1],-i));
-  const pa=dlyAgg(prevDays);
-  const dl=a.total-pa.total, sign=dl>0?'▲':dl<0?'▼':'–';
-  const rate=a.total?Math.round(a['불만']/a.total*1000)/10:0;
-  const grate=a.total?Math.round(a['칭찬']/a.total*1000)/10:0;
-  const label=dlyRange===1?dLabel(dlyDay):days[days.length-1]+' ~ '+dlyDay;
-  const modeName=dlyMode==='d'?'작성일':'수집일';
-  const newest=DLY.last_collected||'–';
-  document.getElementById('vd-kpi').innerHTML=kpiHtml([
-    {lab:'리뷰 ('+modeName+' '+(dlyRange===1?'당일':dlyRange+'일')+')', val:fmt(a.total),
-     sub:label+(dlyBrand?' · '+dlyBrand:'')+' · 직전 동기간 '+fmt(pa.total)+'건 '+sign+fmt(Math.abs(dl)), color:'var(--brand)'},
-    {lab:'불만', val:fmt(a['불만']), sub:'불만율 '+rate+'%', color:a['불만']?'var(--bad)':'var(--good)'},
-    {lab:'칭찬', val:fmt(a['칭찬']), sub:'칭찬율 '+grate+'%', color:'var(--good)'},
-    {lab:'최근 자동수집', val:newest.slice(5), sub:'신규 '+fmt(DLY.by_seen[newest]||0)+'건 유입', color:'var(--brand)'}
-  ]);
-  dlyChart(); dlyBrandBox(days,a); dlyList(days);
-}
-
-function dlyChart(){
-  const N=60, endD = dlyMode==='d' ? DLY.to : ((DLY.collected_days||[])[0]||DLY.to);
-  const axis=[]; for(let i=N-1;i>=0;i--) axis.push(dAdd(endD,-i));
-  const good=[],neu=[],bad=[];
-  if(dlyMode==='d'){
-    axis.forEach(d=>{ const o=DLY.by_day[d];
-      if(!o){good.push(0);neu.push(0);bad.push(0);return;}
-      if(dlyBrand){ const b=o.brand[dlyBrand]||[0,0,0,0]; good.push(b[1]);bad.push(b[2]);neu.push(b[3]); }
-      else { good.push(o['칭찬']);bad.push(o['불만']);neu.push(o['중립']); }
-    });
-  } else {
-    const m={}; DREC.forEach(r=>{ if(!r.seen) return; if(dlyBrand&&r.brand!==dlyBrand) return;
-      (m[r.seen]=m[r.seen]||{'칭찬':0,'불만':0,'중립':0})[r.s]++; });
-    axis.forEach(d=>{ const o=m[d]||{}; good.push(o['칭찬']||0); bad.push(o['불만']||0); neu.push(o['중립']||0); });
-  }
-  document.getElementById('vd-chartsub').textContent =
-    '최근 60일 · '+(dlyMode==='d'?'작성일':'수집일(자동수집 실행일)')+' 기준'+(dlyBrand?' · '+dlyBrand:'')+' · 막대를 클릭하면 그 날로 이동';
-  charts.vd.setOption({
-    grid:{left:46,right:20,top:30,bottom:46},
-    tooltip:{trigger:'axis',axisPointer:{type:'shadow'}},
-    legend:{top:0,data:['칭찬','중립','불만']},
-    xAxis:{type:'category',data:axis,axisLabel:{fontSize:10,formatter:v=>v.slice(5),interval:Math.floor(axis.length/15)}},
-    yAxis:{type:'value',name:'건'},
-    series:[
-      {name:'칭찬',type:'bar',stack:'t',itemStyle:{color:'#2f9e6f'},data:good},
-      {name:'중립',type:'bar',stack:'t',itemStyle:{color:'#c3cedb'},data:neu},
-      {name:'불만',type:'bar',stack:'t',itemStyle:{color:'#c0405a'},data:bad}
-    ]
-  },true);
-  charts.vd.resize();
-}
-
-function dlyBrandBox(days,a){
-  const rows=R.brands.map(b=>{
-    let t=0,g=0,bd=0;
-    if(dlyMode==='d'){ days.forEach(d=>{ const o=DLY.by_day[d]; if(!o)return; const x=o.brand[b]; if(!x)return; t+=x[0];g+=x[1];bd+=x[2]; }); }
-    else { const set=new Set(days); DREC.forEach(r=>{ if(r.brand!==b||!r.seen||!set.has(r.seen))return; t++; if(r.s==='칭찬')g++; if(r.s==='불만')bd++; }); }
-    return {b:b,t:t,g:g,bd:bd,rate:t?Math.round(bd/t*1000)/10:0};
-  }).filter(x=>x.t).sort((x,y)=>y.t-x.t);
-  document.getElementById('vd-bsub').textContent = a.total?fmt(a.total)+'건':'해당 기간 리뷰 없음';
-  document.getElementById('vd-brandbox').innerHTML = rows.length
-    ? '<table><thead><tr><th>브랜드</th><th>리뷰</th><th>칭찬</th><th>불만</th><th>불만율</th></tr></thead><tbody>'
-      + rows.map(x=>'<tr><td><span class="pill brand">'+x.b+'</span></td><td>'+fmt(x.t)+'</td>'
-        +'<td style="color:var(--good)">'+fmt(x.g)+'</td><td style="color:var(--bad)"><b>'+fmt(x.bd)+'</b></td>'
-        +'<td><b>'+x.rate+'%</b></td></tr>').join('')+'</tbody></table>'
-    : '<p style="color:var(--muted);font-size:13px">해당 기간 리뷰가 없습니다.</p>';
-}
-
-function dlyList(days){
-  const recs=dlyFiltered(days);
-  const sb={}; recs.forEach(r=>{ const o=sb[r.store]=sb[r.store]||{t:0,bd:0}; o.t++; if(r.s==='불만')o.bd++; });
-  const top=Object.entries(sb).sort((a,b)=>b[1].t-a[1].t).slice(0,12);
-  document.getElementById('vd-storebox').innerHTML = top.length
-    ? '<table><thead><tr><th>매장</th><th>리뷰</th><th>불만</th></tr></thead><tbody>'
-      + top.map(e=>'<tr><td>'+dEsc(e[0])+'</td><td>'+fmt(e[1].t)+'</td>'
-        +'<td style="color:'+(e[1].bd?'var(--bad)':'var(--muted)')+'"><b>'+e[1].bd+'</b></td></tr>').join('')+'</tbody></table>'
-    : '<p style="color:var(--muted);font-size:13px">해당 기간 원문이 없습니다.</p>';
-
-  const oldRange = days[days.length-1] < DLY.rec_from;
+  const recs=dlyFilteredRange();
+  let lo=dlyFrom, hi=dlyTo; if(lo>hi){ const t=lo; lo=hi; hi=t; }
+  const span = lo===hi ? dLabel(lo) : (lo+' ~ '+hi);
   const cut = dlyAll ? recs.length : Math.min(recs.length, DLY_LIMIT);
   document.getElementById('vd-listsub').textContent =
-    fmt(recs.length)+'건'+(dlySent?' · '+dlySent:'')+(cut<recs.length?' · '+fmt(cut)+'건 표시':'');
+    span+' · '+fmt(recs.length)+'건'+(dlyBrand?' · '+dlyBrand:'')+(dlySent?' · '+dlySent:'')
+    +(cut<recs.length?' · '+fmt(cut)+'건 표시':'');
   let html = recs.slice(0,cut).map(dlyCard).join('');
   if(!recs.length){
-    html = '<p style="color:var(--muted);font-size:13px">'
-      + (oldRange ? '원문은 최근 '+DLY.rec_window+'일('+DLY.rec_from+'~)만 보관합니다. 그 이전 기간은 위 집계·추이로만 확인할 수 있습니다.'
-                  : '조건에 맞는 리뷰가 없습니다.') + '</p>';
+    html = '<p style="color:var(--muted);font-size:13px">이 기간에 조건에 맞는 리뷰가 없습니다. '
+         + '(원문은 '+DLY.from+' 이후만 보관합니다.)</p>';
   } else if(cut<recs.length){
-    html += '<div style="text-align:center;margin-top:8px"><button onclick="dlyAll=true;renderDaily()" '
-      + 'style="border:1px solid #c7d2e0;background:#fff;color:var(--brand);border-radius:8px;padding:8px 16px;font-weight:700;cursor:pointer">'
-      + '전체 '+fmt(recs.length)+'건 보기</button></div>';
+    html += '<div style="text-align:center;margin-top:10px"><button onclick="dlyAll=true;renderDaily()" '
+      + 'style="border:1px solid #c7d2e0;background:#fff;color:var(--brand);border-radius:8px;padding:9px 18px;font-weight:700;cursor:pointer">'
+      + '전체 '+fmt(recs.length)+'건 모두 보기</button></div>';
   }
   document.getElementById('vd-list').innerHTML = html;
 }
@@ -3469,16 +3356,16 @@ function dlyCard(r){
     + (r.vd&&r.vd!==r.d?'<span>· 방문 '+r.vd+'</span>':'')
     + (r.seen?'<span>· 수집 '+r.seen+'</span>':'')
     + (r.author?'<span>· '+dEsc(r.author)+'</span>':'')
-    + '</div><div class="ct">'+txt+'</div></div>';
+    + '</div><div class="ct" style="max-height:none;overflow:visible">'+txt+'</div></div>';
 }
 
 function exportDaily(){
-  const recs=dlyFiltered(dlyRangeDays());
+  const recs=dlyFilteredRange();
   if(!recs.length){ alert('내려받을 리뷰가 없습니다.'); return; }
   const rows=[['작성일','방문일','수집일','브랜드','매장','감성','출처','카테고리','작성자','리뷰내용']]
     .concat(recs.map(r=>[r.d,r.vd,r.seen,r.brand,r.store,r.s,dSrcName(r.src),r.cat,r.author,r.text]));
-  const span = dlyRange===1 ? dlyDay : dAdd(dlyDay,-(dlyRange-1))+'_'+dlyDay;
-  downloadCsv(rows, '일별리서치_'+(dlyMode==='d'?'작성일':'수집일')+'_'+span+'.csv');
+  let lo=dlyFrom, hi=dlyTo; if(lo>hi){ const t=lo; lo=hi; hi=t; }
+  downloadCsv(rows, '일일리뷰_'+(dlyMode==='d'?'작성일':'수집일')+'_'+(lo===hi?lo:lo+'_'+hi)+'.csv');
 }
 
 /* ---------- tabs & lazy chart init ---------- */
