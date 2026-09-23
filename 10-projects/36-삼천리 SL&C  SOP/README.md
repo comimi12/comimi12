@@ -9,11 +9,11 @@
 
 | 브랜드 | 문서 | 분량 |
 |--------|------|------|
-| KSC | 입문 · 서비스 매뉴얼 | 49p / 8개 챕터 |
+| KSC | 입문 · 서비스 매뉴얼 | 47p / 8개 챕터 |
 | KSC | 입문 매뉴얼 (간소화) | 18p |
 | KSC | 메뉴 SOP | 54종 (사진 37종) |
-| WASA | 입문 · 서비스 매뉴얼 | 52p / 8개 챕터 |
-| WASA | 메뉴 SOP | 90종 (사진 88종) |
+| WASA | 입문 · 서비스 매뉴얼 | 48p / 8개 챕터 |
+| WASA | 메뉴 SOP | 91종 (사진 87종) |
 
 원본 이미지 184장을 웹용(긴 변 1000px)으로 재인코딩해 포함.
 
@@ -248,6 +248,7 @@ python build/kkotsal.py --reuse  # 캡처본 재사용하고 다시 인코딩만
 │   ├── manifest.webmanifest, sw.js, icon.png   # 홈 화면 추가 · 오프라인
 ├── build/
 │   ├── extract.py          # PPTX → data.json + img/  (원본 수정 시 재실행)
+│   ├── store_info.py       # '매장 정보.pptx' → STORE FACT SHEET 답 채우기 · X 항목 삭제
 │   ├── verify.py           # 14개 화면 자동 캡처 + 콘솔오류·가로스크롤·깨진이미지 검사
 │   ├── verify_study.py     # 학습 시간 게이트·수료 등록 링크를 브라우저에서 끝까지 확인
 │   ├── deploy.py           # src/ → GitHub Pages 저장소 push
@@ -259,11 +260,11 @@ python build/kkotsal.py --reuse  # 캡처본 재사용하고 다시 인코딩만
 
 `C:\Users\owner\Desktop\교육팀\4. 신규매장매뉴얼, 교안\오픈매장 매뉴얼\` 아래
 
-- `KSC_US\교육 자료\KSC_BREA_입문매뉴얼.pptx`
-- `KSC_US\교육 자료\KSC_BREA_입문매뉴얼_간소화.pptx`
+- `KSC_US\교육 자료\KSC_BREA_Training_Manual_A4_매장정보반영.pptx` (2026-09-23~)
 - `KSC_US\교육 자료\KSC_menu_sop_메뉴교육자료.pptx`
-- `WASA\WASA_BREA_Training_Manual_A4.pptx`
-- `WASA\WASA_menu_manual_전체90종.pptx`
+- `KSC_US\교육 자료\매장 정보.pptx` — 매장이 작성한 STORE FACT SHEET (1장 KSC / 2장 WASA)
+- `WASA\IZAKAYA_WASA_BREA_Training_Manual_A4_매장정보반영.pptx` (2026-09-23~)
+- `WASA\WASA_menu_manual_A4.pptx` (2026-09-23~, 91종)
 
 ## 원본이 DRM으로 잠겼을 때
 
@@ -278,10 +279,44 @@ d = fix_names(json.load(io.open('src/data.json', encoding='utf-8')))
 io.open('src/data.json', 'w', encoding='utf-8').write(json.dumps(d, ensure_ascii=False, separators=(',', ':')))
 ```
 
+## 우리 매장 정보 (STORE FACT SHEET)
+
+원본 입문매뉴얼의 이 페이지는 **빈칸 서식**이라 data.json에도 질문만 있고 답이 없다.
+매장이 작성한 `매장 정보.pptx`(1장 KSC / 2장 WASA)를 읽어 답을 채우는 것이 `build/store_info.py`다.
+
+- 답이 `X`(해당 없음·미정)인 항목은 **질문째로 지운다** — 빈칸을 남겨 두면 직원이 외울 것을 못 고른다.
+- 안내 응대 멘트도 같은 기준: 정보가 지워진 주차·화장실 멘트는 빼고, 주방 마감 멘트의 `____`는 라스트콜 답에서 채운다.
+  영문 문장에는 한글 시각 표기를 넣지 않는다 — `app.js`의 `pairLines`가 첫 한글에서 줄을 나눠 문장이 반토막 난다.
+- 원본 PPTX가 DRM으로 잠기면 스크립트 안 `FALLBACK` 사전을 고쳐 `--fallback`으로 돌린다.
+
+```bash
+python build/store_info.py            # 매장 정보.pptx 읽어 반영
+python build/store_info.py --fallback # PPTX 없이 사전값으로 반영
+```
+
+2026-09-23 반영: KSC 16개 항목 채움·6개 삭제 / WASA 14개 채움·8개 삭제.
+
+같은 날 원본이 **`…_매장정보반영.pptx`**로 바뀌었다 — 답이 라벨 옆 별도 텍스트박스로 들어 있어,
+추출하면 답이 줄 없는 블록으로 따로 나온다. `store_info.py`가 그런 블록(과 삭제된 질문이 답에 붙은 블록)을
+버리고 라벨 블록에 답을 채우므로 절차는 그대로다.
+
+### 원본 개정과 페이지 번호 (2026-09-23)
+
+매장정보반영본에서 BARTENDER·BARBACK(두 브랜드), MENU KNOWLEDGE ①②(WASA)가 빠져 뒤 페이지 번호가 당겨졌다.
+진도·학습시간·포지션은 `deck:n` 키로 저장되므로 `app.js`의 `migrate()`가 **기기마다 한 번** 새 번호로 옮긴다
+(`S.dv` = 데이터 버전). 원본이 또 장을 넣고 빼면 `DATA_VER`를 올리고 `renum()`을 새 규칙으로 바꾼다.
+
+### 가로로 긴 이미지
+
+`.shot`은 16:10 `cover`라 가로로 긴 이미지(브랜드 소개 WHO WE ARE 띠, 2.2:1)의 양끝 글씨가 잘렸다.
+원본 폭 3인치 이상 · 비율 1.7 초과 이미지는 **높이 300px로 키워 좌우 스크롤**(`.shot.pan`, 안내 문구는 다 들어오면 숨김),
+원본 폭 3인치 미만(로고류)은 `contain`으로 통째로 보여준다.
+
 ## 갱신 방법
 
 ```bash
 python build/extract.py                        # 원본 PPTX 다시 추출
+python build/store_info.py                     # 매장 정보(FACT SHEET) 채우기 — extract 뒤에 항상
 python build/thumbs.py                         # 메뉴 카드용 축소본 생성
 python -m http.server 8766 --directory src     # 로컬 확인
 python build/verify.py 8766                    # 화면 자동 검증

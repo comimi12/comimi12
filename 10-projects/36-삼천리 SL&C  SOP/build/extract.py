@@ -18,16 +18,16 @@ SRC = r"C:\Users\owner\Desktop\교육팀\4. 신규매장매뉴얼, 교안\오픈
 DECKS = [
     dict(id="ksc-manual", brand="KSC", kind="manual",
          title="입문 · 서비스 매뉴얼", sub="TRAINING & SERVICE MANUAL",
-         path=os.path.join(SRC, "KSC_US", "교육 자료", "KSC_BREA_입문매뉴얼.pptx")),
+         path=os.path.join(SRC, "KSC_US", "교육 자료", "KSC_BREA_Training_Manual_A4_매장정보반영.pptx")),
     dict(id="ksc-menu", brand="KSC", kind="menu",
          title="메뉴 SOP · 54종", sub="MENU TRAINING GUIDE",
          path=os.path.join(SRC, "KSC_US", "교육 자료", "KSC_menu_sop_메뉴교육자료.pptx")),
     dict(id="wasa-manual", brand="WASA", kind="manual",
          title="입문 · 서비스 매뉴얼", sub="TRAINING & SERVICE MANUAL",
-         path=os.path.join(SRC, "WASA", "WASA_BREA_Training_Manual_A4.pptx")),
+         path=os.path.join(SRC, "WASA", "IZAKAYA_WASA_BREA_Training_Manual_A4_매장정보반영.pptx")),
     dict(id="wasa-menu", brand="WASA", kind="menu",
-         title="메뉴 SOP · 90종", sub="MENU MANUAL",
-         path=os.path.join(SRC, "WASA", "WASA_menu_manual_전체90종.pptx")),
+         title="메뉴 SOP · 91종", sub="MENU MANUAL",
+         path=os.path.join(SRC, "WASA", "WASA_menu_manual_A4.pptx")),
 ]
 
 _seen = {}

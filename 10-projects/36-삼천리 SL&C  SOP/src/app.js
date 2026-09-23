@@ -46,7 +46,7 @@
       localStorage.setItem(KEY, JSON.stringify({
         brand: S.brand, theme: S.theme, me: S.me,
         done: S.done, study: S.study, daily: S.daily, sign: S.sign,
-        team: S.team, adminOn: S.adminOn
+        team: S.team, adminOn: S.adminOn, dv: S.dv
       }));
     } catch (e) { /* 저장 불가여도 화면은 계속 동작 */ }
   }
@@ -592,8 +592,18 @@
     var items = [];
     (p.blocks || []).forEach(function (b) { items.push({ y: b.y, x: b.x, html: blockHtml(b) }); });
     (p.images || []).forEach(function (im) {
-      items.push({ y: im.y, x: im.x, html: '<figure class="shot"><img src="' + esc(im.src)
-        + '" alt="" loading="lazy"></figure>' });
+      // 가로로 긴 큰 이미지(브랜드 소개 띠 등)는 잘라내지 않고 좌우 스크롤로 전부 보여준다.
+      // 원본에서 작게 들어간 로고류는 잘리지 않게 통째로 담는다.
+      var r = im.h ? im.w / im.h : 1.6, fig;
+      if (im.w >= 3 && r > 1.7) {
+        fig = '<figure class="shot pan"><div class="pan-in"><img src="' + esc(im.src)
+          + '" alt="" loading="lazy"></div><figcaption>' + L('Swipe ← → to read it all', '좌우로 밀어서 전체 보기')
+          + '</figcaption></figure>';
+      } else {
+        fig = '<figure class="shot' + (im.w < 3 ? ' fit' : '') + '"><img src="' + esc(im.src)
+          + '" alt="" loading="lazy"></figure>';
+      }
+      items.push({ y: im.y, x: im.x, html: fig });
     });
     items.sort(function (a, b) { return a.y - b.y; });
     var rows = [];
@@ -1454,6 +1464,53 @@
   });
   window.addEventListener('hashchange', function () { closeSheet(); render(); window.scrollTo(0, 0); });
 
+  // 좌우 스크롤 이미지가 화면에 다 들어오면(넓은 화면) '밀어서 보기' 안내를 숨긴다
+  document.addEventListener('load', function (e) {
+    var fig = e.target.closest && e.target.closest('.shot.pan');
+    if (!fig) return;
+    var box = fig.querySelector('.pan-in');
+    fig.classList.toggle('nosc', box.scrollWidth <= box.clientWidth + 2);
+  }, true);
+
+  /* ── 원본 개정에 따른 페이지 번호 이동 (2026-09-23 매장정보반영본) ──
+   * BARTENDER·BARBACK(두 브랜드), MENU KNOWLEDGE ①②(WASA) 장이 빠져 뒤 페이지 번호가 당겨졌다.
+   * 기기에 저장된 진도·학습시간·체크·포지션을 새 번호로 한 번만 옮긴다 (0 = 없어진 장). */
+  var DATA_VER = 2;
+  function renum(deck, n) {
+    n = +n;
+    if (n < 19) return n;
+    if (n <= 20) return 0;
+    if (deck === 'wasa-manual') return n <= 48 ? n - 2 : (n <= 50 ? 0 : n - 4);
+    return n - 2;
+  }
+  function migrate() {
+    if ((S.dv || 1) >= DATA_VER) return;
+    var rx = /^(ksc-manual|wasa-manual):(\d+)$/;
+    function mapKey(k) {
+      var m = rx.exec(k);
+      if (!m) return k;
+      var n = renum(m[1], m[2]);
+      return n ? m[1] + ':' + n : null;
+    }
+    ['done', 'study'].forEach(function (f) {
+      var o = {};
+      Object.keys(S[f] || {}).forEach(function (k) { var nk = mapKey(k); if (nk) o[nk] = S[f][k]; });
+      S[f] = o;
+    });
+    var dl = {};
+    Object.keys(S.daily || {}).forEach(function (k) {
+      var p = k.split('|'); if (p[1]) p[1] = mapKey(p[1]);
+      if (p[1]) dl[p.join('|')] = S.daily[k];
+    });
+    S.daily = dl;
+    if (S.me && S.me.pos) {
+      var np = mapKey(S.me.pos);
+      if (!np) { S.me.pos = ''; S.me.posLabel = ''; } else S.me.pos = np;
+    }
+    S.dv = DATA_VER;
+    save();
+  }
+
   /* ── 시작 ─────────────────────────────────────────── */
   fetch('data.json?v=' + (document.currentScript && document.currentScript.src.split('v=')[1] || '1'))
     .then(function (r) { return r.json(); })
@@ -1461,6 +1518,7 @@
       DATA = d;
       DATA.forEach(function (x) { if (BRANDS.indexOf(x.brand) < 0) BRANDS.push(x.brand); });
       if (BRANDS.indexOf(S.brand) < 0) S.brand = BRANDS[0];
+      migrate();
       buildIndex();
       render();
       if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
