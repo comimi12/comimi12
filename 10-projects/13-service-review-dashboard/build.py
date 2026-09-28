@@ -144,6 +144,96 @@ def classify_review(text, rating, source):
     return "중립"
 
 
+# 긍정 문맥에 쓰인 부정 단어("위생적이라 좋다", "냄새까지 좋은") — NEG 계산 전에 지운다
+NEG_POS_CONTEXT = ["위생적이", "위생도 좋", "위생 좋", "비위생적이지 않", "냄새까지 좋", "냄새도 좋",
+                   "냄새가 좋", "좋은 냄새", "잡내 없", "잡내가 없", "비린내 없", "비린내가 없",
+                   "냄새 없", "냄새가 없", "자극적이지 않", "짜지 않", "느끼하지 않", "비리지 않",
+                   "아쉬운 점 없", "아쉬운 게 없", "아쉬움 없", "아쉬움이 없", "불만 없", "별로 없",
+                   "실망 없", "실망시키지 않", "기대이상", "기대 이상", "나쁘지 않"]
+# 한 번만 나와도 불만으로 보는 강한 표현 (칭찬 단어가 섞여 있어도 우선)
+STRONG_NEG = ["다시 안 가", "다시는 안", "다신 안", "안 가고 싶", "안 갈 것", "재방문 안", "재방문 의사 없",
+              "재방문은 안", "유쾌하지 못", "유쾌하지 않", "불쾌", "최악", "비추", "돈 아깝", "돈아깝",
+              "실망", "형편없", "엉망", "기분 나쁘", "기분이 나쁘", "환불", "식중독", "배탈", "머리카락",
+              "벌레", "이물"]
+
+
+def _strip_pos_context(t):
+    for w in NEG_POS_CONTEXT:
+        t = t.replace(w, " ")
+    return t
+
+
+def rule_sentiment(text):
+    """규칙 v2: 긍정 문맥 부정어 제거 → 강한 부정 표현 우선 → 단어 수 비교."""
+    t = text or ""
+    tn = _strip_pos_context(t)
+    tns = tn.replace(" ", "")
+    if any(w in tn or w.replace(" ", "") in tns for w in STRONG_NEG):
+        return "불만"
+    neg = sum(tn.count(w) for w in NEG)
+    pos = sum(t.count(w) for w in POS) + sum(1 for w in NEG_POS_CONTEXT if w in t)
+    if neg > pos:
+        return "불만"
+    if pos > neg:
+        return "칭찬"
+    return "중립"
+
+
+def neg_signal(text):
+    """부정 신호가 하나라도 있으면 AI 판정 후보."""
+    t = text or ""
+    tns = t.replace(" ", "")
+    return (any(w in t for w in NEG) or any(w in t or w.replace(" ", "") in tns for w in STRONG_NEG)
+            or any(w in t for w in ["않았", "못함", "못했", "싫", "안 가", "안가", "그닥", "글쎄"]))
+
+
+# AI 전수 판정 구간 — 이 기간은 출처·기존 라벨과 무관하게 내용 있는 모든 리뷰를 Claude 가 판정한다.
+# 기초 데이터(월별 프로그램 파일)가 확정된 달까지 FULL_AI_UNTIL 을 늘린다. 그 밖의 달은 후보만 판정.
+FULL_AI_FROM, FULL_AI_UNTIL = "2026-01", "2026-08"
+
+
+def ai_targets(rows):
+    """AI 판정 대상: ① 전수 구간의 내용 있는 리뷰 전부 ② 그 밖의 달은 키워드 라벨 중 불만 가능성 후보."""
+    out = []
+    for r in rows:
+        if not has_content(r.get("text")):
+            continue
+        if FULL_AI_FROM <= r["month"] <= FULL_AI_UNTIL:
+            out.append(r)
+        elif r.get("_kw") and (r["sentiment"] == "불만" or rule_sentiment(r["text"]) == "불만"
+                               or neg_signal(r["text"])):
+            out.append(r)
+    return out
+
+
+def refine_sentiment(rows):
+    """리뷰 감성 교차 판정 → 판정 반영된 rows 반환('제외' 판정 리뷰는 집계에서 뺀다).
+       최종 = AI 판정(칭찬/불만/중립/제외) 있으면 AI, 없으면 규칙 v2. 대상이 아니면 기존 라벨 유지.
+       기존 라벨과 달라졌거나 제외된 건은 data/sentiment_crosscheck.csv 로 남긴다."""
+    import sentiment_ai
+    cands = ai_targets(rows)
+    ai = sentiment_ai.judge([(r["store"], r["text"]) for r in cands]) if cands else {}
+    changed, n_ai = [], 0
+    for r in cands:
+        rule = rule_sentiment(r["text"])
+        a = ai.get(sentiment_ai.key_of(r["text"]))
+        n_ai += bool(a)
+        final = a["label"] if a else rule
+        if final != r["sentiment"]:
+            changed.append([r["date"], r["store"], r["source"], r["sentiment"], rule,
+                            a["label"] if a else "", a["reason"] if a else "", final, r["text"]])
+        r["collector_sentiment"] = r["sentiment"]
+        r["sentiment"] = final
+        r["sent_by"] = "AI" if a else "규칙"
+    with open(os.path.join(HERE, "data", "sentiment_crosscheck.csv"), "w", encoding="utf-8-sig", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["방문일", "매장", "출처", "기존라벨", "규칙v2", "AI", "AI근거", "최종", "리뷰내용"])
+        w.writerows(sorted(changed, reverse=True))
+    excluded = [r for r in rows if r["sentiment"] == "제외"]
+    print(f"[감성교차] 대상 {len(cands)} · AI판정 {n_ai} · 라벨변경 {len(changed)} · 제외(매장 무관) {len(excluded)}")
+    return [r for r in rows if r["sentiment"] != "제외"]
+
+
 def tag_topics(text):
     t = text or ""
     hits = [topic for topic, kws in TOPIC_KW.items() if any(k in t for k in kws)]
@@ -194,6 +284,7 @@ def normalize_reviews_file(path):
                 "month": date[:7], "date": date, "text": r.get(tc, "") or "",
                 "source": src,
                 "sentiment": SENT_MAP.get((r.get(sc) or "").strip(), "중립"),
+                "_kw": sc == "리뷰유형",       # 수집기 키워드 라벨(문맥 미반영) → 재검증 대상
                 "wdate": parse_date(r.get(wc, "")) if wc else None,
                 "author": (r.get(ac, "") or "").strip() if ac else "",
                 "cat": (r.get(gc, "") or "").strip() if gc else "",
@@ -244,6 +335,7 @@ def load_merged_naver(path):
                 "month": date[:7], "date": date, "text": r.get("review_text", "") or "",
                 "source": "naver",
                 "sentiment": classify_review(r.get("review_text", ""), r.get("rating", ""), "naver"),
+                "_kw": True,
                 "wdate": parse_date((r.get("review_date") or "").strip()[:10]) or date,
                 "author": "", "collected": None,
             })
@@ -443,7 +535,7 @@ def build_reviews():
             r["first_seen"] = first_seen[k]
         if not r.get("wdate") and wdate_map.get(k):
             r["wdate"] = wdate_map[k]
-    rows = list(best.values())
+    rows = refine_sentiment(list(best.values()))
     # 별점만 있고 내용 없는 리뷰는 불만으로 세지 않음 → 중립 처리(전체 건수는 유지).
     # 네이버·캐치테이블 공통. 실제 불만 텍스트가 있는 리뷰만 불만 건수·불만 상세에 반영.
     for r in rows:

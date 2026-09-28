@@ -612,7 +612,7 @@ window.__BUILD__='__BUILD_TOKEN__';
   <nav class="snav">
     <div class="grp">월간 회의</div>
     <button class="tab active" data-v="vmeet">🗓 월간 회의 보고 <span style="opacity:.6">(1장 요약)</span></button>
-    <button class="tab" data-v="vdaily">📅 일일리뷰유입요약</button>
+    <button class="tab" data-v="vdaily">📅 실시간리뷰보고</button>
     <div class="grp">리뷰 분석</div>
     <button class="tab" data-v="v1">① 브랜드별 리뷰 종합</button>
     <button class="tab" data-v="v2">② TOP3 불만매장 개선 방안</button>
@@ -1303,7 +1303,7 @@ window.__BUILD__='__BUILD_TOKEN__';
 
   <!-- 일별 리서치 (기간을 정해 리뷰 원문을 전문으로 확인) -->
   <section class="view" id="vdaily">
-    <div class="vhead"><h2>일일리뷰유입요약 <span class="note" id="vd-src"></span></h2></div>
+    <div class="vhead"><h2>실시간리뷰보고 <span class="note" id="vd-src"></span></h2></div>
     <div class="ctrl">
       <div class="seg seg-sm" id="vd-mode">
         <button data-m="d" class="on">작성일 기준</button><button data-m="seen">수집일 기준</button>
@@ -3265,7 +3265,7 @@ function vmeetInit(){
   document.addEventListener('keydown',e=>{ if(e.key==='Escape') mo.classList.remove('on'); });
   renderMeet(sel.value);
 }
-/* ---------- VIEW: 일일리뷰유입요약 (기간을 정해 리뷰 원문을 전문으로 확인) ----------
+/* ---------- VIEW: 실시간리뷰보고 (기간을 정해 리뷰 원문을 전문으로 확인) ----------
    추이·집계 없이 원문만 본다. 텍스트는 자르지 않고 전문 표시.
    · 작성일 기준 = 고객이 리뷰를 올린 날
    · 수집일 기준 = 우리 자동수집이 그 리뷰를 처음 가져온 날(first_seen)
