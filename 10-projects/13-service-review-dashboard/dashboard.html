@@ -1244,6 +1244,7 @@ window.__BUILD__='__BUILD_TOKEN__';
     <p class="ctrl-note" style="margin:-6px 2px 14px;line-height:1.5">※ <b>2025년</b>은 팀 월간 분석 워크북의 <b>브랜드·월 집계</b> 기준(매장 단위·리뷰 원문 없음 → 매장 랭킹·드릴다운은 2026년~), <b>2026년</b>은 리뷰 원문 집계 기준. 분류 방식 차이로 2025년 불만율이 다소 높게 표기될 수 있습니다.</p>
     <div class="panel" style="margin-bottom:14px"><h3><span>매장 리뷰 랭킹</span>
         <span style="display:flex;align-items:center;gap:7px">
+          <button id="cmp-all-btn" onclick="openCmpModal('*')" style="border:1px solid var(--bad);color:var(--bad);background:#fff;border-radius:999px;padding:4px 12px;font-size:12.5px;font-weight:700;cursor:pointer">불만 리뷰 전체 보기</button>
           <span class="seg" id="store-sort">
             <button data-k="total">총 리뷰순<i class="arr">▾</i></button><button data-k="칭찬">칭찬 리뷰순<i class="arr">▾</i></button><button data-k="불만">불만 리뷰순<i class="arr">▾</i></button><button data-k="불만율" class="on">불만율순<i class="arr">▾</i></button>
           </span>
@@ -1436,6 +1437,8 @@ function renderStoreTable(){
   const k=v1sort, sign=(v1dir==='desc'?1:-1);
   const arr=v1stores.slice().sort((a,b)=>sign*((b[k]||0)-(a[k]||0)) || (b.total-a.total));
   v1arr = arr;
+  const cb=document.getElementById('cmp-all-btn');
+  if(cb) cb.textContent=`불만 리뷰 전체 보기 (${v1stores.reduce((n,s)=>n+(s['불만']||0),0)}건)`;
   document.querySelector('#t-store tbody').innerHTML = arr.slice(0,40).map((s,i)=>
     `<tr><td class="d">${s.store}</td><td>${fmt(s.total)}</td><td style="color:var(--good)">${fmt(s['칭찬'])}</td>${s['불만']>0?`<td class="cmp-link" title="불만 리뷰 원문 보기" onclick="openCmpModal(v1arr[${i}].store)">${s['불만']}</td>`:`<td>0</td>`}<td><b style="color:var(--bad)">${s['불만율']}%</b></td></tr>`
   ).join('');
@@ -1445,34 +1448,67 @@ function renderStoreTable(){
     const a=b.querySelector('.arr'); if(a) a.textContent = on ? (v1dir==='desc'?'▼':'▲') : '▾';
   });
 }
-/* 매장 랭킹 '불만' 건수 클릭 → 선택 기간 불만 리뷰 원문 (AI 판정 검증용) */
-let cmpState={store:'',f:'all'}, v1arr=[];
-function openCmpModal(store){ cmpState={store,f:'all'}; renderCmpModal();
+/* 불만 리뷰 원문 팝업 (AI 판정 검증용)
+   · 매장 랭킹 '불만' 건수 클릭 → 그 매장만 / '불만 리뷰 전체 보기' → 선택 기간·브랜드 전 매장 */
+let cmpState={store:'',f:'all',q:''}, v1arr=[];
+const cmpEsc=t=>String(t||'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+const CMP_SRC={naver:'네이버',catchtable:'캐치테이블',voc:'VOC'};
+const cmpIsNew=c=>c.by==='AI'&&c.prev&&c.prev!=='불만';
+function openCmpModal(store){ cmpState={store,f:'all',q:''}; renderCmpModal();
   document.getElementById('cmp-modal').classList.add('on'); }
 function closeCmpModal(){ document.getElementById('cmp-modal').classList.remove('on'); }
+function cmpBase(){
+  const {store}=cmpState, brand=(document.getElementById('v1-brand')||{}).value||'';
+  return (R.complaints||[]).filter(c=>c.month>=v1From&&c.month<=v1To&&
+    (store==='*'?(!brand||c.brand===brand):c.store===store));
+}
+function cmpFiltered(){
+  const {f,q}=cmpState, qq=(q||'').trim();
+  return cmpBase().filter(c=>(f==='new'?cmpIsNew(c):f==='old'?!cmpIsNew(c):true)&&
+    (!qq||(c.store+' '+c.text+' '+(c.why||'')).indexOf(qq)>=0));
+}
 function renderCmpModal(){
-  const {store,f}=cmpState, from=v1From, to=v1To;
-  const all=(R.complaints||[]).filter(c=>c.store===store&&c.month>=from&&c.month<=to);
-  const isNew=c=>c.by==='AI'&&c.prev&&c.prev!=='불만';
-  const nNew=all.filter(isNew).length, nOld=all.length-nNew;
-  const list=f==='new'?all.filter(isNew):f==='old'?all.filter(c=>!isNew(c)):all;
-  const esc=t=>String(t||'').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
-  const SRC={naver:'네이버',catchtable:'캐치테이블',voc:'VOC'};
+  const {store}=cmpState, all=cmpBase(), brand=(document.getElementById('v1-brand')||{}).value||'';
+  const nNew=all.filter(cmpIsNew).length, nStore=new Set(all.map(c=>c.store)).size;
+  const title=store==='*'?`${brand||'전체 브랜드'} · 불만 리뷰 ${all.length}건 <span style="font-size:13px;color:var(--muted);font-weight:500">(${nStore}개 매장)</span>`
+                         :`${cmpEsc(store)} · 불만 리뷰 ${all.length}건`;
   document.getElementById('cmp-modal-box').innerHTML=
     `<button class="x" onclick="closeCmpModal()">×</button>
-     <h3>${esc(store)} · 불만 리뷰 ${all.length}건</h3>
-     <div class="msub">${from===to?from:from+' ~ '+to} · 기존 분류에서도 불만 ${nOld}건 / AI가 새로 불만으로 판정 ${nNew}건</div>
+     <h3>${title}</h3>
+     <div class="msub">${v1From===v1To?v1From:v1From+' ~ '+v1To} · 기존 분류에서도 불만 ${all.length-nNew}건 / AI가 새로 불만으로 판정 ${nNew}건</div>
      <div class="cmp-seg">
-       <button data-f="all" class="${f==='all'?'on':''}">전체 ${all.length}</button>
-       <button data-f="new" class="${f==='new'?'on':''}">AI 신규 불만 ${nNew}</button>
-       <button data-f="old" class="${f==='old'?'on':''}">기존 불만 ${nOld}</button>
-     </div>`+
-    (list.length?list.map(c=>`<div class="rv">
-       <div class="cmp-meta"><b>${c.date||c.month}</b><span class="tg">${SRC[c.src]||c.src||''}</span>
-         ${isNew(c)?`<span class="tg new">기존 ${c.prev} → 불만</span>`:''}
-         ${c.why?`<span class="tg why">AI 근거: ${esc(c.why)}</span>`:''}</div>${esc(c.text)}</div>`).join('')
-     :'<div class="msub">해당 리뷰가 없습니다.</div>');
-  document.querySelectorAll('#cmp-modal-box .cmp-seg button').forEach(b=>b.addEventListener('click',()=>{cmpState.f=b.dataset.f;renderCmpModal();}));
+       <button data-f="all">전체 ${all.length}</button>
+       <button data-f="new">AI 신규 불만 ${nNew}</button>
+       <button data-f="old">기존 불만 ${all.length-nNew}</button>
+       <input id="cmp-q" placeholder="매장·내용 검색" value="${cmpEsc(cmpState.q)}" style="flex:1;min-width:140px;border:1px solid var(--line,#dde3ea);border-radius:999px;padding:4px 12px;font-size:12.5px">
+       <button id="cmp-csv">⬇ CSV</button>
+     </div>
+     <div class="msub" id="cmp-cnt" style="margin:4px 0 0"></div>
+     <div id="cmp-list"></div>`;
+  const box=document.getElementById('cmp-modal-box');
+  box.querySelectorAll('.cmp-seg button[data-f]').forEach(b=>b.addEventListener('click',()=>{cmpState.f=b.dataset.f;renderCmpList();}));
+  document.getElementById('cmp-q').addEventListener('input',e=>{cmpState.q=e.target.value;renderCmpList();});
+  document.getElementById('cmp-csv').addEventListener('click',cmpCsv);
+  renderCmpList();
+}
+function renderCmpList(){
+  const {store,f}=cmpState, list=cmpFiltered(), multi=store==='*';
+  document.querySelectorAll('#cmp-modal-box .cmp-seg button[data-f]').forEach(b=>b.classList.toggle('on',b.dataset.f===f));
+  document.getElementById('cmp-cnt').textContent=`표시 ${list.length}건`;
+  document.getElementById('cmp-list').innerHTML=list.length?list.map(c=>`<div class="rv">
+       <div class="cmp-meta"><b>${c.date||c.month}</b>${multi?`<b style="color:var(--brand-deep)">${cmpEsc(c.store)}</b>`:''}<span class="tg">${CMP_SRC[c.src]||c.src||''}</span>
+         ${cmpIsNew(c)?`<span class="tg new">기존 ${c.prev} → 불만</span>`:''}
+         ${c.why?`<span class="tg why">AI 근거: ${cmpEsc(c.why)}</span>`:''}</div>${cmpEsc(c.text)}</div>`).join('')
+     :'<div class="msub">해당 리뷰가 없습니다.</div>';
+}
+function cmpCsv(){
+  const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  const rows=[['날짜','매장','브랜드','출처','기존분류','판정','AI근거','리뷰내용']].concat(
+    cmpFiltered().map(c=>[c.date||c.month,c.store,c.brand,CMP_SRC[c.src]||c.src||'',c.prev||'',c.by||'',c.why||'',c.text]));
+  const blob=new Blob(['\ufeff'+rows.map(r=>r.map(q).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`불만리뷰_${cmpState.store==='*'?'전체':cmpState.store}_${v1From}${v1From===v1To?'':'~'+v1To}.csv`;
+  a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
 document.addEventListener('click',e=>{ if(e.target&&e.target.id==='cmp-modal') closeCmpModal(); });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeCmpModal(); });
