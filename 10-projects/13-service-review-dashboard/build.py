@@ -225,6 +225,7 @@ def refine_sentiment(rows):
         r["collector_sentiment"] = r["sentiment"]
         r["sentiment"] = final
         r["sent_by"] = "AI" if a else "규칙"
+        r["ai_reason"] = a["reason"] if a else ""
     with open(os.path.join(HERE, "data", "sentiment_crosscheck.csv"), "w", encoding="utf-8-sig", newline="") as f:
         w = csv.writer(f)
         w.writerow(["방문일", "매장", "출처", "기존라벨", "규칙v2", "AI", "AI근거", "최종", "리뷰내용"])
@@ -626,7 +627,9 @@ def build_reviews():
         mm[r["sentiment"]] += 1
     # 불만 리뷰 상세 (매장 검색 드릴다운 / 기간 TOP3 근거). 텍스트 포함.
     complaints = [{"store": r["store"], "brand": r["brand"], "month": r["month"],
-                   "date": r["date"], "text": r["text"].replace("\n", " ").strip()}
+                   "date": r["date"], "text": r["text"].replace("\n", " ").strip(),
+                   "src": r["source"], "by": r.get("sent_by", ""), "why": r.get("ai_reason", ""),
+                   "prev": r.get("collector_sentiment", "")}
                   for r in rowset if r["sentiment"] == "불만"]
     complaints.sort(key=lambda x: x["date"], reverse=True)
 
