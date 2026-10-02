@@ -138,6 +138,10 @@ def _normkey(k):
 # 사람이 쓴 별칭/제외 표를 캐논 키로 정규화 (끝'점' 등 표기차 흡수)
 STORE_ALIAS = {_normkey(k): _normkey(v) for k, v in STORE_ALIAS_RAW.items()}
 STORE_GONE = {_normkey(k) for k in STORE_GONE_RAW}
+# 리뷰·엑셀·ECK 어디에도 아직 없지만 KPI 대상인 매장 (사용자 지정) → 로스터에 직접 추가
+STORE_EXTRA_RAW = [
+    "스위트에디션|콘디토리오븐한남점",     # 2026-10 추가 (매장리스트 시트, 네이버 place 1151512048)
+]
 STORE_CLOSED = {_normkey(k) for k in STORE_CLOSED_RAW}
 STORE_EXCLUDE = STORE_GONE | STORE_CLOSED   # 액티브 로스터에서 제외 (폐점은 다운로드 하단에 별도 표기)
 
@@ -396,6 +400,10 @@ def main():
                               "suffix": norm_suffix(suffix)})
     for k, m in excel.items():
         roster.setdefault(k, {"store": m["label"], "brand": m["brand"], "suffix": k.split("|", 1)[1]})
+    for raw in STORE_EXTRA_RAW:
+        b_, s_ = raw.split("|", 1)
+        roster.setdefault(_normkey(raw), {"store": f"{canon_brand(b_)}·{s_}", "brand": canon_brand(b_),
+                                          "suffix": norm_suffix(s_)})
 
     # ECK 신규 매장: 로스터에 없고 퍼지 매칭도 안 되는 것만 진짜 신규로 추가
     new_stores, variant_resolved = [], 0

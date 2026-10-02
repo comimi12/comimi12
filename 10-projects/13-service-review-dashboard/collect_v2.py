@@ -201,6 +201,10 @@ def main():
     else:
         print("[쿠키] --no-cookie: 비로그인으로 수집")
     stores = [s for s in registry.get("naver", []) if s.get("enabled")]
+    # 매크로 registry(구버전)에 없는 신규 매장은 collect_config.json 의 extra_naver 로 보충
+    have = {s["code"] for s in stores}
+    extra = json.load(open(CFG_PATH, encoding="utf-8")).get("extra_naver", [])
+    stores += [s for s in extra if s.get("enabled") and s["code"] not in have]
     # 시간예산에 걸려 중간에 끊겨도 매일 같은 앞쪽 매장만 수집되지 않도록 날짜로 시작점을 돌린다.
     # (차단율이 높던 시기에 Chai 앞 몇 개 매장만 계속 들어오던 문제)
     if rotate and stores:
