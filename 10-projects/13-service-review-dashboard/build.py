@@ -16,7 +16,11 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 REVIEW_DIR = os.path.join(HERE, "data", "reviews")
 VOC_DIR = os.path.join(HERE, "data", "voc")
 
-BRAND_MAP = {"C": "Chai", "H": "호우섬", "S": "서리재", "I": "이타마에", "J": "정육점"}
+BRAND_MAP = {"C": "Chai", "H": "호우섬", "S": "서리재", "I": "이타마에", "J": "정육점",
+             "A": "어온가"}            # 어온가 = 2026-10 신규 브랜드 (A. 접두어)
+# 접두어 없이 매장명만 기입되는 신규 브랜드 → 매장명 키워드로 브랜드 판정 (스위트에디션 3개 매장)
+NOPREFIX_BRAND = [("콘디토리", "스위트에디션"), ("카라멜리", "스위트에디션"), ("차차이테", "스위트에디션")]
+BRANDS = ["Chai", "호우섬", "서리재", "이타마에", "정육점", "어온가", "스위트에디션"]
 
 # 월별 리뷰 파일의 사전분류 감성 → 대시보드 용어
 SENT_MAP = {"긍정": "칭찬", "부정": "불만", "중립": "중립", "GOOD": "칭찬", "BAD": "불만", "기타": "중립"}
@@ -120,6 +124,9 @@ def clean_store(raw):
         brand = BRAND_MAP.get(code.strip(), code.strip())
         name = name.strip()
         return brand, STORE_NAME_ALIAS.get((brand, name), name)
+    for kw, b in NOPREFIX_BRAND:
+        if kw in s:
+            return b, s
     return "(미상)", s
 
 
@@ -515,8 +522,8 @@ def build_reviews():
                 r["_prio"] = 0.5      # 양식A(1) < merged(0.5) — 사전분류 감성이 있는 양식A 우선
             rows.extend(add)
             used.append(os.path.basename(mp) + " (naver 보충)")
-    # 대시보드 대상 5개 브랜드(BRAND_MAP)만 집계 — 접두어 없는/미등록 브랜드 매장(A.·스위트에디션 등)은 제외
-    rows = [r for r in rows if r["brand"] in BRAND_MAP.values()]
+    # 대시보드 대상 브랜드(BRANDS)만 집계 — 미등록 브랜드·접두어 없는 미상 매장은 제외
+    rows = [r for r in rows if r["brand"] in BRANDS]
     # 프로그램(매크로)이 그 달 네이버의 주력 소스면(프로그램 건수 ≥ 자동 건수) 프로그램 100% 사용 →
     # 그 달의 자동수집 네이버 제외. 프로그램이 spillover 수준(자동보다 적음)인 달은 자동수집 유지(당월 등).
     prog_n = collections.Counter(r["month"] for r in rows if r.get("_prio", 0) >= 2 and r["source"] == "naver")
@@ -571,7 +578,7 @@ def build_reviews():
     rowset = [r for r in rows if r["month"] in months]
     cur = months[-1]
     prev = months[-2] if len(months) > 1 else None
-    brands = ["Chai", "호우섬", "서리재", "이타마에", "정육점"]
+    brands = BRANDS
 
     def agg(subset):
         c = collections.Counter(r["sentiment"] for r in subset)
@@ -727,6 +734,11 @@ def voc_brand(name):
         return "이타마에"
     if "정육" in n:
         return "정육점"
+    if "어온가" in n:
+        return "어온가"
+    for kw, b in NOPREFIX_BRAND:
+        if kw in n:
+            return b
     return "(미상)"
 
 
