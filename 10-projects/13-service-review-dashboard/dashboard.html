@@ -3687,12 +3687,12 @@ function closeSidebar(){ const s=document.getElementById('sidebar'),b=document.g
       <div class="sub">리뷰 ${fmt(r.reviews)}건 / 고객 ${fmt(r.guests)}명</div></div>`).join('') + `</div>`;
   }
   function podiumStaff(st){
-    const top = st.slice(0,2);
-    if(!top.length) return `<div class="wr-empty">이 기간 칭찬 리뷰에 이름이 언급된 직원이 없습니다.</div>`;
-    return `<div class="wr-podium">` + top.map((p,i)=>`<div class="wr-p g${i+1}"><span class="md">${i?'🥈':'🥇'}</span>
-      <div class="rk">${i+1}위 · 베스트 굿코멘트</div><div class="nm">${esc(p.name)} <span class="sub">${esc(p.store.replace('·',' '))}</span></div>
-      <div class="sub">이름 언급 리뷰 ${p.mentions}건 · 감동지수 ${'★'.repeat(p.score)}${'☆'.repeat(5-p.score)}</div>
-      <div class="q">“${esc(p.best.text.length>140?p.best.text.slice(0,140)+'…':p.best.text)}”</div></div>`).join('') + `</div>`;
+    const p = st[0];   // 포상은 1명 — 베스트 사원 1명만 표기
+    if(!p) return `<div class="wr-empty">이 기간 칭찬 리뷰에 이름이 언급된 직원이 없습니다.</div>`;
+    return `<div class="wr-p g1"><span class="md">🏅</span>
+      <div class="rk">베스트 굿코멘트 사원 · 포상 대상</div><div class="nm">${esc(p.name)} <span class="sub">${esc(p.store.replace('·',' '))}</span></div>
+      <div class="sub">이름 언급 리뷰 ${p.mentions}건 · 감동지수 ${'★'.repeat(p.score)}${'☆'.repeat(5-p.score)} · ${esc(p.best.m)}</div>
+      <div class="q">“${esc(p.best.text.length>220?p.best.text.slice(0,220)+'…':p.best.text)}”</div></div>`;
   }
   function storeTable(rows){
     const max = Math.max(0.0001, ...rows.filter(r=>r.rate!=null).map(r=>r.rate));
@@ -3701,14 +3701,14 @@ function closeSidebar(){ const s=document.getElementById('sidebar'),b=document.g
           <td class="rank">${r.rank? (r.rank===1?'🥇 1':r.rank===2?'🥈 2':r.rank) : '–'}</td>
           <td class="l">${esc(r.store.split('·')[1]||r.store)}</td><td class="l">${esc(r.brand)}</td>
           <td>${fmt(r.reviews)}</td><td>${r.guests==null?'<span style="color:#b08a2e">미입력</span>':fmt(r.guests)}</td>
-          <td class="l">${r.rate==null?'–':`<span class="bar" style="width:${Math.max(2,r.rate/max*120)}px"></span>${r.rate.toFixed(2)}%`}</td></tr>`).join('')
+          <td class="l">${r.rate==null?'–':`<span class="bar" style="width:${Math.max(2,r.rate/max*70)}px"></span>${r.rate.toFixed(2)}%`}</td></tr>`).join('')
       + `</tbody></table>`;
   }
   function staffTable(st){
     if(!st.length) return `<div class="wr-empty">이름 언급 직원 없음</div>`;
     return `<table class="wr-tbl"><thead><tr><th>순위</th><th class="l">직원</th><th class="l">매장</th><th>언급 리뷰</th><th class="l">감동지수</th><th class="l">사연 요약</th></tr></thead><tbody>`
-      + st.map((p,i)=>`<tr class="${p.rank===1?'r1':p.rank===2?'r2':''}">
-          <td class="rank">${p.rank===1?'🥇 1':p.rank===2?'🥈 2':p.rank}</td><td class="l">${esc(p.name)}</td>
+      + st.map((p,i)=>`<tr class="${p.rank===1?'r1':''}">
+          <td class="rank">${p.rank===1?'🏅 1':p.rank}</td><td class="l">${esc(p.name)}</td>
           <td class="l">${esc(p.store.replace('·',' '))}</td><td>${p.mentions}</td>
           <td class="l">${'★'.repeat(p.score)}${'☆'.repeat(5-p.score)}</td>
           <td class="l wrap">${esc(p.best.m)}<button class="more" data-o="${i}">원문</button><div class="orig" id="wr-o${i}">“${esc(p.best.text)}” <span style="color:var(--muted)">(${esc(p.best.date)})</span></div></td></tr>`).join('')
@@ -3723,13 +3723,13 @@ function closeSidebar(){ const s=document.getElementById('sidebar'),b=document.g
     const P = wi==='f' ? m.final : m.weeks[wi];
     const title = wi==='f' ? `${m.label} 최종 (${md(P.from)}~${md(P.to)})` : `${m.label} ${P.no}주차 (${md(P.from)}~${md(P.to)})`;
     let h = '';
-    if(!P.done) h += `<div class="wr-warn">⏳ 아직 끝나지 않은 기간입니다 — 순위는 중간 집계이며, 다음 월요일 리뷰 파일 반영 후 확정됩니다.</div>`;
+    if(!P.done) h += `<div class="wr-warn">⏳ 아직 끝나지 않은 기간입니다 — 중간 집계${P.upto&&P.upto<P.to?` (POS 고객수가 있는 ${md(P.upto)}까지 리뷰·고객 비교)`:''}이며, 다음 월요일 리뷰 파일 반영 후 확정됩니다.</div>`;
     if(!P.has_guests) h += `<div class="wr-warn">📋 이 기간 POS 고객수가 아직 없어 리뷰 비율 순위를 계산하지 못했습니다. 지금은 리뷰수 순으로 보여 드립니다.</div>`;
     h += `<div class="cp-title"><b>${esc(title)}</b><span class="k">리뷰 ${fmt(P.total_reviews)}건</span></div>`
       + `<div class="wr-hl"><div class="wr-box"><h3>① 최다 점포 1·2위 <span class="t">점포 · 리뷰 비율 기준</span></h3>${podiumStore(P.rows)}</div>`
-      + `<div class="wr-box"><h3>② 베스트 굿코멘트 사원 <span class="t">개인 · 칭찬 리뷰에 이름 언급 + 감동 사연</span></h3>${podiumStaff(P.staff)}</div></div>`
+      + `<div class="wr-box"><h3>② 베스트 굿코멘트 사원 <span class="t">개인 · 포상 1명 · 칭찬 리뷰에 이름 언급 + 감동 사연</span></h3>${podiumStaff(P.staff)}</div></div>`
       + `<div class="wr-hl"><div class="wr-box" style="overflow:auto"><h3>매장 리뷰 순위 <span class="t">${P.rows.filter(r=>r.rank).length}개 순위 · 고객수 미입력 ${P.rows.filter(r=>!r.rank).length}개</span></h3>${storeTable(P.rows)}</div>`
-      + `<div class="wr-box" style="overflow:auto"><h3>이름 언급 직원 <span class="t">${P.staff.length}명</span></h3>${staffTable(P.staff)}`
+      + `<div class="wr-box" style="overflow:auto"><h3>이름 언급 직원 (후보) <span class="t">${P.staff.length}명</span></h3>${staffTable(P.staff)}`
       + `<p class="wr-note">· 칭찬 리뷰 중 직원 이름이 들어간 리뷰를 AI가 찾아 이름별로 묶고, 응대 사연이 얼마나 감동적인지(감동지수 1~5)로 순위를 매깁니다. 같으면 언급 리뷰 수 순.</p></div></div>`
       + `<p class="wr-note">· 주차 기준: 1주차 = 1일~첫 일요일, 중간 주 = 월~일, 마지막 주 = 월요일~말일 · 리뷰는 작성일 기준 · 고객수는 신세계 Cloud POS 「영업 › 일자별 매출조회」 객수${W.pos_unmatched&&W.pos_unmatched.length?` · POS 미매칭 매장 ${W.pos_unmatched.length}개: ${esc(W.pos_unmatched.join(', '))}`:''}</p>`;
     body.innerHTML = h;

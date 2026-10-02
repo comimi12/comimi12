@@ -42,6 +42,14 @@ OUT = os.path.join(HERE, "weekly_rank.js")
 
 
 # ---------- 주차 ----------
+
+# 이 PC 시간대가 한국이 아닐 수 있음(미국 출장 등) → 날짜 계산은 항상 한국 시간 기준
+KST = datetime.timezone(datetime.timedelta(hours=9))
+
+
+def kst_now():
+    return datetime.datetime.now(KST)
+
 def month_weeks(ym):
     """[(주차, 시작일, 종료일)] — 1주차 1일~첫 일요일, 마지막 주 월요일~말일."""
     y, m = map(int, ym.split("-"))
@@ -68,6 +76,8 @@ def load_reviews():
     d = json.loads(s[s.index("{"):s.rstrip().rstrip(";").rindex("}") + 1])
     dl = d["reviews"]["daily"]
     stores, brand = dl["stores"], dl["store_brand"]
+    global ALL_STORES
+    ALL_STORES = set(stores)                 # 매칭 로스터 = 최근 120일 리뷰가 있는 전 매장
     recs = []
     for r in dl["records"]:
         if r[0] < START_MONTH:
@@ -85,6 +95,7 @@ def review_key(store):
 
 def load_guests(review_stores):
     """POS 객수 → {리뷰매장: {date: 객수}}. 매칭: 수동맵 → 키 정규화 → 퍼지."""
+    manual_ok = True
     if not os.path.exists(GUESTS):
         return {}, None, []
     g = json.load(open(GUESTS, encoding="utf-8"))
@@ -93,6 +104,8 @@ def load_guests(review_stores):
     roster = {k: {"brand": k.split("|")[0], "suffix": k.split("|")[1]} for k in by_key}
     out, unmatched = {}, []
     for pos_name, days in g.get("stores", {}).items():
+        if pos_name.startswith("_"):
+            continue
         tgt = manual.get(pos_name)
         if tgt == "":                                  # 수동맵에 "" = 집계 제외(본사·창고 등)
             continue
@@ -186,8 +199,11 @@ def _safe(exe, batch):
 
 
 # ---------- 집계 ----------
-def rank_period(recs, guests, d0, d1, staff):
+def rank_period(recs, guests, d0, d1, staff, pos_last=None):
     ds, de = d0.isoformat(), d1.isoformat()
+    # 진행 중 기간: POS 객수는 전일까지만 있음 → 리뷰도 같은 날까지만 세야 비율이 부풀지 않는다
+    if pos_last and ds <= pos_last < de:
+        de = pos_last
     rv, pos_cnt = {}, {}
     for r in recs:
         if ds <= r["date"] <= de:
@@ -219,34 +235,35 @@ def rank_period(recs, guests, d0, d1, staff):
     staff_rows = sorted(people.values(), key=lambda p: (-p["score"], -p["mentions"], -len(p["best"]["text"])))
     for i, p in enumerate(staff_rows, 1):
         p["rank"] = i
-    return {"rows": ranked + rest, "staff": staff_rows,
+    return {"rows": ranked + rest, "staff": staff_rows, "upto": de,
             "total_reviews": sum(r["reviews"] for r in rows),
             "has_guests": any(r["guests"] for r in rows)}
 
 
 def main():
     use_ai = "--no-ai" not in sys.argv
-    today = datetime.date.today()
+    today = kst_now().date()
     recs = load_reviews()
-    guests, pos_updated, unmatched = load_guests({r["store"] for r in recs})
+    guests, pos_updated, unmatched = load_guests(ALL_STORES)
     print(f"[주차별 리뷰순위] 리뷰 {len(recs)}건 (≥{START_MONTH}) · POS 매칭 매장 {len(guests)} · 미매칭 {len(unmatched)}")
     staff = staff_judge(recs, use_ai)
+    pos_last = max((d for v in guests.values() for d in v), default=None)
     months = []
     for ym in months_until(today):
         weeks = []
         for n, d0, d1 in month_weeks(ym):
             if d0 > today:
                 continue
-            w = rank_period(recs, guests, d0, d1, staff)
+            w = rank_period(recs, guests, d0, d1, staff, pos_last)
             w.update({"no": n, "from": d0.isoformat(), "to": d1.isoformat(), "done": d1 < today})
             weeks.append(w)
         y, m = map(int, ym.split("-"))
         m0, m1 = datetime.date(y, m, 1), datetime.date(y, m, calendar.monthrange(y, m)[1])
-        fin = rank_period(recs, guests, m0, m1, staff)
+        fin = rank_period(recs, guests, m0, m1, staff, pos_last)
         fin.update({"from": m0.isoformat(), "to": m1.isoformat(), "done": m1 < today})
         months.append({"ym": ym, "label": f"{y}년 {m}월", "weeks": weeks, "final": fin})
         print(f"  {ym}: {len(weeks)}주 · 리뷰 {fin['total_reviews']} · 이름언급 직원 {len(fin['staff'])}")
-    payload = {"generated": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), "today": today.isoformat(),
+    payload = {"generated": kst_now().strftime("%Y-%m-%d %H:%M"), "today": today.isoformat(),
                "pos_updated": pos_updated, "pos_unmatched": unmatched, "months": months}
     with open(OUT, "w", encoding="utf-8") as f:
         f.write("/* 자동 생성: weekly_rank_build.py */\nwindow.WEEKLY_RANK=")
