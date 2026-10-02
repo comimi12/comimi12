@@ -107,12 +107,19 @@ def latest(globpat):
     return max(files, key=os.path.getmtime)
 
 
+# 같은 매장이 수집 프로그램에 다른 이름으로 중복 등록된 경우 → 기존 이름으로 통합 (중복 리뷰는 dedupe 가 제거)
+STORE_NAME_ALIAS = {
+    ("이타마에", "롯데월드몰점"): "잠실롯데월드몰점",   # 2026-10 'I.롯데월드몰점' 추가 등록 — 리뷰 248/250 동일
+}
+
+
 def clean_store(raw):
     s = (raw or "").replace("﻿", "").strip()
     if "." in s:
         code, _, name = s.partition(".")
         brand = BRAND_MAP.get(code.strip(), code.strip())
-        return brand, name.strip()
+        name = name.strip()
+        return brand, STORE_NAME_ALIAS.get((brand, name), name)
     return "(미상)", s
 
 
@@ -508,6 +515,8 @@ def build_reviews():
                 r["_prio"] = 0.5      # 양식A(1) < merged(0.5) — 사전분류 감성이 있는 양식A 우선
             rows.extend(add)
             used.append(os.path.basename(mp) + " (naver 보충)")
+    # 대시보드 대상 5개 브랜드(BRAND_MAP)만 집계 — 접두어 없는/미등록 브랜드 매장(A.·스위트에디션 등)은 제외
+    rows = [r for r in rows if r["brand"] in BRAND_MAP.values()]
     # 프로그램(매크로)이 그 달 네이버의 주력 소스면(프로그램 건수 ≥ 자동 건수) 프로그램 100% 사용 →
     # 그 달의 자동수집 네이버 제외. 프로그램이 spillover 수준(자동보다 적음)인 달은 자동수집 유지(당월 등).
     prog_n = collections.Counter(r["month"] for r in rows if r.get("_prio", 0) >= 2 and r["source"] == "naver")
