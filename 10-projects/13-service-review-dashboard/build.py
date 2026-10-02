@@ -189,7 +189,7 @@ def neg_signal(text):
 
 # AI 전수 판정 구간 — 이 기간은 출처·기존 라벨과 무관하게 내용 있는 모든 리뷰를 Claude 가 판정한다.
 # 기초 데이터(월별 프로그램 파일)가 확정된 달까지 FULL_AI_UNTIL 을 늘린다. 그 밖의 달은 후보만 판정.
-FULL_AI_FROM, FULL_AI_UNTIL = "2026-01", "2026-08"
+FULL_AI_FROM, FULL_AI_UNTIL = "2026-01", "2026-09"
 
 
 def ai_targets(rows):
