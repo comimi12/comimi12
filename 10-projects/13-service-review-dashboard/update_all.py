@@ -77,6 +77,10 @@ def main():
         step("캐치테이블 수집", ["collect.py", MONTH_START, "--no-build", "--catchtable"], timeout=1800)
     # 4) build → data.js (리뷰 + VOC). VOC DRM이면 기존값 보존
     step("build (data.js)", ["build.py"])
+    # 4-b) 월간 회의 › 주차별 매장 리뷰순위 (리뷰 ÷ POS 고객수). 고객수는 pos/pos_guests.py 가 갱신.
+    if os.path.exists(os.path.join(HERE, "pos", "pos_guests.py")):
+        step("POS 고객수", [os.path.join("pos", "pos_guests.py")], timeout=1200)
+    step("주차별 리뷰순위", ["weekly_rank_build.py"], timeout=1800)
     # ※ KPI(kpi_build)는 일일 갱신 안 함 — 매월 5일 KPI_Monthly_Grade(run-kpi.cmd)가 전월 확정.
     # 5) 공유파일 + 공유 사이트(GitHub Pages) 재배포
     if SHARE:

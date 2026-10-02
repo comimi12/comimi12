@@ -20,6 +20,7 @@
 <script src="manuals_svc.js" onerror="window.SVC_MANUALS=window.SVC_MANUALS||null"></script>
 <script src="manuals_images.js" onerror="window.MANUAL_IMAGES=window.MANUAL_IMAGES||null"></script>
 <script src="campaign_data.js" onerror="window.CAMPAIGN=window.CAMPAIGN||null"></script>
+<script src="weekly_rank.js" onerror="window.WEEKLY_RANK=window.WEEKLY_RANK||null"></script>
 <script>
 /* 새 버전 자동 반영: 배포 시 주입된 빌드토큰과 ver.txt(캐시 우회) 비교 → 다르면 최신으로 새로고침 */
 window.__BUILD__='__BUILD_TOKEN__';
@@ -512,6 +513,44 @@ window.__BUILD__='__BUILD_TOKEN__';
   .cp-zoom.on{display:block} .cp-zoom img{max-width:min(1150px,100%);background:#fff}
   @media (max-width:900px){ .cp-grid{grid-template-columns:1fr;height:auto} .cp-body img{max-height:none} }
   @media print{ .cp-grid{height:auto} .cp-ph button,.cp-months{display:none!important} .cp-body img{max-height:none} }
+  /* 🏆 주차별 매장 리뷰순위 */
+  .wr-chips{display:flex;gap:6px;flex-wrap:wrap}
+  .ctrl .wr-chip{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:5px 12px;font-size:12.5px;font-weight:700;cursor:pointer}
+  .ctrl .wr-chip.on{background:var(--brand);border-color:var(--brand);color:#fff}
+  .ctrl .wr-chip.fin{border-color:#d4a72c;color:#8a6510}
+  .ctrl .wr-chip.fin.on{background:#c9961a;border-color:#c9961a;color:#fff}
+  .wr-chip .pend{font-size:10.5px;font-weight:600;opacity:.75;margin-left:3px}
+  .wr-hl{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+  .wr-box{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:14px 16px;box-shadow:var(--shadow)}
+  .wr-box h3{margin:0 0 10px;font-size:14.5px}
+  .wr-box h3 .t{font-size:11.5px;color:var(--muted);font-weight:600;margin-left:6px}
+  .wr-podium{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .wr-p{border-radius:12px;padding:12px 14px;position:relative;min-height:112px}
+  .wr-p.g1{background:linear-gradient(135deg,#fff6d8,#ffe9a8);border:1px solid #f0cf6a}
+  .wr-p.g2{background:linear-gradient(135deg,#f4f6f9,#e3e8ef);border:1px solid #cdd5e0}
+  .wr-p .md{font-size:22px;position:absolute;right:10px;top:8px}
+  .wr-p .rk{font-size:11.5px;font-weight:800;color:#8a6510} .wr-p.g2 .rk{color:#5a6577}
+  .wr-p .nm{font-size:16px;font-weight:800;margin:3px 0 2px;color:var(--ink)}
+  .wr-p .sub{font-size:12px;color:var(--muted)}
+  .wr-p .big{font-size:22px;font-weight:800;color:var(--brand-deep);margin-top:4px}
+  .wr-p .big small{font-size:12px;font-weight:600;color:var(--muted);margin-left:4px}
+  .wr-p .q{font-size:12px;line-height:1.55;color:#3a4352;margin-top:6px;background:rgba(255,255,255,.6);border-radius:8px;padding:6px 8px}
+  .wr-empty{color:var(--muted);font-size:12.5px;padding:18px 4px;text-align:center}
+  .wr-tbl{width:100%;border-collapse:collapse;font-size:13px}
+  .wr-tbl th{background:#f3f6fa;color:var(--muted);font-weight:700;font-size:12px;padding:8px 9px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+  .wr-tbl th.l,.wr-tbl td.l{text-align:left}
+  .wr-tbl td{padding:7px 9px;border-bottom:1px solid #eef1f5;text-align:right;white-space:nowrap}
+  .wr-tbl td.wrap{white-space:normal;min-width:220px}
+  .wr-tbl tr.r1 td{background:#fff7dc;font-weight:800} .wr-tbl tr.r2 td{background:#f2f5f9;font-weight:700}
+  .wr-tbl tr.na td{color:#9aa3b2}
+  .wr-tbl .rank{font-weight:800;color:var(--brand-deep)}
+  .wr-tbl .bar{display:inline-block;height:8px;border-radius:4px;background:var(--brand);vertical-align:middle;margin-right:6px;opacity:.75}
+  .wr-tbl .more{border:0;background:var(--brand-soft);color:var(--brand);border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;cursor:pointer;margin-left:6px}
+  .wr-tbl .orig{display:none;margin-top:5px;font-size:12px;color:#3a4352;background:var(--bg);border-radius:6px;padding:6px 8px;white-space:normal}
+  .wr-tbl .orig.on{display:block}
+  .wr-note{font-size:12px;color:var(--muted);margin:8px 2px 0;line-height:1.6}
+  .wr-warn{background:#fff8e6;border:1px solid #f3d48a;color:#7a5a00;border-radius:10px;padding:9px 13px;font-size:12.5px;margin-bottom:12px}
+  @media (max-width:900px){ .wr-hl{grid-template-columns:1fr} .wr-podium{grid-template-columns:1fr} }
   .vmodal{position:fixed;inset:0;background:rgba(20,29,41,.55);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px}
   .vmodal.on{display:flex}
   .vmodal .box{background:#fff;border-radius:16px;max-width:680px;width:100%;max-height:86vh;overflow:auto;padding:22px 26px;box-shadow:0 24px 70px rgba(0,0,0,.35)}
@@ -650,6 +689,7 @@ window.__BUILD__='__BUILD_TOKEN__';
     <div class="grp">월간 회의</div>
     <button class="tab active" data-v="vmeet">🗓 월간 회의 보고 <span style="opacity:.6">(1장 요약)</span></button>
     <button class="tab" data-v="vdaily">📅 실시간리뷰보고</button>
+    <button class="tab" data-v="vweek">🏆 주차별 매장 리뷰순위</button>
     <div class="grp">리뷰 분석</div>
     <button class="tab" data-v="v1">① 브랜드별 리뷰 종합</button>
     <button class="tab" data-v="v2">② TOP3 불만매장 개선 방안</button>
@@ -1342,6 +1382,17 @@ window.__BUILD__='__BUILD_TOKEN__';
   </section>
 
   <!-- 일별 리서치 (기간을 정해 리뷰 원문을 전문으로 확인) -->
+  <!-- 월간 회의 ③ 주차별 매장 리뷰순위 (weekly_rank.js) -->
+  <section class="view" id="vweek">
+    <div class="vhead"><h2>🏆 주차별 매장 리뷰순위 <span class="note" id="vweek-src" style="font-size:12px;font-weight:500;color:var(--muted)"></span></h2></div>
+    <div class="ctrl">
+      <span>월</span><select id="vweek-month"></select>
+      <div class="wr-chips" id="vweek-chips"></div>
+      <span class="ctrl-note" id="vweek-meta"></span>
+    </div>
+    <div id="vweek-body"></div>
+  </section>
+
   <section class="view" id="vdaily">
     <div class="vhead"><h2>실시간리뷰보고 <span class="note" id="vd-src"></span></h2></div>
     <div class="ctrl">
@@ -3604,6 +3655,85 @@ function closeSidebar(){ const s=document.getElementById('sidebar'),b=document.g
       const t = `[${m.label} 캠페인 · ${e.title}] 표준 응대 멘트\n` + (e.scripts||[]).filter(s=>!s[1]).map((s,i)=>`${i+1}. “${s[0]}”`).join('\n');
       (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>{cp.textContent='✅ 복사됨';},()=>{cp.textContent='복사 실패';});
     };
+  }
+  render();
+})();
+
+/* ---------- 월간 회의 › 🏆 주차별 매장 리뷰순위 (weekly_rank.js) ----------
+   리뷰 비율(%) = 리뷰수 ÷ 고객수(POS 객수) × 100. 주차 = 1일~첫 일요일 / 월~일 / 월~말일. 월 최종 = 그 달 전체. */
+(function(){
+  const W = window.WEEKLY_RANK, body = document.getElementById('vweek-body');
+  if(!body) return;
+  if(!W || !W.months || !W.months.length){ body.innerHTML='<p style="color:var(--muted)">주차별 순위 데이터가 없습니다 (weekly_rank_build.py 실행 필요).</p>'; return; }
+  const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const md = d => { const [y,m,dd]=d.split('-'); return `${+m}/${+dd}`; };
+  const fmt = n => n==null ? '–' : Number(n).toLocaleString('ko-KR');
+  const sel = document.getElementById('vweek-month'), chips = document.getElementById('vweek-chips');
+  document.getElementById('vweek-src').textContent = `· 리뷰 비율(%) = 리뷰수 ÷ 고객수 × 100 · 생성 ${W.generated}`;
+  document.getElementById('vweek-meta').textContent = W.pos_updated ? `POS 고객수 갱신 ${W.pos_updated}` : 'POS 고객수 수집 전';
+  sel.innerHTML = W.months.map((m,i)=>`<option value="${i}">${esc(m.label)}</option>`).join('');
+  let mi = W.months.length-1, wi = null;
+  // 기본: 끝난 주 중 가장 최근(월요일에 파일 넣으면 전주) → 없으면 진행 중인 주
+  const pickWeek = m => { const done = m.weeks.map((w,i)=>w.done?i:-1).filter(i=>i>=0); return done.length ? done[done.length-1] : m.weeks.length-1; };
+  sel.value = mi; wi = pickWeek(W.months[mi]);
+  sel.onchange = ()=>{ mi=+sel.value; wi=pickWeek(W.months[mi]); render(); };
+
+  function podiumStore(rows){
+    const top = rows.filter(r=>r.rank).slice(0,2);
+    if(!top.length) return `<div class="wr-empty">POS 고객수가 들어오면 리뷰 비율 1·2위가 표시됩니다.</div>`;
+    return `<div class="wr-podium">` + top.map((r,i)=>`<div class="wr-p g${i+1}"><span class="md">${i?'🥈':'🥇'}</span>
+      <div class="rk">${i+1}위 · 최다 점포</div><div class="nm">${esc(r.store.replace('·',' '))}</div>
+      <div class="big">${r.rate.toFixed(2)}%<small>리뷰 비율</small></div>
+      <div class="sub">리뷰 ${fmt(r.reviews)}건 / 고객 ${fmt(r.guests)}명</div></div>`).join('') + `</div>`;
+  }
+  function podiumStaff(st){
+    const top = st.slice(0,2);
+    if(!top.length) return `<div class="wr-empty">이 기간 칭찬 리뷰에 이름이 언급된 직원이 없습니다.</div>`;
+    return `<div class="wr-podium">` + top.map((p,i)=>`<div class="wr-p g${i+1}"><span class="md">${i?'🥈':'🥇'}</span>
+      <div class="rk">${i+1}위 · 베스트 굿코멘트</div><div class="nm">${esc(p.name)} <span class="sub">${esc(p.store.replace('·',' '))}</span></div>
+      <div class="sub">이름 언급 리뷰 ${p.mentions}건 · 감동지수 ${'★'.repeat(p.score)}${'☆'.repeat(5-p.score)}</div>
+      <div class="q">“${esc(p.best.text.length>140?p.best.text.slice(0,140)+'…':p.best.text)}”</div></div>`).join('') + `</div>`;
+  }
+  function storeTable(rows){
+    const max = Math.max(0.0001, ...rows.filter(r=>r.rate!=null).map(r=>r.rate));
+    return `<table class="wr-tbl"><thead><tr><th>순위</th><th class="l">매장</th><th class="l">브랜드</th><th>리뷰수</th><th>고객수</th><th class="l">리뷰 비율(%)</th></tr></thead><tbody>`
+      + rows.map(r=>`<tr class="${r.rank===1?'r1':r.rank===2?'r2':r.rank?'':'na'}">
+          <td class="rank">${r.rank? (r.rank===1?'🥇 1':r.rank===2?'🥈 2':r.rank) : '–'}</td>
+          <td class="l">${esc(r.store.split('·')[1]||r.store)}</td><td class="l">${esc(r.brand)}</td>
+          <td>${fmt(r.reviews)}</td><td>${r.guests==null?'<span style="color:#b08a2e">미입력</span>':fmt(r.guests)}</td>
+          <td class="l">${r.rate==null?'–':`<span class="bar" style="width:${Math.max(2,r.rate/max*120)}px"></span>${r.rate.toFixed(2)}%`}</td></tr>`).join('')
+      + `</tbody></table>`;
+  }
+  function staffTable(st){
+    if(!st.length) return `<div class="wr-empty">이름 언급 직원 없음</div>`;
+    return `<table class="wr-tbl"><thead><tr><th>순위</th><th class="l">직원</th><th class="l">매장</th><th>언급 리뷰</th><th class="l">감동지수</th><th class="l">사연 요약</th></tr></thead><tbody>`
+      + st.map((p,i)=>`<tr class="${p.rank===1?'r1':p.rank===2?'r2':''}">
+          <td class="rank">${p.rank===1?'🥇 1':p.rank===2?'🥈 2':p.rank}</td><td class="l">${esc(p.name)}</td>
+          <td class="l">${esc(p.store.replace('·',' '))}</td><td>${p.mentions}</td>
+          <td class="l">${'★'.repeat(p.score)}${'☆'.repeat(5-p.score)}</td>
+          <td class="l wrap">${esc(p.best.m)}<button class="more" data-o="${i}">원문</button><div class="orig" id="wr-o${i}">“${esc(p.best.text)}” <span style="color:var(--muted)">(${esc(p.best.date)})</span></div></td></tr>`).join('')
+      + `</tbody></table>`;
+  }
+
+  function render(){
+    const m = W.months[mi];
+    chips.innerHTML = m.weeks.map((w,i)=>`<button class="wr-chip${i===wi?' on':''}" data-w="${i}">${w.no}주차 <span class="pend">${md(w.from)}~${md(w.to)}${w.done?'':' 집계중'}</span></button>`).join('')
+      + `<button class="wr-chip fin${wi==='f'?' on':''}" data-w="f">🏁 월 최종${m.final.done?'':' <span class="pend">집계중</span>'}</button>`;
+    chips.querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>{ wi = b.dataset.w==='f'?'f':+b.dataset.w; render(); });
+    const P = wi==='f' ? m.final : m.weeks[wi];
+    const title = wi==='f' ? `${m.label} 최종 (${md(P.from)}~${md(P.to)})` : `${m.label} ${P.no}주차 (${md(P.from)}~${md(P.to)})`;
+    let h = '';
+    if(!P.done) h += `<div class="wr-warn">⏳ 아직 끝나지 않은 기간입니다 — 순위는 중간 집계이며, 다음 월요일 리뷰 파일 반영 후 확정됩니다.</div>`;
+    if(!P.has_guests) h += `<div class="wr-warn">📋 이 기간 POS 고객수가 아직 없어 리뷰 비율 순위를 계산하지 못했습니다. 지금은 리뷰수 순으로 보여 드립니다.</div>`;
+    h += `<div class="cp-title"><b>${esc(title)}</b><span class="k">리뷰 ${fmt(P.total_reviews)}건</span></div>`
+      + `<div class="wr-hl"><div class="wr-box"><h3>① 최다 점포 1·2위 <span class="t">점포 · 리뷰 비율 기준</span></h3>${podiumStore(P.rows)}</div>`
+      + `<div class="wr-box"><h3>② 베스트 굿코멘트 사원 <span class="t">개인 · 칭찬 리뷰에 이름 언급 + 감동 사연</span></h3>${podiumStaff(P.staff)}</div></div>`
+      + `<div class="wr-hl"><div class="wr-box" style="overflow:auto"><h3>매장 리뷰 순위 <span class="t">${P.rows.filter(r=>r.rank).length}개 순위 · 고객수 미입력 ${P.rows.filter(r=>!r.rank).length}개</span></h3>${storeTable(P.rows)}</div>`
+      + `<div class="wr-box" style="overflow:auto"><h3>이름 언급 직원 <span class="t">${P.staff.length}명</span></h3>${staffTable(P.staff)}`
+      + `<p class="wr-note">· 칭찬 리뷰 중 직원 이름이 들어간 리뷰를 AI가 찾아 이름별로 묶고, 응대 사연이 얼마나 감동적인지(감동지수 1~5)로 순위를 매깁니다. 같으면 언급 리뷰 수 순.</p></div></div>`
+      + `<p class="wr-note">· 주차 기준: 1주차 = 1일~첫 일요일, 중간 주 = 월~일, 마지막 주 = 월요일~말일 · 리뷰는 작성일 기준 · 고객수는 신세계 Cloud POS 「영업 › 일자별 매출조회」 객수${W.pos_unmatched&&W.pos_unmatched.length?` · POS 미매칭 매장 ${W.pos_unmatched.length}개: ${esc(W.pos_unmatched.join(', '))}`:''}</p>`;
+    body.innerHTML = h;
+    body.querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>document.getElementById('wr-o'+b.dataset.o).classList.toggle('on'));
   }
   render();
 })();

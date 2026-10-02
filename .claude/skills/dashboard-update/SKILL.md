@@ -17,6 +17,7 @@ allowed-tools:
 ```bash
 cd "C:/Users/owner/do-better-workspace-v2/10-projects/13-service-review-dashboard"
 python build.py          # data/reviews + data/voc → data.js (리뷰+VOC). 프로그램 파일 있는 달은 프로그램 100%, 자동수집은 보충. 캐치테이블 포함·중복제거.
+python weekly_rank_build.py  # 월간회의 › 주차별 매장 리뷰순위 (리뷰÷POS 고객수 %, 이름 언급 직원 AI 판정)
 python build_share.py    # dashboard-share.html (공유 단일파일)
 python deploy_site.py    # 공유 사이트 재배포 → https://comimi12.github.io/slnc-review-dashboard/
 ```

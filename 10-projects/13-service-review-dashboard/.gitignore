@@ -18,9 +18,15 @@ eck/_dl/
 # 리뷰 수집기(AI매장리뷰 매크로) 연동: 로컬 경로 설정
 collect_config.json
 
+# 네이버 로그인 쿠키 (수동 폴백) — 세션 자격증명이므로 절대 커밋 금지
+naver_cookie.txt
+
 # VOC(고객의 소리) 사이트 연동: 자격증명·탐색 스크린샷
 voc/voc_config.json
 voc/_shots/
+
+# 매뉴얼 자료실: 교육팀 원본(사내문서·DRM 해제본) 추출 텍스트 → 커밋 금지
+manuals_text/
 
 # 자동 갱신 로그 · 월별 내보내기
 _logs/
@@ -36,3 +42,8 @@ __pycache__/
 
 # 공유 사이트 배포 클론
 _deploy/
+
+# 신세계 Cloud POS(고객수) 연동: 자격증명·세션·탐색 덤프
+pos/pos_config.json
+pos/pos_state.json
+pos/_probe/

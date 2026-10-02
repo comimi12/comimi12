@@ -40,7 +40,7 @@ def main():
     # 1) 외부 JS 인라인
     for fn in ("echarts.min.js", "data.js", "ai_notes.js", "eck_data.js", "kpi_data.js",
                "incentive_data.js", "manuals_data.js", "manuals_mot.js", "manuals_svc.js",
-               "manuals_images.js", "campaign_data.js"):
+               "manuals_images.js", "campaign_data.js", "weekly_rank.js"):
         if os.path.exists(os.path.join(HERE, fn)):
             html = inline_script(html, fn)
         else:
