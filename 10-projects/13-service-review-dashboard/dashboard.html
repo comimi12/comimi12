@@ -19,6 +19,7 @@
 <script src="manuals_mot.js" onerror="window.MOT=window.MOT||null"></script>
 <script src="manuals_svc.js" onerror="window.SVC_MANUALS=window.SVC_MANUALS||null"></script>
 <script src="manuals_images.js" onerror="window.MANUAL_IMAGES=window.MANUAL_IMAGES||null"></script>
+<script src="campaign_data.js" onerror="window.CAMPAIGN=window.CAMPAIGN||null"></script>
 <script>
 /* 새 버전 자동 반영: 배포 시 주입된 빌드토큰과 ver.txt(캐시 우회) 비교 → 다르면 최신으로 새로고침 */
 window.__BUILD__='__BUILD_TOKEN__';
@@ -484,6 +485,33 @@ window.__BUILD__='__BUILD_TOKEN__';
   table.cal .visit .vt{font-size:10px;opacity:.96;display:block;margin-top:2px}
   table.cal .visit .more{font-size:9.5px;opacity:.85;display:block;margin-top:3px;text-align:right}
   /* 방문 상세 모달 */
+  /* ⑦ 월별 캠페인 교육자료 — 한 화면: 왼쪽 포스터 / 오른쪽 1장 교육자료 */
+  .cp-months{display:flex;gap:6px;flex-wrap:wrap}
+  .ctrl .cp-mon{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:5px 12px;font-size:12.5px;font-weight:700;cursor:pointer}
+  .ctrl .cp-mon.on{background:var(--brand);border-color:var(--brand);color:#fff}
+  .cp-title{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:0 0 10px}
+  .cp-title b{font-size:17px;color:var(--brand-deep)} .cp-title .k{font-size:12px;color:var(--muted)}
+  .cp-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;height:calc(100vh - 215px);min-height:520px}
+  .cp-pane{background:var(--card);border:1px solid var(--line);border-radius:15px;box-shadow:var(--shadow);display:flex;flex-direction:column;min-height:0;overflow:hidden}
+  .cp-ph{display:flex;align-items:center;gap:6px;padding:9px 12px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .cp-ph h3{margin:0 6px 0 0;font-size:14px}
+  .cp-sub{border:1px solid var(--line);background:#fff;border-radius:7px;padding:3px 9px;font-size:11.5px;font-weight:700;color:var(--muted);cursor:pointer}
+  .cp-sub.on{background:var(--brand-soft);border-color:#b9d1ee;color:var(--brand)}
+  .cp-ph .sp{flex:1}
+  .cp-body{flex:1;min-height:0;overflow:auto;background:#eef1f5;display:flex;align-items:flex-start;justify-content:center;padding:10px}
+  .cp-body img{max-width:100%;max-height:100%;object-fit:contain;cursor:zoom-in;box-shadow:0 2px 12px rgba(0,0,0,.12);background:#fff}
+  .cp-src{font-size:11px;color:var(--muted);padding:6px 12px;border-top:1px solid var(--line)}
+  .cp-empty{margin:auto;color:var(--muted);font-size:13px;text-align:center;line-height:1.7}
+  .cp-scr{background:#fff;width:100%;padding:14px 16px;border-radius:10px}
+  .cp-scr h4{margin:2px 0 8px;font-size:13.5px;color:var(--brand-deep)}
+  .cp-scr ol{margin:0 0 14px;padding-left:22px} .cp-scr li{margin:5px 0;font-size:13.5px;line-height:1.55}
+  .cp-scr li.bad{color:#b23b3b}
+  .cp-scr li.bad::after{content:" ✕ 이렇게 말하지 않기";font-size:11px;font-weight:700}
+  .cp-scr .txt p{margin:4px 0;font-size:12.5px;line-height:1.6;color:#3a4352;white-space:pre-wrap}
+  .cp-zoom{position:fixed;inset:0;background:rgba(10,15,25,.86);z-index:1100;display:none;overflow:auto;cursor:zoom-out;padding:20px;text-align:center}
+  .cp-zoom.on{display:block} .cp-zoom img{max-width:min(1150px,100%);background:#fff}
+  @media (max-width:900px){ .cp-grid{grid-template-columns:1fr;height:auto} .cp-body img{max-height:none} }
+  @media print{ .cp-grid{height:auto} .cp-ph button,.cp-months{display:none!important} .cp-body img{max-height:none} }
   .vmodal{position:fixed;inset:0;background:rgba(20,29,41,.55);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px}
   .vmodal.on{display:flex}
   .vmodal .box{background:#fff;border-radius:16px;max-width:680px;width:100%;max-height:86vh;overflow:auto;padding:22px 26px;box-shadow:0 24px 70px rgba(0,0,0,.35)}
@@ -630,9 +658,10 @@ window.__BUILD__='__BUILD_TOKEN__';
     <div class="grp">매장 자가점검 현황</div>
     <button class="tab" data-v="vcs">⑤ CS 체크리스트 점검현황</button>
     <button class="tab" data-v="vqscs">⑥ QSCS 교육일지 등록현황</button>
+    <button class="tab" data-v="vcamp">⑦ 월별 캠페인 교육자료</button>
     <div class="grp">현장 모니터링</div>
-    <button class="tab" data-v="vmon">⑦ 모니터링 일정표</button>
-    <button class="tab" data-v="vinput">⑧ 모니터링 결과입력</button>
+    <button class="tab" data-v="vmon">⑧ 모니터링 일정표</button>
+    <button class="tab" data-v="vinput">⑨ 모니터링 결과입력</button>
     <div class="grp">경영 보고</div>
     <button class="tab" data-v="vreward">🏅 분기별 상벌 매장</button>
     <button class="tab" data-v="vreport">📝 결과 보고서</button>
@@ -1391,6 +1420,20 @@ window.__BUILD__='__BUILD_TOKEN__';
       <span class="ctrl-note" id="vinput-meta"></span>
     </div>
     <div id="vinput-body"><p style="color:var(--muted)">매장 입력 후 "불러오기" → CS 체크리스트를 항목별로 체크하세요. (자동 저장 · 모바일 가능)</p></div>
+  </section>
+
+  <!-- VIEW 7(자가점검 그룹): 월별 캠페인 교육자료 — 포스터 + 1장 서비스 교육자료 (campaign_data.js) -->
+  <section class="view" id="vcamp">
+    <div class="vhead"><h2>⑦ 월별 캠페인 교육자료 <span class="note" id="vcamp-src" style="font-size:12px;font-weight:500;color:var(--muted)"></span></h2></div>
+    <div class="ctrl">
+      <span>월</span>
+      <button id="vcamp-prev" title="이전 달">◀</button>
+      <div class="cp-months" id="vcamp-months"></div>
+      <button id="vcamp-next" title="다음 달">▶</button>
+      <span class="ctrl-note">이미지 클릭 시 크게 보기 · ←/→ 키로 월 이동</span>
+    </div>
+    <div id="vcamp-body"></div>
+    <div class="cp-zoom" id="vcamp-zoom"><img alt=""></div>
   </section>
 
 </div>
@@ -3489,6 +3532,82 @@ function closeSidebar(){ const s=document.getElementById('sidebar'),b=document.g
   if(tg) tg.addEventListener('click',()=>{ s.classList.toggle('open'); bd.classList.toggle('on'); });
   if(bd) bd.addEventListener('click',closeSidebar);
 })();
+/* ---------- 매장 자가점검 현황 ⑦ 월별 캠페인 교육자료 (campaign_data.js) ----------
+   한 화면 2분할: 왼쪽 = 캠페인 포스터, 오른쪽 = 1장 서비스 교육자료(원본 이미지 ↔ 응대 멘트 정리) */
+(function(){
+  const C = window.CAMPAIGN, body = document.getElementById('vcamp-body');
+  if(!body) return;
+  if(!C || !C.months || !C.months.length){ body.innerHTML='<p style="color:var(--muted)">캠페인 자료가 없습니다 (campaign_build.py 실행 필요).</p>'; return; }
+  const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const M = C.months, mbox = document.getElementById('vcamp-months'), zoom = document.getElementById('vcamp-zoom');
+  document.getElementById('vcamp-src').textContent = `· 출처: 교육팀 「11. 월별 캠페인_서비스중점업무」 (${C.generated} 기준)`;
+  const now = new Date(), cur = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  let mi = M.findIndex(m=>m.ym===cur); if(mi<0) mi = M.length-1;   // 기본 = 이번 달(없으면 최신)
+  let pi = 0, ei = 0, mode = 'img';
+
+  mbox.innerHTML = M.map((m,i)=>`<button class="cp-mon" data-i="${i}">${esc(m.label)}</button>`).join('');
+  mbox.addEventListener('click', e=>{ const b=e.target.closest('.cp-mon'); if(b) go(+b.dataset.i); });
+  document.getElementById('vcamp-prev').onclick = ()=>go(Math.max(0,mi-1));
+  document.getElementById('vcamp-next').onclick = ()=>go(Math.min(M.length-1,mi+1));
+  zoom.onclick = ()=>zoom.classList.remove('on');
+  document.addEventListener('keydown', e=>{
+    if(!document.getElementById('vcamp').classList.contains('active')) return;
+    if(e.key==='Escape') zoom.classList.remove('on');
+    if(e.target.matches('input,textarea,select')) return;
+    if(e.key==='ArrowLeft') go(Math.max(0,mi-1));
+    if(e.key==='ArrowRight') go(Math.min(M.length-1,mi+1));
+  });
+
+  function go(i){ mi=i; pi=0; ei=0; mode='img'; render(); }
+
+  function scriptsHtml(e){
+    const sc = e.scripts||[], good = sc.filter(s=>!s[1]), bad = sc.filter(s=>s[1]);
+    let h = `<div class="cp-scr">`;
+    if(sc.length){
+      h += `<h4>🗣 표준 응대 멘트 <span class="note">${good.length}개</span> <button class="cp-sub" data-copy="1">📋 복사</button></h4>`
+         + `<ol>${good.map(s=>`<li>“${esc(s[0])}”</li>`).join('')}</ol>`;
+      if(bad.length) h += `<h4>🚫 금지 표현</h4><ol>${bad.map(s=>`<li class="bad">“${esc(s[0])}”</li>`).join('')}</ol>`;
+    } else {
+      h += `<h4>🗣 표준 응대 멘트</h4><p style="color:var(--muted);font-size:12.5px;margin:0 0 12px">이 달 교육자료는 멘트 대신 실천 기준 위주입니다 — 아래 원문 참고.</p>`;
+    }
+    h += `<h4>📄 교육자료 원문 텍스트</h4><div class="txt">${(e.text||[]).map(t=>`<p>${esc(t)}</p>`).join('')}</div></div>`;
+    return h;
+  }
+
+  function render(){
+    const m = M[mi];
+    mbox.querySelectorAll('.cp-mon').forEach((b,i)=>b.classList.toggle('on', i===mi));
+    const P = m.posters||[], E = m.edu||[], p = P[pi], e = E[ei]||{};
+    const plabel = t => t==='KNOCK 온 더 SL&C 통합캠페인 포스터' ? 'KNOCK 포스터' : t.replace(' 캠페인 포스터','');
+    const posterTabs = P.length>1 ? P.map((x,i)=>`<button class="cp-sub${i===pi?' on':''}" data-p="${i}">${esc(plabel(x.title))}</button>`).join('') : '';
+    const eduTabs = E.length>1 ? E.map((x,i)=>`<button class="cp-sub${i===ei?' on':''}" data-e="${i}">${esc(x.title)}</button>`).join('') : '';
+    const nGood = (e.scripts||[]).filter(s=>!s[1]).length;
+    body.innerHTML =
+      `<div class="cp-title"><b>${esc(m.label)} · ${esc(m.theme)}</b><span class="k">${esc(m.kind)}</span></div>`
+    + `<div class="cp-grid">`
+    +   `<div class="cp-pane"><div class="cp-ph"><h3>🖼 포스터</h3>${posterTabs}</div>`
+    +     `<div class="cp-body">${p?`<img src="${p.img}" alt="${esc(m.label)} 포스터" data-z="1">`:'<div class="cp-empty">포스터 원본 없음</div>'}</div>`
+    +     `<div class="cp-src">${p?'출처 · '+esc(p.src):''}</div></div>`
+    +   `<div class="cp-pane"><div class="cp-ph"><h3>📘 1장 서비스 교육자료</h3>${eduTabs}<span class="sp"></span>`
+    +     `<button class="cp-sub${mode==='img'?' on':''}" data-m="img">원본 보기</button><button class="cp-sub${mode==='txt'?' on':''}" data-m="txt">응대 멘트 정리</button></div>`
+    +     `<div class="cp-body">${mode==='img'
+            ? (e.img?`<img src="${e.img}" alt="${esc(e.title)} 교육자료" data-z="1">`:'<div class="cp-empty">교육자료 이미지 없음</div>')
+            : scriptsHtml(e)}</div>`
+    +     `<div class="cp-src">${e.src?'출처 · '+esc(e.src):''}${nGood?` · 표준 멘트 ${nGood}개`:''}</div></div>`
+    + `</div>`;
+    body.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{pi=+b.dataset.p; render();});
+    body.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{ei=+b.dataset.e; render();});
+    body.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{mode=b.dataset.m; render();});
+    body.querySelectorAll('img[data-z]').forEach(im=>im.onclick=()=>{ zoom.querySelector('img').src=im.src; zoom.classList.add('on'); zoom.scrollTop=0; });
+    const cp = body.querySelector('[data-copy]');
+    if(cp) cp.onclick = ()=>{
+      const t = `[${m.label} 캠페인 · ${e.title}] 표준 응대 멘트\n` + (e.scripts||[]).filter(s=>!s[1]).map((s,i)=>`${i+1}. “${s[0]}”`).join('\n');
+      (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>{cp.textContent='✅ 복사됨';},()=>{cp.textContent='복사 실패';});
+    };
+  }
+  render();
+})();
+
 // URL 해시(#v2 등)로 특정 탭 바로 열기 (북마크/공유용)
 // #v2 처럼 탭 id 면 그 탭을, #fp-cmp 처럼 뷰 안의 앵커면 부모 탭을 연 뒤 그 위치로 스크롤
 (function(){
