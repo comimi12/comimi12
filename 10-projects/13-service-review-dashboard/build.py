@@ -314,6 +314,33 @@ def normalize_reviews_file(path):
     return out
 
 
+def load_program_xlsx(path):
+    """네이버 프로그램(매크로) 원본 NaverReviews_*.xlsx — review_26.MM월.csv 와 같은 양식A(채널 컬럼만 없음).
+       예전엔 사람이 CSV로 바꿔 넣어야 반영됐다(10월분 누락 원인). 읽을 수 없는 파일(DRM)은 건너뜀."""
+    try:
+        import openpyxl
+        wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
+    except Exception:
+        print(f"[skip] {os.path.basename(path)} — 열 수 없음(DRM?)")
+        return []
+    it = wb.active.iter_rows(values_only=True)
+    hdr = [str(h or "").strip() for h in next(it, [])]
+    if "리뷰유형" not in hdr or "매장명" not in hdr:
+        return []
+    with tempfile.NamedTemporaryFile("w", suffix=".csv", delete=False, encoding="utf-8-sig", newline="") as f:
+        tmp = f.name
+        w = csv.writer(f)
+        w.writerow(hdr + ["채널"])
+        for row in it:
+            w.writerow(["" if v is None else (v.strftime("%Y-%m-%d") if hasattr(v, "strftime") else v)
+                        for v in row] + ["네이버"])
+    wb.close()
+    try:
+        return normalize_reviews_file(tmp)
+    finally:
+        os.remove(tmp)
+
+
 def load_merged_catchtable(path, skip_months):
     """프로그램 파일에 캐치테이블이 빠진 월(4~6월)을 merged 파일의 캐치테이블로 보충.
        이미 캐치테이블이 있는 월(skip_months)은 건너뜀(중복 방지). 감성은 평점 기반."""
@@ -505,6 +532,13 @@ def build_reviews():
                 r["_prio"] = prio
             rows.extend(rs)
             used.append(bn)
+    for p in sorted(glob.glob(os.path.join(REVIEW_DIR, "NaverReviews_*.xlsx"))):
+        rs = load_program_xlsx(p)
+        if rs:
+            for r in rs:
+                r["_prio"] = 2
+            rows.extend(rs)
+            used.append(os.path.basename(p))
     if not rows:
         raise SystemExit("인식 가능한 월별 리뷰 양식(리뷰유형/리뷰감성)이 없습니다.")
     # 캐치테이블 보충: 프로그램 파일에 캐치테이블이 없는 월을 merged 파일에서 채움.
