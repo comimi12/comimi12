@@ -12,6 +12,7 @@ import json
 import os
 
 import fitz  # PyMuPDF
+from PIL import Image, ImageDraw
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -29,6 +30,12 @@ PLANS = {
 }
 DPI = 220
 
+# 배치도에서 지울 영역(pt, 같은 PDF 좌표). 주변 바탕색으로 덮는다.
+# WASA 패티오 윗줄 P5~P7(테이블+의자)은 사용자 지시로 삭제(2026-10-07).
+ERASE = {
+    'wasa-manual': [(114, 450, 453, 518)],
+}
+
 
 def render():
     """PDF 에서 배치도를 잘라 src/img 에 저장. PDF 가 없으면 기존 이미지를 그대로 쓴다."""
@@ -36,9 +43,15 @@ def render():
         print('[!] 플로어플랜 PDF 없음 → 기존 이미지 유지: ' + PDF)
         return
     doc = fitz.open(PDF)
-    for pno, clip, name in PLANS.values():
+    for did, (pno, clip, name) in PLANS.items():
         pix = doc[pno - 1].get_pixmap(dpi=DPI, clip=fitz.Rect(*clip))
-        pix.save(os.path.join(IMGDIR, name), jpg_quality=88)
+        img = Image.frombytes('RGB', (pix.width, pix.height), pix.samples)
+        k = DPI / 72.0
+        for x0, y0, x1, y1 in ERASE.get(did, []):
+            box = [round((x0 - clip[0]) * k), round((y0 - clip[1]) * k),
+                   round((x1 - clip[0]) * k), round((y1 - clip[1]) * k)]
+            ImageDraw.Draw(img).rectangle(box, fill=img.getpixel((box[0], box[1])))
+        img.save(os.path.join(IMGDIR, name), quality=88)
         print('  %-20s %dx%d' % (name, pix.width, pix.height))
 
 
