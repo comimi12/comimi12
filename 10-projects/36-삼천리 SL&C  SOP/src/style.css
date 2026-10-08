@@ -256,6 +256,11 @@ h2.sect:first-child{ margin-top:2px }
 .shot.pan img{ width:auto; max-width:none; height:300px; aspect-ratio:auto; object-fit:initial }
 .shot.pan figcaption{ padding:8px 12px 10px; font-size:12px; color:var(--mut); text-align:center }
 .shot.pan.nosc figcaption{ display:none }
+/* 테이블 배치도: 원본 비율 그대로 전체 표시 */
+.shot.plan{ background:#fff }
+.shot.plan .plan-hd{ padding:12px 14px 8px; font-weight:700 }
+.shot.plan img{ aspect-ratio:auto; height:auto; object-fit:contain; padding:0 10px }
+.shot.plan figcaption{ padding:6px 12px 10px; font-size:12px; color:var(--mut); text-align:center }
 
 .tbl{ overflow-x:auto; border-radius:var(--r2); background:var(--surf); box-shadow:var(--sh) }
 table{ border-collapse:collapse; width:100%; min-width:540px; font-size:13px }

@@ -249,6 +249,7 @@ python build/kkotsal.py --reuse  # 캡처본 재사용하고 다시 인코딩만
 ├── build/
 │   ├── extract.py          # PPTX → data.json + img/  (원본 수정 시 재실행)
 │   ├── store_info.py       # '매장 정보.pptx' → STORE FACT SHEET 답 채우기 · X 항목 삭제
+│   ├── floor_plan.py       # Brea Floor Plan PDF → 테이블 배치도 이미지 (store_info가 호출)
 │   ├── verify.py           # 14개 화면 자동 캡처 + 콘솔오류·가로스크롤·깨진이미지 검사
 │   ├── verify_study.py     # 학습 시간 게이트·수료 등록 링크를 브라우저에서 끝까지 확인
 │   ├── deploy.py           # src/ → GitHub Pages 저장소 push
@@ -299,6 +300,11 @@ python build/store_info.py --fallback # PPTX 없이 사전값으로 반영
 같은 날 원본이 **`…_매장정보반영.pptx`**로 바뀌었다 — 답이 라벨 옆 별도 텍스트박스로 들어 있어,
 추출하면 답이 줄 없는 블록으로 따로 나온다. `store_info.py`가 그런 블록(과 삭제된 질문이 답에 붙은 블록)을
 버리고 라벨 블록에 답을 채우므로 절차는 그대로다.
+
+**테이블 배치도 (2026-10-07)**: `오픈매장 매뉴얼\Brea Floor Plan 10.7.26.pdf`(DRM 아님)에서 `build/floor_plan.py`가
+1장(KSC 홀)·3장(WASA 홀+패티오)을 잘라 `src/img/floorplan-ksc.jpg`·`floorplan-wasa.jpg`로 저장하고 STORE FACT SHEET의
+응대 멘트 위에 넣는다. 2장(KSC 바)은 사용자 지시로 제외, 오른쪽 NOTES·SOLD OUT 빈칸도 잘라낸다.
+`store_info.py`가 끝에서 자동 호출하므로 따로 돌릴 필요 없다. PDF 파일명이 바뀌면 `floor_plan.py`의 `PDF`·`PLANS` 영역을 고칠 것.
 
 ### 원본 개정과 페이지 번호 (2026-09-23)
 

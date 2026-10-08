@@ -595,7 +595,13 @@
       // 가로로 긴 큰 이미지(브랜드 소개 띠 등)는 잘라내지 않고 좌우 스크롤로 전부 보여준다.
       // 원본에서 작게 들어간 로고류는 잘리지 않게 통째로 담는다.
       var r = im.h ? im.w / im.h : 1.6, fig;
-      if (im.w >= 3 && r > 1.7) {
+      if (im.plan) {
+        // 테이블 배치도: 자르지 않고 통째로, 눌러서 원본 크기로 확대
+        fig = '<figure class="shot plan"><div class="plan-hd">' + L('Table Layout', '테이블 배치도') + '</div>'
+          + '<a href="' + esc(im.src) + '" target="_blank" rel="noopener"><img src="' + esc(im.src)
+          + '" alt="Table layout" loading="lazy"></a><figcaption>'
+          + L('Tap to enlarge', '눌러서 크게 보기') + '</figcaption></figure>';
+      } else if (im.w >= 3 && r > 1.7) {
         fig = '<figure class="shot pan"><div class="pan-in"><img src="' + esc(im.src)
           + '" alt="" loading="lazy"></div><figcaption>' + L('Swipe ← → to read it all', '좌우로 밀어서 전체 보기')
           + '</figcaption></figure>';

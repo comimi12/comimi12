@@ -213,6 +213,11 @@ def main():
             for d in dropped:
                 print('    - 삭제:', d)
 
+    # 테이블 배치도(Brea Floor Plan PDF)도 같은 페이지에 붙인다
+    import floor_plan
+    floor_plan.render()
+    floor_plan.apply(decks)
+
     with open(DATA, 'w', encoding='utf-8') as f:
         json.dump(decks, f, ensure_ascii=False, separators=(",", ":"))
     print('written', DATA, '(fallback)' if use_fb else '(pptx)')
