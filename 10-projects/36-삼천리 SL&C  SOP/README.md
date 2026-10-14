@@ -305,6 +305,8 @@ python build/store_info.py --fallback # PPTX 없이 사전값으로 반영
 1장(KSC 홀)·3장(WASA 홀+패티오)을 잘라 `src/img/floorplan-ksc.jpg`·`floorplan-wasa.jpg`로 저장하고 STORE FACT SHEET의
 응대 멘트 위에 넣는다. 2장(KSC 바)은 사용자 지시로 제외, WASA 패티오 P5~P7은 `ERASE`로 지움, 오른쪽 NOTES·SOLD OUT 빈칸도 잘라낸다.
 `store_info.py`가 끝에서 자동 호출하므로 따로 돌릴 필요 없다. PDF 파일명이 바뀌면 `floor_plan.py`의 `PDF`·`PLANS` 영역을 고칠 것.
+2026-10-14 WASA 테이블 번호 개편(홀 11~14·21~22·31~35·41~42·51~52, 패티오 71~74, 옛 5번 2인석 삭제)은
+`RELABEL`·`ERASE_POLY`(픽셀 좌표)로 처리. PDF가 DRM으로 잠겨 있으면 기존 이미지 위에 이 보정만 다시 적용한다(덧칠해도 결과 동일).
 
 ### 원본 개정과 페이지 번호 (2026-09-23)
 
