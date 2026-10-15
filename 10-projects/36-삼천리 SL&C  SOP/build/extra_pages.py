@@ -139,7 +139,20 @@ MENU_REMOVE = {
 }
 
 
+# WASA 메뉴 중 사진 없던 곳 (영문명 → 파일). WASA 사진은 원래 매장 실사 톤이라 배경 제거 없이 그대로.
+#  - Kids Bento: 매장 카톡 사진(2026-10-15)
+WASA_MENU_PHOTOS = {
+    'Kids Bento': 'wasa-kids-bento.jpg',
+}
+
+
 def apply_menu_photos(decks):
+    for deck in decks:
+        if deck.get('id') == 'wasa-menu':
+            for it in deck.get('items', []):
+                if not it.get('img') and it.get('en') in WASA_MENU_PHOTOS:
+                    it['img'] = 'img/' + WASA_MENU_PHOTOS[it['en']]
+                    print('  wasa-menu %-14s ← %s' % (it['en'], it['img']))
     for deck in decks:
         before = deck.get('items', [])
         keep = [it for it in before if (deck.get('id'), it.get('chip'), it.get('en')) not in MENU_REMOVE]
