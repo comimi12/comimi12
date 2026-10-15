@@ -661,6 +661,7 @@
       + '<span class="im">' + (it.img
         ? '<img src="' + esc(thumb(it.img)) + '" alt="' + esc(it.en)
           + '" loading="lazy" decoding="async">'
+        : it.video ? '<span class="no vid">' + ico(I.play) + 'VIDEO<br>영상 보기</span>'
         : '<span class="no">PHOTO<br>준비 중</span>') + '</span>'
       + '<span class="bd"><b>' + esc(it.en) + '</b>'
       + (it.kr ? '<span>' + esc(it.kr) + '</span>' : '')
@@ -754,6 +755,11 @@
     var deck = menuDeck(S.brand), it = deck.items[i];
     if (!it) return;
     var h = it.img ? '<div class="hero"><img src="' + esc(it.img) + '" alt=""></div>' : '';
+    // 외부 영상(인스타그램 릴스)은 파일을 받아 올리지 않고 공식 임베드로만 보여준다(원작자 표시 유지)
+    if (it.video && it.video.ig) {
+      h += '<div class="igv"><iframe src="https://www.instagram.com/reel/' + encodeURIComponent(it.video.ig)
+        + '/embed/" loading="lazy" allowfullscreen scrolling="no" title="Instagram video"></iframe></div>';
+    }
     h += '<div style="padding:20px 20px 6px">'
       + (it.chip ? '<div class="eyebrow">' + esc(it.chip) + '</div>' : '')
       + '<h2 class="ph" style="font-size:24px">' + esc(it.en)

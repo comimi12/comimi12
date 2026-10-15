@@ -108,6 +108,10 @@ KSC_MENU_PHOTOS = {
     '제육쭈꾸미': 'ksc-jeyuk-jjukkumi.jpg',
 }
 KSC_LUNCH_SET = ('LUNCH SET', 'ksc-lunch-set.jpg')
+# 사진 대신 영상: 인스타그램 릴스 id (제3자 @mat_thagoras 게시물 → 내려받지 않고 공식 임베드만, 2026-10-14)
+KSC_MENU_VIDEOS = {
+    '겉절이 김치': 'DOcQjPGDzl-',
+}
 
 
 def apply_menu_photos(decks):
@@ -120,6 +124,9 @@ def apply_menu_photos(decks):
                 src = KSC_LUNCH_SET[1]
             elif not it.get('img') and it.get('kr') in KSC_MENU_PHOTOS:
                 src = KSC_MENU_PHOTOS[it['kr']]
+            if it.get('kr') in KSC_MENU_VIDEOS:
+                it['video'] = {'ig': KSC_MENU_VIDEOS[it['kr']]}
+                print('  ksc-menu %-14s ← video ig/%s' % (it['kr'], it['video']['ig']))
             if src:
                 it['img'] = 'img/' + src
                 print('  ksc-menu %-14s ← %s' % (it.get('kr') or it.get('en'), src))

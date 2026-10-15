@@ -356,6 +356,11 @@ tbody tr.gr td{ background:var(--surf2); color:var(--ink) }
 .sheet .hero{ position:relative; aspect-ratio:4/3; background:var(--surf2); overflow:hidden }
 .sheet .hero img{ position:absolute; inset:0; width:100%; height:100%;
   object-fit:contain; object-position:center }
+.mc .im .no.vid{ color:var(--pri-t); gap:4px; justify-items:center }
+.mc .im .no.vid svg{ width:26px; height:26px; stroke:currentColor; fill:none; stroke-width:2 }
+.sheet .igv{ padding:56px 12px 0; background:var(--surf2) }
+.sheet .igv iframe{ display:block; width:100%; max-width:400px; height:min(720px,calc(100vh - 140px));
+  margin:0 auto; border:0; border-radius:12px; background:#fff }
 .sec{ padding:17px 20px; border-top:1px solid var(--line) }
 .sec h4{ margin:0 0 8px; font-size:10.5px; font-weight:800; letter-spacing:.11em;
   color:var(--pri-t); font-family:'Archivo',sans-serif }
