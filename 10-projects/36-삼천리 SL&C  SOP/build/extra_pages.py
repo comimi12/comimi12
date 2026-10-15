@@ -132,7 +132,20 @@ KSC_MENU_VIDEOS = {
 }
 
 
+# 교육자료에서 빼는 메뉴: (덱 id, 분류 chip, 영문명) — 사용자 지시
+#  - WASA 로바타 랑구스틴(2026-10-15)
+MENU_REMOVE = {
+    ('wasa-menu', 'ROBATA', 'Langoustine'),
+}
+
+
 def apply_menu_photos(decks):
+    for deck in decks:
+        before = deck.get('items', [])
+        keep = [it for it in before if (deck.get('id'), it.get('chip'), it.get('en')) not in MENU_REMOVE]
+        if len(keep) != len(before):
+            deck['items'] = keep
+            print('  %s 메뉴 %d개 삭제' % (deck['id'], len(before) - len(keep)))
     for deck in decks:
         if deck.get('id') != 'ksc-menu':
             continue
