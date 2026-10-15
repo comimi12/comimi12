@@ -106,6 +106,12 @@ KSC_MENU_PHOTOS = {
     '비빔냉면': 'ksc-bibim-naengmyeon.jpg',
     '차돌 부추 덮밥': 'ksc-chadol-buchu-bowl.jpg',
     '제육쭈꾸미': 'ksc-jeyuk-jjukkumi.jpg',
+    # 2026-10-15 추가 촬영본 — 사용자 지시로 이번엔 흰 바탕(255) 합성(rembg u2net)
+    '육회': 'ksc-yukhoe.jpg',
+    # 아래는 국문명(kr)이 비어 있어 영문명으로 매칭
+    'ORANDA ICE CREAM': 'ksc-oranda-icecream.jpg',
+    'HOTTEOK': 'ksc-hotteok.jpg',
+    'TTEOKKALBI + RICEBALL + BANCHAN': 'ksc-kids-menu.jpg',
 }
 # 기존 사진이 있어도 덮어쓰는 메뉴 (영문명 앞부분 → 파일)
 #  - LUNCH SET: 쭈꾸미제육+된장찌개 사진을 메인으로(사용자 지시)
@@ -137,8 +143,8 @@ def apply_menu_photos(decks):
                 src = KSC_MENU_OVERRIDE_IN[(it.get('chip'), it.get('en'))]
             elif hit:
                 src = hit[0]
-            elif not it.get('img') and it.get('kr') in KSC_MENU_PHOTOS:
-                src = KSC_MENU_PHOTOS[it['kr']]
+            elif not it.get('img') and (it.get('kr') or it.get('en')) in KSC_MENU_PHOTOS:
+                src = KSC_MENU_PHOTOS[it.get('kr') or it.get('en')]
             if it.get('kr') in KSC_MENU_VIDEOS:
                 it['video'] = {'ig': KSC_MENU_VIDEOS[it['kr']]}
                 print('  ksc-menu %-14s ← video ig/%s' % (it['kr'], it['video']['ig']))
