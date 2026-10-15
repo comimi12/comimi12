@@ -98,7 +98,7 @@ def apply(decks):
 # KSC 메뉴 교육자료 중 사진 없던 메뉴에 매장 촬영 사진(2026-10-14) 채움.
 # 원본: 오픈매장 매뉴얼\KSC_US\메뉴사진\*.JPG — 어두운 나무 배경이라 다른 메뉴 톤에 맞춰
 # 음식만 분리해 밝은 회색 바탕에 합성한 결과물을 src/img/ksc-*.jpg 로 둔다.
-# 키 = 메뉴 국문명(kr). LUNCH SET 은 사용자 지시로 쭈꾸미제육+된장찌개 사진을 메인으로(기존 사진 있어도 덮어씀).
+# 키 = 메뉴 국문명(kr).
 KSC_MENU_PHOTOS = {
     '소고기 순두부': 'ksc-soontofu.jpg',
     '설렁탕': 'ksc-seolleongtang.jpg',
@@ -107,7 +107,14 @@ KSC_MENU_PHOTOS = {
     '차돌 부추 덮밥': 'ksc-chadol-buchu-bowl.jpg',
     '제육쭈꾸미': 'ksc-jeyuk-jjukkumi.jpg',
 }
-KSC_LUNCH_SET = ('LUNCH SET', 'ksc-lunch-set.jpg')
+# 기존 사진이 있어도 덮어쓰는 메뉴 (영문명 앞부분 → 파일)
+#  - LUNCH SET: 쭈꾸미제육+된장찌개 사진을 메인으로(사용자 지시)
+#  - KALBI SELECTION: 원본에 맞는 사진이 없어 PREMIUM EXPERIENCE 사진에서 브리스킷 그릇만
+#    LaMa 인페인팅으로 지운 합성본(사용자 지시, 2026-10-14)
+KSC_MENU_OVERRIDE = {
+    'LUNCH SET': 'ksc-lunch-set.jpg',
+    'KALBI SELECTION EXPERIENCE': 'ksc-kalbi-selection.jpg',
+}
 # 사진 대신 영상: 인스타그램 릴스 id (제3자 @mat_thagoras 게시물 → 내려받지 않고 공식 임베드만, 2026-10-14)
 KSC_MENU_VIDEOS = {
     '겉절이 김치': 'DOcQjPGDzl-',
@@ -120,8 +127,9 @@ def apply_menu_photos(decks):
             continue
         for it in deck.get('items', []):
             src = None
-            if it.get('en') == KSC_LUNCH_SET[0]:
-                src = KSC_LUNCH_SET[1]
+            hit = [f for k, f in KSC_MENU_OVERRIDE.items() if (it.get('en') or '').startswith(k)]
+            if hit:
+                src = hit[0]
             elif not it.get('img') and it.get('kr') in KSC_MENU_PHOTOS:
                 src = KSC_MENU_PHOTOS[it['kr']]
             if it.get('kr') in KSC_MENU_VIDEOS:
