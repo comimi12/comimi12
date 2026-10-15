@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""원본 매뉴얼에 없는 추가 교육 페이지를 KSC·WASA 매뉴얼에 넣는다.
+"""원본 매뉴얼에 없는 추가 교육 페이지·메뉴 사진을 넣는다.
 
 - 안전교육(2026-10-14): Downloads\\📋직원 추가 교육 자료1.docx
   "Restaurant Safety Call-outs / 레스토랑 안전 소통 교육" → 서비스 10단계 바로 뒤.
@@ -95,9 +95,40 @@ def apply(decks):
         print('  %s p%d 안전교육 (서비스 10단계 p%d 뒤)' % (deck['id'], n, pages[at]['n']))
 
 
+# KSC 메뉴 교육자료 중 사진 없던 메뉴에 매장 촬영 사진(2026-10-14) 채움.
+# 원본: 오픈매장 매뉴얼\KSC_US\메뉴사진\*.JPG — 어두운 나무 배경이라 다른 메뉴 톤에 맞춰
+# 음식만 분리해 밝은 회색 바탕에 합성한 결과물을 src/img/ksc-*.jpg 로 둔다.
+# 키 = 메뉴 국문명(kr). LUNCH SET 은 사용자 지시로 쭈꾸미제육+된장찌개 사진을 메인으로(기존 사진 있어도 덮어씀).
+KSC_MENU_PHOTOS = {
+    '소고기 순두부': 'ksc-soontofu.jpg',
+    '설렁탕': 'ksc-seolleongtang.jpg',
+    '물냉면': 'ksc-mul-naengmyeon.jpg',
+    '비빔냉면': 'ksc-bibim-naengmyeon.jpg',
+    '차돌 부추 덮밥': 'ksc-chadol-buchu-bowl.jpg',
+    '제육쭈꾸미': 'ksc-jeyuk-jjukkumi.jpg',
+}
+KSC_LUNCH_SET = ('LUNCH SET', 'ksc-lunch-set.jpg')
+
+
+def apply_menu_photos(decks):
+    for deck in decks:
+        if deck.get('id') != 'ksc-menu':
+            continue
+        for it in deck.get('items', []):
+            src = None
+            if it.get('en') == KSC_LUNCH_SET[0]:
+                src = KSC_LUNCH_SET[1]
+            elif not it.get('img') and it.get('kr') in KSC_MENU_PHOTOS:
+                src = KSC_MENU_PHOTOS[it['kr']]
+            if src:
+                it['img'] = 'img/' + src
+                print('  ksc-menu %-14s ← %s' % (it.get('kr') or it.get('en'), src))
+
+
 def main():
     decks = json.load(open(DATA, encoding='utf-8'))
     apply(decks)
+    apply_menu_photos(decks)
     with open(DATA, 'w', encoding='utf-8') as f:
         json.dump(decks, f, ensure_ascii=False, separators=(",", ":"))
 
