@@ -115,6 +115,11 @@ KSC_MENU_OVERRIDE = {
     'LUNCH SET': 'ksc-lunch-set.jpg',
     'KALBI SELECTION EXPERIENCE': 'ksc-kalbi-selection.jpg',
 }
+# 분류(chip)까지 맞아야 덮어쓰는 메뉴 — 같은 영문명이 다른 분류에도 있을 때
+#  - ART OF KALBI 의 LA KALBI: 기존 사진이 안 예쁘다고 해 오늘 촬영본으로 교체(SIDES 의 LA KALBI 는 유지)
+KSC_MENU_OVERRIDE_IN = {
+    ('ART OF KALBI', 'LA KALBI'): 'ksc-la-kalbi.jpg',
+}
 # 사진 대신 영상: 인스타그램 릴스 id (제3자 @mat_thagoras 게시물 → 내려받지 않고 공식 임베드만, 2026-10-14)
 KSC_MENU_VIDEOS = {
     '겉절이 김치': 'DOcQjPGDzl-',
@@ -128,7 +133,9 @@ def apply_menu_photos(decks):
         for it in deck.get('items', []):
             src = None
             hit = [f for k, f in KSC_MENU_OVERRIDE.items() if (it.get('en') or '').startswith(k)]
-            if hit:
+            if (it.get('chip'), it.get('en')) in KSC_MENU_OVERRIDE_IN:
+                src = KSC_MENU_OVERRIDE_IN[(it.get('chip'), it.get('en'))]
+            elif hit:
                 src = hit[0]
             elif not it.get('img') and it.get('kr') in KSC_MENU_PHOTOS:
                 src = KSC_MENU_PHOTOS[it['kr']]
