@@ -218,6 +218,10 @@ def main():
     floor_plan.render()
     floor_plan.apply(decks)
 
+    # 원본에 없는 추가 교육 페이지(안전교육 등)
+    import extra_pages
+    extra_pages.apply(decks)
+
     with open(DATA, 'w', encoding='utf-8') as f:
         json.dump(decks, f, ensure_ascii=False, separators=(",", ":"))
     print('written', DATA, '(fallback)' if use_fb else '(pptx)')
