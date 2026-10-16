@@ -155,9 +155,11 @@
     { g: 'BRAND & STORE', gk: '브랜드 · 매장', t: '우리 매장 정보', m: 'STORE FACT SHEET' },
     { g: 'STANDARDS', gk: '기본 기준', t: '용모 · 복장 기준', m: 'GROOMING & UNIFORM' },
     { g: 'STANDARDS', gk: '기본 기준', t: '직급별 역할', m: 'POSITION MAP' },
+    { g: 'STANDARDS', gk: '기본 기준', t: '클락인 · 클락아웃 규정', m: 'CLOCK-IN & CLOCK-OUT' },  // extra_pages.py
     { g: 'MY POSITION', gk: '내 포지션', t: '내 포지션 표준 절차', role: true },
     { g: 'SERVICE', gk: '서비스', t: '서비스 10단계', m: 'STEPS OF SERVICE' },
     { g: 'SERVICE', gk: '서비스', t: '안전교육', m: 'RESTAURANT SAFETY CALL-OUTS' },  // build/extra_pages.py 추가 페이지
+    { g: 'SERVICE', gk: '서비스', t: '86 (품절) 처리', m: '86 ITEM' },  // extra_pages.py
     { g: 'SERVICE', gk: '서비스', t: '상황별 응대', m: 'SITUATIONAL PLAYBOOK' },
     { g: 'SERVICE', gk: '서비스', t: '컴플레인 응대', m: 'RECOVERY & COMPLAINT' }
     // 안전·법규(주류/알러지/위생/비상/근로)와 참고 자료(알러지 표·메뉴 지식)는

@@ -3,6 +3,8 @@
 
 - 안전교육(2026-10-14): Downloads\\📋직원 추가 교육 자료1.docx
   "Restaurant Safety Call-outs / 레스토랑 안전 소통 교육" → 서비스 10단계 바로 뒤.
+- 86 Item(안전교육 뒤), Clock in/out(직급별 역할 뒤) (2026-10-15):
+  Downloads\\📋직원 추가 교육 자료.docx
 
 페이지 번호(n)는 기존 번호를 밀지 않도록 덱의 최대 번호 + 1 을 쓰고, 배열 위치만
 서비스 10단계 뒤에 끼운다(기기에 저장된 진도 키가 그대로 유지됨). 학습 순서는
@@ -71,10 +73,60 @@ SAFETY = {
 }
 
 
-def build_page(n, ref):
+# 2026-10-15 추가: Downloads\📋직원 추가 교육 자료.docx — 86 Item(안전교육 뒤), Clock in/out(직급별 역할 뒤)
+CLOCK = {
+    'title': 'CLOCK-IN & CLOCK-OUT POLICY  |  클락인 · 클락아웃 규정',
+    'badge': 'TIME & ATTENDANCE',
+    'blocks': [
+        ('CLOCK-IN POLICY  ·  클락인 규정', [
+            'Please do NOT clock in more than 1 minute before your scheduled shift time, '
+            'unless specifically requested by a manager.',
+            '배정된 스케줄 시간 기준 1분보다 빠르게 클락인하지 마세요. '
+            '단, 관리자가 사전에 일찍 출근하여 클락인할 것을 요청한 경우는 예외입니다.',
+        ]),
+        ('CLOCK-OUT POLICY  ·  클락아웃 규정', [
+            'You must always get approval from a manager before clocking out and leaving.',
+            '퇴근 시에는 반드시 관리자의 허가를 받은 후 클락아웃을 진행하고 귀가해 주세요.',
+            'Even if your scheduled shift time shows a set end time, do not clock out arbitrarily '
+            '— always confirm with a manager first.',
+            'POS나 스케줄 상에 퇴근 시간이 정해져 있더라도, 임의로 퇴근하지 말고 반드시 관리자에게 확인을 받아야 합니다.',
+        ]),
+    ],
+}
+ITEM86 = {
+    'title': '86 ITEM  |  86 (품절) 처리',
+    'badge': 'OUT OF STOCK',
+    'blocks': [
+        ('WHAT DOES "86" MEAN?  ·  \'86\'이란 무슨 뜻인가요?', [
+            'A term used to indicate that a menu item is out of stock / unavailable or needs to be discontinued.',
+            '메뉴가 품절(품귀)되었거나, 판매를 중단해야 함을 의미하는 용어입니다.',
+        ]),
+        ('WHEN DO WE "86" AN ITEM?  ·  언제 \'86\'을 하나요?', [
+            'Out of Stock: When ingredients or finished items are completely out of stock.',
+            '재고 소진: 재료나 완제품이 모두 떨어졌을 때',
+            'Quality Control: When the condition of ingredients is not suitable for serving.',
+            '품질 문제: 재료의 상태가 서빙하기에 적합하지 않을 때',
+            'Kitchen Request: When a specific menu item cannot be prepared due to kitchen conditions.',
+            '주방 요청: 주방 상황에 따라 특정 메뉴 조리가 불가능할 때',
+        ]),
+        ('HOW TO COMMUNICATE — INTERNAL TEAM  ·  주방 / 홀 팀원 간 소통', [
+            '"Please 86 the [Item Name] on the POS!"',
+            '"주방/POS에 [메뉴명] 86 처리 부탁드립니다!"',
+        ]),
+    ],
+}
+# (페이지, 바로 앞에 올 페이지 제목 앞부분). 새 번호는 이 순서대로 덱 최대+1 을 받는다.
+EXTRA = [
+    (SAFETY, AFTER),
+    (ITEM86, 'RESTAURANT SAFETY CALL-OUTS'),
+    (CLOCK, 'POSITION MAP'),
+]
+
+
+def build_page(n, ref, spec=SAFETY):
     blocks = [{'head': h, 'lines': lines, 'kind': 'normal', 'x': 0.55, 'y': 1.2 + i, 'w': 7.1}
-              for i, (h, lines) in enumerate(SAFETY['blocks'])]
-    return {'n': n, 'title': SAFETY['title'], 'badge': SAFETY['badge'],
+              for i, (h, lines) in enumerate(spec['blocks'])]
+    return {'n': n, 'title': spec['title'], 'badge': spec['badge'],
             'chapter': ref.get('chapter'), 'ch': ref.get('ch'), 'divider': False,
             'blocks': blocks, 'images': [], 'tables': [], 'extra': True}
 
@@ -84,15 +136,16 @@ def apply(decks):
         if deck.get('id') not in DECKS:
             continue
         pages = deck['pages']
-        old = [p for p in pages if p.get('title') == SAFETY['title']]
-        n = old[0]['n'] if old else max(p['n'] for p in pages) + 1
-        pages[:] = [p for p in pages if p.get('title') != SAFETY['title']]
-        at = next((i for i, p in enumerate(pages) if p['title'].upper().startswith(AFTER)), None)
-        if at is None:
-            print('[!] %s: %s 페이지 없음 → 안전교육 미삽입' % (deck['id'], AFTER))
-            continue
-        pages.insert(at + 1, build_page(n, pages[at]))
-        print('  %s p%d 안전교육 (서비스 10단계 p%d 뒤)' % (deck['id'], n, pages[at]['n']))
+        for spec, after in EXTRA:
+            old = [p for p in pages if p.get('title') == spec['title']]
+            n = old[0]['n'] if old else max(p['n'] for p in pages) + 1
+            pages[:] = [p for p in pages if p.get('title') != spec['title']]
+            at = next((i for i, p in enumerate(pages) if p['title'].upper().startswith(after)), None)
+            if at is None:
+                print('[!] %s: %s 페이지 없음 → %s 미삽입' % (deck['id'], after, spec['title']))
+                continue
+            pages.insert(at + 1, build_page(n, pages[at], spec))
+            print('  %s p%d %s (p%d 뒤)' % (deck['id'], n, spec['title'].split('|')[-1].strip(), pages[at]['n']))
 
 
 # KSC 메뉴 교육자료 중 사진 없던 메뉴에 매장 촬영 사진(2026-10-14) 채움.
