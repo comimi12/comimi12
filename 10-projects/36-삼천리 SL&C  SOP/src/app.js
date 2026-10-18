@@ -842,33 +842,66 @@
     var deck = menuDeck(b);
     if (!deck) return [];
     // 같은 메뉴가 두 분류에 실린 경우(이름·사진 동일, É처럼 표기만 다른 경우 포함)는 한 번만
-    var seen = {}, pool = [];
+    var seen = {}, pool = [], imgsOf = {};
     deck.items.forEach(function (it) {
       var k = it.en.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+      // \uc790\ub8cc\uc5d0 \uac19\uc740 \uc0ac\uc9c4\uc744 \uc4f0\ub294 \ub2e4\ub978 \uba54\ub274\uac00 \uc788\ub2e4(\uc608: WASA \ub2c8\uae30\ub9ac) \u2014 \uc774\ub984\ubcc4\ub85c \uc4f0\uc778 \uc0ac\uc9c4\uc744 \ubaa8\ub450 \ubaa8\uc544 \ub454\ub2e4
+      if (it.img) (imgsOf[k] = imgsOf[k] || []).push(it.img);
       if (!it.img || seen[k] || seen[it.img]) return;
       if (used.some(function (r) { return k.indexOf(r) === 0; })) return;
       seen[k] = seen[it.img] = 1; pool.push(it);
     });
+    function keyOf(it) { return it.en.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase(); }
     function words(s) { return s.toUpperCase().split(/[^A-Z]+/).filter(function (w) { return w.length >= 4; }); }
     return fresh(pool, function (it) { return 'p:' + it.en; }).slice(0, n).map(function (it) {
       var ws = words(it.en);
       var others = shuffle(pool.filter(function (x) {
-        return x !== it && !words(x.en).some(function (w) { return ws.indexOf(w) >= 0; });
+        return x !== it && !words(x.en).some(function (w) { return ws.indexOf(w) >= 0; })
+          && imgsOf[keyOf(x)].indexOf(it.img) < 0;   // \uc774 \uc0ac\uc9c4\uc744 \uc4f0\ub294 \ub2e4\ub978 \uba54\ub274\ub294 \ubcf4\uae30\uc5d0\uc11c \ube80\ub2e4
       })).slice(0, 3);
-      var opts = [it].concat(others).map(function (x, i) { return { en: x.en, kr: x.kr || '', ok: i === 0 }; });
+      var opts = [it].concat(others).map(function (x, i) { return { en: x.en, kr: krOf(x), ok: i === 0 }; });
       return { t: 'mc', img: thumb(it.img), q: ['What is the dish in this photo?', '사진 속 메뉴는 무엇인가요?'],
                opts: shuffle(opts), ref: it.en };
     });
   }
 
   /** 추천 멘트 문제 — 멘트 속 메뉴 이름(영문 단어·한글 토큰)은 ____ 로 가린다 */
-  // 한글 메뉴명이 비어 있는 메뉴 — 국문 멘트 속 이름을 이걸로 가린다
+  // 메뉴 자료에 한글 메뉴명이 비어 있는 메뉴 — 보기의 국문 표기와 국문 멘트 가리기에 쓴다
   var SELL_KR = {
-    'KOREAN FRIED CHICKEN WINGS (w. Sauce)': '치킨윙', 'WHITE CUCUMBER': '화이트 오이',
+    'STARTER EXPERIENCE (For2)': '스타터 익스피리언스 (2인)',
+    'SIGNATURE EXPERIENCE (For2‑3)': '시그니처 익스피리언스 (2~3인)',
+    "CHEF'S EXPERIENCE (For3‑4)": '셰프스 익스피리언스 (3~4인)',
+    'KALBI SELECTION EXPERIENCE (For5‑6)': '갈비 셀렉션 익스피리언스 (5~6인)',
+    'PREMIUM EXPERIENCE (For5‑6)': '프리미엄 익스피리언스 (5~6인)',
+    'KOREAN FRIED CHICKEN WINGS (w. Sauce)': '코리안 치킨윙 (소스)', 'WHITE CUCUMBER': '화이트 오이',
     'ORANDA ICE CREAM': '오란다 아이스크림', 'HOTTEOK': '호떡',
-    'TTEOKKALBI + RICEBALL + BANCHAN': '떡갈비 키즈'
+    'TTEOKKALBI + RICEBALL + BANCHAN': '떡갈비 키즈 세트'
   };
-  function sellQs(b, n) {
+  function krOf(it) { return it.kr || SELL_KR[it.en] || ''; }
+
+  /* 추천 멘트 보기 고르기 — 오답 보기가 같은 멘트에 들어맞으면 영어로만 읽는 직원은 풀 수 없다.
+   * 그래서 (1) 비슷한 분류(전채끼리·롤끼리·사이드끼리 등)와 (2) 멘트의 핵심 상황어(아이·채식·맥주·
+   * 처음 방문·맵지 않은·디저트 …)가 겹치는 메뉴는 오답 보기로 쓰지 않는다. */
+  function sellGroup(chip) {
+    var c = String(chip || '').toUpperCase(), m = /KOREAN CLASSICS\s*·\s*(\w+)/.exec(c);
+    if (m) return m[1];
+    if (/SIDES|SHAREABLES|KIMCHI/.test(c)) return 'SIDES';
+    if (/^SETS?$|EXPERIENCE|FAMILY/.test(c)) return 'SETS';
+    if (/KALBI|A LA CARTE/.test(c)) return 'GRILL';
+    if (/STARTERS/.test(c)) return 'STARTERS';
+    if (/ROLLS/.test(c)) return 'ROLLS';
+    if (/^NIGIRI$|^SASHIMI$/.test(c)) return 'FISH';
+    if (/KID/.test(c)) return 'KIDS';
+    return c;
+  }
+  var SELL_CUES = [/\bkids?\b|child/i, /vegetarian/i, /\bbeer|drinks?\b/i, /first[- ]?(visit|time|bite)|\bnew to\b|start(er)?\b|begin/i,
+    /not spicy|isn't spicy|mild|gentle|spice isn't/i, /\bspic(y|e)\b|\bheat\b|\bkick\b/i, /dessert|sweet finish|finish\b/i,
+    /\braw\b|cooked/i, /lunch|quick/i, /premium|special occasion|richest|richer/i, /\bshar(e|ing)\b|whole table/i,
+    /broth|soup/i, /light\b|lighter/i, /family|group/i];
+  function cuesOf(line) { return SELL_CUES.filter(function (r) { return r.test(line); }); }
+
+  function sellQs(b, n, used) {
+    used = used || [];
     var deck = menuDeck(b);
     if (!deck) return [];
     var seen = {}, pool = [];
@@ -880,7 +913,8 @@
       var k = it.en.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
       if (!en || seen[k] || seen[en]) return;
       seen[k] = seen[en] = 1;
-      pool.push({ it: it, en: en, kr: kr });
+      // 메뉴 지식 문항이 이미 묻는 메뉴는 답으로 내지 않는다(그 문항이 답을 알려 준다) — 보기로는 쓴다
+      pool.push({ it: it, en: en, kr: kr, ask: !used.some(function (r) { return k.indexOf(r) === 0; }) });
     });
     var STOP = ['AND', 'THE', 'WITH', 'FOR', 'SET'];
     // 'WOO-DAE'처럼 붙은 이름은 통째(WOODAE)로도 본다. OX·LA 같은 두 글자 단어도 가린다.
@@ -918,12 +952,23 @@
       return out.replace(/____(\s*____)+/g, '____');
     }
     var wsOf = function (x) { return words(x.it.en).filter(function (w) { return w.length >= 4; }); };
-    return fresh(pool, function (p) { return 's:' + p.it.en; }).slice(0, n).map(function (p) {
-      var ws = wsOf(p);
-      var others = shuffle(pool.filter(function (x) {
+    var asks = pool.filter(function (p) { return p.ask; });
+    return fresh(asks, function (p) { return 's:' + p.it.en; }).slice(0, n).map(function (p) {
+      var ws = wsOf(p), g = sellGroup(p.it.chip), cs = cuesOf(p.en);
+      var base = pool.filter(function (x) {
         return x !== p && !wsOf(x).some(function (w) { return ws.indexOf(w) >= 0; });
-      })).slice(0, 3);
-      var opts = [p].concat(others).map(function (x, i) { return { en: x.it.en, kr: x.it.kr || '', ok: i === 0 }; });
+      });
+      var safe = base.filter(function (x) {
+        return sellGroup(x.it.chip) !== g && !cuesOf(x.en).some(function (r) { return cs.indexOf(r) >= 0; });
+      });
+      // 조건을 다 맞추는 보기가 모자라면 분류만 다른 것, 그래도 모자라면 나머지에서 채운다
+      var others = shuffle(safe);
+      if (others.length < 3) others = others.concat(shuffle(base.filter(function (x) {
+        return others.indexOf(x) < 0 && sellGroup(x.it.chip) !== g;
+      })));
+      if (others.length < 3) others = others.concat(shuffle(base.filter(function (x) { return others.indexOf(x) < 0; })));
+      others = others.slice(0, 3);
+      var opts = [p].concat(others).map(function (x, i) { return { en: x.it.en, kr: krOf(x.it), ok: i === 0 }; });
       return { t: 'mc', sell: true,
                q: ['Which menu item is this recommendation for?', '다음 추천 멘트는 어떤 메뉴를 추천하는 말인가요?'],
                quote: [maskEn(p.en, p.it.en), maskEn(maskKr(p.kr, p.it.kr || SELL_KR[p.it.en] || ''), p.it.en)], opts: shuffle(opts), ref: p.it.en };
@@ -955,7 +1000,7 @@
       return { t: 'mc', q: q.q, ref: q.ref,
                opts: shuffle(q.o.map(function (o, i) { return { en: o[0], kr: o[1], ok: i === 0 }; })) };
     });
-    QZ = { b: b, qs: shuffle(mc.concat(photoQs(b, QUIZ_N.photo, used), sellQs(b, QUIZ_N.sell))),
+    QZ = { b: b, qs: shuffle(mc.concat(photoQs(b, QUIZ_N.photo, used), sellQs(b, QUIZ_N.sell, used))),
            i: 0, ans: [], end: false };
     S.qseen = S.qseen || {};
     S.qseen[b] = QZ.qs.map(function (q) { return (q.img ? 'p:' : q.sell ? 's:' : 'm:') + (q.img || q.sell ? q.ref : q.q[0]); });

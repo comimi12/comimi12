@@ -58,13 +58,15 @@ def answer_of(brand, page):
     raise RuntimeError("문항을 찾지 못함: " + qen)
 
 
-def run(page, brand, right):
+def run(page, brand, nright):
+    """앞에서부터 nright문항만 맞히고 나머지는 틀린다"""
     page.goto(BASE + "#/test")
     page.wait_for_selector("[data-qstart]")
     page.click("[data-qstart]")
     n = 0
     while page.locator("[data-qnext]").count():
         kind, ans = answer_of(brand, page)
+        right = n < nright
         if kind == "mc":
             btns = page.locator(".qo")
             pick = None
@@ -77,14 +79,14 @@ def run(page, brand, right):
             if pick is None:
                 raise RuntimeError("보기 선택 실패: %r / %r" % (ans, [btns.nth(i).inner_text() for i in range(btns.count())]))
             btns.nth(pick).click()
-        if n == 2 and right:
+        if n == 2 and nright == 30:
             page.screenshot(path=os.path.join(OUT, "%s-q.png" % brand), full_page=True)
         page.click("[data-qnext]")
         n += 1
     check(n == 30, "%s 문항 수 30 (실제 %d)" % (brand, n))
     check(page.locator("#qa").count() == 0, "주관식 입력칸 없음")
     sc = page.locator(".qres .qsc").inner_text().strip()
-    page.screenshot(path=os.path.join(OUT, "%s-%s.png" % (brand, "pass" if right else "fail")), full_page=True)
+    page.screenshot(path=os.path.join(OUT, "%s-%d.png" % (brand, nright)), full_page=True)
     return sc
 
 
@@ -102,7 +104,7 @@ with sync_playwright() as p:
         page.click('[data-setbrand="%s"]' % brand)
         page.wait_for_timeout(200)
         check(page.locator('.nv[href="#/test"]').count() == 1, "레일에 TEST 탭")
-        sc = run(page, brand, right=False)
+        sc = run(page, brand, 0)
         check(sc.startswith("0"), "전부 오답 → 0점 (%s)" % sc)
         nimg = page.locator(".qrev .qrimg").count()
         check(nimg == 15, "사진 문제 15개 (%d)" % nimg)
@@ -110,12 +112,21 @@ with sync_playwright() as p:
         nq = page.locator(".qrev .qquote").count()
         check(nq == 10, "추천 멘트 문제 10개 (%d)" % nq)
         check(page.locator(".qres.ok").count() == 0, "불합격 표시")
-        sc = run(page, brand, right=True)
+        # 이수 경계: 23/30 = 77점 불합격, 24/30 = 80점 합격
+        sc = run(page, brand, 23)
+        st = page.evaluate("JSON.parse(localStorage.getItem('slnc-sop-v1'))")
+        check(sc.startswith("77") and page.locator(".qres.ok").count() == 0
+              and not st["done"].get("quiz:" + brand), "23/30 → 77점 불합격·미이수 (%s)" % sc)
+        sc = run(page, brand, 24)
+        st = page.evaluate("JSON.parse(localStorage.getItem('slnc-sop-v1'))")
+        check(sc.startswith("80") and page.locator(".qres.ok").count() == 1
+              and bool(st["done"].get("quiz:" + brand)), "24/30 → 80점 합격·이수 (%s)" % sc)
+        sc = run(page, brand, 30)
         check(sc.startswith("100"), "전부 정답 → 100점 (%s)" % sc)
         check(page.locator(".qres.ok").count() == 1, "합격 표시")
         st = page.evaluate("JSON.parse(localStorage.getItem('slnc-sop-v1'))")
         check(bool(st["done"].get("quiz:" + brand)), "수료 항목 quiz:%s 완료" % brand)
-        check(st["quiz"][brand]["best"] == 100 and st["quiz"][brand]["tries"] == 2, "기록 best 100 · 2회")
+        check(st["quiz"][brand]["best"] == 100 and st["quiz"][brand]["tries"] == 4, "기록 best 100 · 4회")
         page.goto(BASE + "#/cert")
         page.wait_for_selector("#nm")
         check("MENU TEST" not in page.locator("main").inner_text().split("REMAINING")[1].split("TIME SPENT")[0],
