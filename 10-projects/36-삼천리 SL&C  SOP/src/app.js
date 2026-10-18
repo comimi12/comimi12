@@ -822,11 +822,11 @@
 
   /* ── 메뉴 시험 ────────────────────────────────────────
    *  전부 객관식. 직원 대부분이 미국인이라 주관식(타자)은 두지 않는다(사용자 지시).
-   *  메뉴 사진을 보고 이름을 고르는 문제가 중심이고, 문제은행(quiz.json)의 메뉴 지식 문제를 조금 섞는다.
-   *  한 번에 20문항 × 5점. 80점 이상이면 'quiz:브랜드'를 완료로 찍어 수료 조건을 채운다.
+   *  메뉴 사진을 보고 이름을 고르는 문제, 추천 멘트(SUGGESTIVE SELLING)가 어떤 메뉴 것인지 고르는 문제가
+   *  중심이고, 문제은행(quiz.json)의 메뉴 지식 문제를 조금 섞는다. 점수는 100점 만점 환산. 80점 이상이면 'quiz:브랜드'를 완료로 찍어 수료 조건을 채운다.
    *  풀던 시험은 메모리에만 둔다 — 다른 탭에 다녀와도 이어지지만, 앱을 새로 열면 처음부터. */
   var QUIZ = null, QZ = null;
-  var QUIZ_PASS = 80, QUIZ_N = { mc: 5, photo: 15 };
+  var QUIZ_PASS = 80, QUIZ_N = { photo: 15, sell: 10, mc: 5 };
 
   function shuffle(a) {
     a = a.slice();
@@ -860,6 +860,68 @@
     });
   }
 
+  /** 추천 멘트 문제 — 멘트 속 메뉴 이름(영문 단어·한글 토큰)은 ____ 로 가린다 */
+  // 한글 메뉴명이 비어 있는 메뉴 — 국문 멘트 속 이름을 이걸로 가린다
+  var SELL_KR = {
+    'KOREAN FRIED CHICKEN WINGS (w. Sauce)': '치킨윙', 'WHITE CUCUMBER': '화이트 오이',
+    'ORANDA ICE CREAM': '오란다 아이스크림', 'HOTTEOK': '호떡',
+    'TTEOKKALBI + RICEBALL + BANCHAN': '떡갈비 키즈'
+  };
+  function sellQs(b, n) {
+    var deck = menuDeck(b);
+    if (!deck) return [];
+    var seen = {}, pool = [];
+    deck.items.forEach(function (it) {
+      var sec = (it.sections || []).filter(function (x) { return x.en === 'SUGGESTIVE SELLING'; })[0];
+      if (!sec) return;
+      var en = sec.lines.filter(function (l) { return !HANGUL.test(l); })[0] || '';
+      var kr = sec.lines.filter(function (l) { return HANGUL.test(l); })[0] || '';
+      var k = it.en.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+      if (!en || seen[k] || seen[en]) return;
+      seen[k] = seen[en] = 1;
+      pool.push({ it: it, en: en, kr: kr });
+    });
+    var STOP = ['AND', 'THE', 'WITH', 'FOR', 'SET'];
+    // 'WOO-DAE'처럼 붙은 이름은 통째(WOODAE)로도 본다. OX·LA 같은 두 글자 단어도 가린다.
+    function words(s) {
+      var u = s.toUpperCase(), out = u.split(/[^A-Z0-9]+/);
+      u.split(/\s+/).forEach(function (t) { out.push(t.replace(/[^A-Z0-9]/g, '')); });
+      return out.filter(function (w) { return w.length >= 2 && STOP.indexOf(w) < 0; });
+    }
+    function hit(core, w) {
+      return core === w || core === w + 'S' || (w.length >= 4 && core.indexOf(w) >= 0)
+        || (w.length >= 5 && core.slice(0, 5) === w.slice(0, 5));   // TTEOKBOKI / tteokbokki
+    }
+    function maskEn(line, name) {
+      var ws = words(name);
+      // 이름 단어가 이어지는 구간을 통째로 ____ 하나로
+      return line.replace(/[A-Za-z0-9][A-Za-z0-9'’\-]*(?:\s+[A-Za-z0-9][A-Za-z0-9'’\-]*)*/g, function (run) {
+        return run.split(/(\s+)/).map(function (t) {
+          var core = t.toUpperCase().replace(/[^A-Z0-9]/g, '');
+          return core && ws.some(function (w) { return hit(core, w); }) ? '\u0000' : t;
+        }).join('').replace(/\u0000(?:\s+\u0000)*/g, '____');
+      });
+    }
+    function maskKr(line, kr) {
+      var out = line;
+      String(kr || '').replace(/\(.*?\)/g, ' ').split(/\s+/).filter(function (t) { return t.length >= 2 && HANGUL.test(t); })
+        .sort(function (a, c) { return c.length - a.length; })
+        .forEach(function (t) { out = out.split(t).join('____'); });
+      return out.replace(/____(\s*____)+/g, '____');
+    }
+    var wsOf = function (x) { return words(x.it.en).filter(function (w) { return w.length >= 4; }); };
+    return shuffle(pool).slice(0, n).map(function (p) {
+      var ws = wsOf(p);
+      var others = shuffle(pool.filter(function (x) {
+        return x !== p && !wsOf(x).some(function (w) { return ws.indexOf(w) >= 0; });
+      })).slice(0, 3);
+      var opts = [p].concat(others).map(function (x, i) { return { en: x.it.en, kr: x.it.kr || '', ok: i === 0 }; });
+      return { t: 'mc', sell: true,
+               q: ['Which menu item is this recommendation for?', '다음 추천 멘트는 어떤 메뉴를 추천하는 말인가요?'],
+               quote: [maskEn(p.en, p.it.en), maskEn(maskKr(p.kr, p.it.kr || SELL_KR[p.it.en] || ''), p.it.en)], opts: shuffle(opts), ref: p.it.en };
+    });
+  }
+
   function startQuiz(b) {
     var bank = (QUIZ || {})[b];
     if (!bank) return;
@@ -877,7 +939,8 @@
       return { t: 'mc', q: q.q, ref: q.ref,
                opts: shuffle(q.o.map(function (o, i) { return { en: o[0], kr: o[1], ok: i === 0 }; })) };
     });
-    QZ = { b: b, qs: shuffle(mc.concat(photoQs(b, QUIZ_N.photo, used))), i: 0, ans: [], end: false };
+    QZ = { b: b, qs: shuffle(mc.concat(photoQs(b, QUIZ_N.photo, used), sellQs(b, QUIZ_N.sell))),
+           i: 0, ans: [], end: false };
   }
   function quizRight(q, a) {
     return a != null && !!(q.opts[a] && q.opts[a].ok);
@@ -907,16 +970,17 @@
     if (QZ && QZ.end) return quizResult();
     if (QZ) return quizQuestion();
 
-    var total = QUIZ_N.mc + QUIZ_N.photo;
+    var total = QUIZ_N.mc + QUIZ_N.photo + QUIZ_N.sell;
     var md = menuDeck(b), cats = md ? catsOf(md) : [], dn = 0;
     cats.forEach(function (c) { if (isDone('menu:' + md.id + ':' + c)) dn++; });
 
     var h = '<div class="card pad qintro">'
       + '<div class="eyebrow">' + esc(BRAND_META[b].name) + '</div>'
       + '<h2 class="ph">MENU TEST<span class="kr">메뉴 시험</span></h2>'
-      + '<div class="kv"><span>Questions · 문항</span><b>' + total + ' (5 pts each · 문항당 5점)</b></div>'
-      + '<div class="kv"><span>Type · 유형</span><b>All multiple choice · Photo ' + QUIZ_N.photo
-      + ' · Menu ' + QUIZ_N.mc + '<br>전부 객관식 · 사진 ' + QUIZ_N.photo + ' · 메뉴 지식 ' + QUIZ_N.mc + '</b></div>'
+      + '<div class="kv"><span>Questions · 문항</span><b>' + total + ' · scored out of 100<br>100점 만점 환산</b></div>'
+      + '<div class="kv"><span>Type · 유형</span><b>All multiple choice<br>Photo ' + QUIZ_N.photo
+      + ' · Suggestive selling ' + QUIZ_N.sell + ' · Menu ' + QUIZ_N.mc
+      + '<br>전부 객관식 · 사진 ' + QUIZ_N.photo + ' · 추천 멘트 ' + QUIZ_N.sell + ' · 메뉴 지식 ' + QUIZ_N.mc + '</b></div>'
       + '<div class="kv"><span>Pass · 이수 기준</span><b>' + QUIZ_PASS + ' pts or more · ' + QUIZ_PASS + '점 이상</b></div>'
       + (rec ? '<div class="kv"><span>My record · 내 기록</span><b>Best ' + rec.best + ' · Last ' + rec.last
         + '<br>최고 ' + rec.best + '점 · 최근 ' + rec.last + '점 · ' + rec.tries + '회 응시</b></div>' : '')
@@ -931,22 +995,26 @@
         + '메뉴 탭을 먼저 학습하세요 (' + dn + ' / ' + cats.length + ' 분류 완료). 문제는 메뉴 교육자료에서 나옵니다.</div></div>';
     }
     h += '<div class="card pad" style="margin-top:12px"><div class="note">'
-      + 'Look at each menu photo and tap the right dish. Questions are drawn at random each time, '
-      + 'so you can retake as often as you need.<br>'
-      + '메뉴 사진을 보고 맞는 메뉴를 고르세요. 응시할 때마다 문제가 새로 뽑혀 몇 번이든 다시 볼 수 있습니다.</div></div>';
+      + 'Pick the dish in each photo, and match each suggestive-selling line to its menu item. '
+      + 'Questions are drawn at random each time, so you can retake as often as you need.<br>'
+      + '사진 속 메뉴를 고르고, 추천 멘트가 어떤 메뉴의 것인지 맞히세요. 응시할 때마다 문제가 새로 뽑혀 몇 번이든 다시 볼 수 있습니다.</div></div>';
     h += '<button class="btn" style="margin-top:16px" data-qstart>' + ico(I.pen)
       + L(rec ? 'Take the test again' : 'Start the test', rec ? '다시 응시하기' : '시험 시작') + '</button>';
     return h;
   }
 
+  function quoteHtml(q) {
+    return q.quote ? '<blockquote class="qquote">' + L(q.quote[0], q.quote[1]) + '</blockquote>' : '';
+  }
+
   function quizQuestion() {
     var q = QZ.qs[QZ.i], a = QZ.ans[QZ.i], n = QZ.qs.length;
     var h = '<div class="qtop"><span>Q ' + (QZ.i + 1) + ' / ' + n + '</span>'
-      + '<span class="qtype">' + (q.img ? 'PHOTO · 사진 문제' : 'MENU · 메뉴 지식') + '</span></div>'
+      + '<span class="qtype">' + (q.img ? 'PHOTO · 사진 문제' : q.sell ? 'SUGGESTIVE SELLING · 추천 멘트' : 'MENU · 메뉴 지식') + '</span></div>'
       + '<div class="bar"><i style="width:' + Math.round(QZ.i / n * 100) + '%"></i></div>'
       + '<div class="card pad qcard"><div class="qq">' + L(q.q[0], q.q[1]) + '</div>'
       + (q.img ? '<div class="qimg"><img src="' + esc(q.img) + '" alt=""></div>' : '')
-      + '</div>';
+      + quoteHtml(q) + '</div>';
     h += '<div class="qopts">' + q.opts.map(function (o, i) {
       return '<button class="qo" data-qopt="' + i + '" aria-pressed="' + (a === i) + '">'
         + '<span class="qk">' + 'ABCD'[i] + '</span>' + L(o.en, o.kr) + '</button>';
@@ -977,7 +1045,7 @@
           var right = nm(w.q.opts.filter(function (o) { return o.ok; })[0]);
           return '<div class="card pad">'
             + (w.q.img ? '<img class="qrimg" src="' + esc(w.q.img) + '" alt="">' : '')
-            + '<div class="qq sm">' + L(w.q.q[0], w.q.q[1]) + '</div>'
+            + '<div class="qq sm">' + L(w.q.q[0], w.q.q[1]) + '</div>' + quoteHtml(w.q)
             + '<div class="qmine">✕ ' + esc(mine) + '</div>'
             + '<div class="qright">✓ ' + esc(right) + '</div></div>';
         }).join('') + '</div>';

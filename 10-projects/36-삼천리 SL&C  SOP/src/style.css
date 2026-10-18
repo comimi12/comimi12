@@ -515,3 +515,6 @@ h2.sect[id]{ scroll-margin-top:72px }
 .qrimg{ display:block; width:96px; height:96px; object-fit:cover; border-radius:var(--r3); margin-bottom:10px }
 .qmine{ margin-top:10px; font-size:14px; color:var(--crit); font-weight:700 }
 .qright{ margin-top:4px; font-size:14px; color:var(--good); font-weight:800 }
+.qquote{ margin:14px 0 0; padding:14px 16px; border-left:4px solid var(--pri); border-radius:var(--r3);
+  background:var(--pri-soft); font-size:16px; font-weight:600; line-height:1.5; font-style:italic }
+.qquote .l-kr{ font-style:normal; margin-top:6px }

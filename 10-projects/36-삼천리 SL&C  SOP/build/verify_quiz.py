@@ -6,7 +6,7 @@
 브랜드마다 (1) 전부 정답 → 100점·합격·수료 항목 완료, (2) 전부 오답 → 불합격·오답 복습
 을 실제 클릭으로 풀어 본다. 정답은 quiz.json·data.json에서 문항 문구로 찾아 맞춘다.
 """
-import os, sys, json, urllib.request
+import os, sys, json, subprocess, urllib.request
 from playwright.sync_api import sync_playwright
 
 ARG = sys.argv[1] if len(sys.argv) > 1 else "8765"
@@ -30,6 +30,9 @@ for d in DATA:
                 t = "img/t/" + it["img"].split("/", 1)[1].rsplit(".", 1)[0] + ".jpg"
                 THUMB.setdefault(t, set()).add(it["en"])
 
+# 추천 멘트 문제: 가린 영문 멘트 → 정답 메뉴 (app.js 로직 그대로, 로컬 src 기준)
+SELL = json.loads(subprocess.check_output(["node", os.path.join(os.path.dirname(__file__), "_sell_map.js")]).decode("utf-8"))
+
 fails = []
 
 
@@ -42,6 +45,9 @@ def check(ok, msg):
 def answer_of(brand, page):
     """지금 화면의 문항 정답 (mc는 보기 영문, sa는 입력할 문자열)"""
     qen = page.locator(".qcard .qq .l-en").inner_text().strip()
+    quote = page.locator(".qcard .qquote .l-en")
+    if quote.count():
+        return "mc", set(SELL[quote.inner_text().strip()])
     img = page.locator(".qimg img")
     if img.count():
         src = img.get_attribute("src")
@@ -75,7 +81,7 @@ def run(page, brand, right):
             page.screenshot(path=os.path.join(OUT, "%s-q.png" % brand), full_page=True)
         page.click("[data-qnext]")
         n += 1
-    check(n == 20, "%s 문항 수 20 (실제 %d)" % (brand, n))
+    check(n == 30, "%s 문항 수 30 (실제 %d)" % (brand, n))
     check(page.locator("#qa").count() == 0, "주관식 입력칸 없음")
     sc = page.locator(".qres .qsc").inner_text().strip()
     page.screenshot(path=os.path.join(OUT, "%s-%s.png" % (brand, "pass" if right else "fail")), full_page=True)
@@ -100,7 +106,9 @@ with sync_playwright() as p:
         check(sc.startswith("0"), "전부 오답 → 0점 (%s)" % sc)
         nimg = page.locator(".qrev .qrimg").count()
         check(nimg == 15, "사진 문제 15개 (%d)" % nimg)
-        check(page.locator(".qrev .card").count() == 20, "오답 복습 20건")
+        check(page.locator(".qrev .card").count() == 30, "오답 복습 30건")
+        nq = page.locator(".qrev .qquote").count()
+        check(nq == 10, "추천 멘트 문제 10개 (%d)" % nq)
         check(page.locator(".qres.ok").count() == 0, "불합격 표시")
         sc = run(page, brand, right=True)
         check(sc.startswith("100"), "전부 정답 → 100점 (%s)" % sc)
