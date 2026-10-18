@@ -98,11 +98,14 @@ with sync_playwright() as p:
         m = re.match(r"^#/p/([^/]+)/(\d+)$", h or "")
         if m:
             keys.append(m.group(1) + ":" + m.group(2)); continue
+        if h == "#/test":                       # 메뉴 시험 (브랜드는 아래에서 채운다)
+            keys.append("quiz:"); continue
         m = re.match(r"^#/menu/([^/]+)/(.+)$", h or "")
         if m:
             keys.append("menu:" + m.group(1) + ":" + urllib.parse.unquote(m.group(2)))
     chk(len(keys) > 5, "남은 항목 %d개를 찾았다" % len(keys))
     seed = pg.evaluate("k => JSON.parse(localStorage.getItem(k) || '{}')", KEY)
+    keys = [k + seed.get("brand", "KSC") if k == "quiz:" else k for k in keys]
     pg.close()
 
     seed["me"] = {"name": "홍길동", "phone": "1234", "pos": "server", "posLabel": "SERVER"}

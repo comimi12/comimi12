@@ -30,6 +30,7 @@
     daily: {},     // "YYYY-MM-DD|deckId:n|g|i"        ->  true
     sign: null,    // { img, by, at }
     team: [],      // 관리자 기기에 모인 팀 수료 보고
+    quiz: {},      // 브랜드 -> { best, last, at, tries }  (메뉴 시험)
     adminOn: 0,
     q: ''
   };
@@ -46,7 +47,7 @@
       localStorage.setItem(KEY, JSON.stringify({
         brand: S.brand, theme: S.theme, me: S.me,
         done: S.done, study: S.study, daily: S.daily, sign: S.sign,
-        team: S.team, adminOn: S.adminOn, dv: S.dv
+        team: S.team, adminOn: S.adminOn, dv: S.dv, quiz: S.quiz
       }));
     } catch (e) { /* 저장 불가여도 화면은 계속 동작 */ }
   }
@@ -97,6 +98,7 @@
     copy: '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>',
     reset: '<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/>',
     play: '<path d="M4.5 5.5a2 2 0 0 1 3-1.7l10 6.5a2 2 0 0 1 0 3.4l-10 6.5a2 2 0 0 1-3-1.7z"/>',
+    pen: '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/><path d="m8.5 15 2 2 4-4.5"/>',
     team: '<circle cx="9" cy="8" r="3.4"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16.5 5.2a3.4 3.4 0 0 1 0 5.6"/><path d="M18 14.4a6.5 6.5 0 0 1 3.5 5.6"/>'
   };
 
@@ -206,6 +208,9 @@
         out.push({ k: 'menu:' + md.id + ':' + c, kind: 'menu', ch: 'MENU', chName: '메뉴 SOP',
                    label: c, deck: md.id, cat: c });
       });
+      // 메뉴 시험 80점 이상이어야 이수 — 통과하면 'quiz:브랜드'가 완료로 찍힌다
+      out.push({ k: 'quiz:' + b, kind: 'quiz', ch: 'TEST', chName: '메뉴 시험',
+                 label: 'MENU TEST · ' + QUIZ_PASS + '+' });
     }
     return out;
   }
@@ -362,6 +367,7 @@
   var TABS = [
     { id: 'sop', en: 'SOP', kr: '매뉴얼', ic: I.book },
     { id: 'menu', en: 'MENU', kr: '메뉴', ic: I.dish },
+    { id: 'test', en: 'TEST', kr: '메뉴시험', ic: I.pen },
     { id: 'grill', en: 'GRILL', kr: '그릴영상', ic: I.play, only: 'KSC' },
     { id: 'check', en: 'CHECK', kr: '체크리스트', ic: I.check },
     { id: 'cert', en: 'CERT', kr: '수료', ic: I.award },
@@ -378,6 +384,7 @@
       + tabs.map(function (t) {
         var badge = '';
         if (t.id === 'cert' && p.total && p.done < p.total) badge = '<span class="dot">' + (p.total - p.done) + '</span>';
+        if (t.id === 'test' && isDone('quiz:' + S.brand)) badge = '<span class="dot">✓</span>';
         if (t.id === 'admin' && (S.team || []).length) badge = '<span class="dot">' + S.team.length + '</span>';
         return '<a class="nv" href="#/' + t.id + '"' + (active === t.id ? ' aria-current="true"' : '') + '>'
           + ico(t.ic) + '<span class="n-en">' + t.en + '</span>'
@@ -426,6 +433,7 @@
 
   /* ── 홈 ───────────────────────────────────────────── */
   function hrefOf(x) {
+    if (x.kind === 'quiz') return '#/test';
     return x.kind === 'menu'
       ? '#/menu/' + x.deck + '/' + encodeURIComponent(x.cat)
       : '#/p/' + x.deck + '/' + x.n;
@@ -812,6 +820,202 @@
     return h;
   }
 
+  /* ── 메뉴 시험 ────────────────────────────────────────
+   *  문제은행(quiz.json)에서 객관식·주관식을 뽑고, 메뉴 사진으로 '이 메뉴는?' 문제를 더한다.
+   *  한 번에 20문항 × 5점. 80점 이상이면 'quiz:브랜드'를 완료로 찍어 수료 조건을 채운다.
+   *  풀던 시험은 메모리에만 둔다 — 다른 탭에 다녀와도 이어지지만, 앱을 새로 열면 처음부터. */
+  var QUIZ = null, QZ = null;
+  var QUIZ_PASS = 80, QUIZ_N = { mc: 12, sa: 5, photo: 3 };
+
+  function shuffle(a) {
+    a = a.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+  /** 주관식 채점용 — 대소문자·띄어쓰기·문장부호 무시 */
+  function normAns(s) {
+    return String(s || '').toLowerCase().replace(/[\s\-·.,'’"!?()$~]/g, '');
+  }
+  function saOk(q, input) {
+    var v = normAns(input);
+    if (!v) return false;
+    return q.ans.some(function (a) {
+      var n = normAns(a);
+      if (/^\d+$/.test(n)) return (String(input).match(/\d+/) || [''])[0] === n;   // 숫자는 숫자만 본다
+      return v === n || (n.length >= 2 && v.indexOf(n) >= 0);
+    });
+  }
+
+  /** 사진 문제 — 이름에 같은 단어가 들어간 메뉴(갈비·연어 등)는 보기에서 뺀다.
+   *  다른 문항이 묻는 메뉴(used)는 보기 이름(특히 한글명)이 답을 알려 주므로 아예 쓰지 않는다. */
+  function photoQs(b, n, used) {
+    var deck = menuDeck(b);
+    if (!deck) return [];
+    // 같은 메뉴가 두 분류에 실린 경우(이름·사진 동일, É처럼 표기만 다른 경우 포함)는 한 번만
+    var seen = {}, pool = [];
+    deck.items.forEach(function (it) {
+      var k = it.en.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+      if (!it.img || seen[k] || seen[it.img]) return;
+      if (used.some(function (r) { return k.indexOf(r) === 0; })) return;
+      seen[k] = seen[it.img] = 1; pool.push(it);
+    });
+    function words(s) { return s.toUpperCase().split(/[^A-Z]+/).filter(function (w) { return w.length >= 4; }); }
+    return shuffle(pool).slice(0, n).map(function (it) {
+      var ws = words(it.en);
+      var others = shuffle(pool.filter(function (x) {
+        return x !== it && !words(x.en).some(function (w) { return ws.indexOf(w) >= 0; });
+      })).slice(0, 3);
+      var opts = [it].concat(others).map(function (x, i) { return { en: x.en, kr: x.kr || '', ok: i === 0 }; });
+      return { t: 'mc', img: thumb(it.img), q: ['What is this dish?', '사진 속 메뉴는?'],
+               opts: shuffle(opts), ref: it.en };
+    });
+  }
+
+  function startQuiz(b) {
+    var bank = (QUIZ || {})[b];
+    if (!bank) return;
+    // 같은 메뉴(ref)를 묻는 문항은 한 시험에 하나만 — 한 문항의 보기가 다른 문항의 답이 되지 않게
+    var used = [];
+    function take(q) {
+      var r = String(q.ref || '').toUpperCase();
+      if (r && used.indexOf(r) >= 0) return false;
+      if (r) used.push(r);
+      return true;
+    }
+    var sa = shuffle(bank.sa).filter(take).slice(0, QUIZ_N.sa);
+    used = sa.map(function (q) { return String(q.ref || '').toUpperCase(); }).filter(Boolean);
+    var mc = shuffle(bank.mc).filter(take).slice(0, QUIZ_N.mc);
+    used = used.slice(0, sa.length).concat(mc.map(function (q) { return String(q.ref || '').toUpperCase(); }));
+    mc = mc.map(function (q) {
+      return { t: 'mc', q: q.q, ref: q.ref,
+               opts: shuffle(q.o.map(function (o, i) { return { en: o[0], kr: o[1], ok: i === 0 }; })) };
+    });
+    sa = sa.map(function (q) { return { t: 'sa', q: q.q, ans: q.ans, show: q.show }; });
+    var qs = shuffle(mc.concat(photoQs(b, QUIZ_N.photo, used)));
+    // 주관식은 키보드가 올라오므로 뒤쪽에 모아 둔다
+    QZ = { b: b, qs: qs.concat(sa), i: 0, ans: [], end: false };
+  }
+  function quizRight(q, a) {
+    if (a == null || a === '') return false;
+    return q.t === 'mc' ? !!(q.opts[a] && q.opts[a].ok) : saOk(q, a);
+  }
+  function finishQuiz() {
+    var n = 0;
+    QZ.qs.forEach(function (q, i) { if (quizRight(q, QZ.ans[i])) n++; });
+    var score = Math.round(n / QZ.qs.length * 100);
+    var r = S.quiz[QZ.b] || { best: 0, tries: 0 };
+    r.tries = (r.tries || 0) + 1; r.last = score; r.at = today();
+    if (score > (r.best || 0)) r.best = score;
+    S.quiz[QZ.b] = r;
+    QZ.end = true; QZ.score = score; QZ.right = n;
+    var k = 'quiz:' + QZ.b;
+    if (score >= QUIZ_PASS && !S.done[k]) {
+      S.done[k] = new Date().toISOString();
+      if (S.sign) S.sign.stale = true;
+    }
+    save();
+  }
+
+  function viewTest() {
+    if (!QUIZ) return '<div class="empty">Loading · 불러오는 중…</div>';
+    var b = S.brand, bank = QUIZ[b], rec = S.quiz[b] || null, passed = isDone('quiz:' + b);
+    if (!bank) return '<div class="empty">No test for this brand · 이 브랜드는 시험이 없습니다.</div>';
+    if (QZ && QZ.b !== b) QZ = null;
+    if (QZ && QZ.end) return quizResult();
+    if (QZ) return quizQuestion();
+
+    var total = QUIZ_N.mc + QUIZ_N.sa + QUIZ_N.photo;
+    var md = menuDeck(b), cats = md ? catsOf(md) : [], dn = 0;
+    cats.forEach(function (c) { if (isDone('menu:' + md.id + ':' + c)) dn++; });
+
+    var h = '<div class="card pad qintro">'
+      + '<div class="eyebrow">' + esc(BRAND_META[b].name) + '</div>'
+      + '<h2 class="ph">MENU TEST<span class="kr">메뉴 시험</span></h2>'
+      + '<div class="kv"><span>Questions · 문항</span><b>' + total + ' (5 pts each · 문항당 5점)</b></div>'
+      + '<div class="kv"><span>Type · 유형</span><b>Multiple choice ' + (QUIZ_N.mc + QUIZ_N.photo)
+      + ' · Short answer ' + QUIZ_N.sa + '<br>객관식 ' + (QUIZ_N.mc + QUIZ_N.photo) + ' · 주관식 ' + QUIZ_N.sa + '</b></div>'
+      + '<div class="kv"><span>Pass · 이수 기준</span><b>' + QUIZ_PASS + ' pts or more · ' + QUIZ_PASS + '점 이상</b></div>'
+      + (rec ? '<div class="kv"><span>My record · 내 기록</span><b>Best ' + rec.best + ' · Last ' + rec.last
+        + '<br>최고 ' + rec.best + '점 · 최근 ' + rec.last + '점 · ' + rec.tries + '회 응시</b></div>' : '')
+      + '</div>';
+    if (passed) {
+      h += '<div class="qpass">' + ico(I.award)
+        + L('Passed — menu test complete', '합격 · 메뉴 시험 이수 완료') + '</div>';
+    }
+    if (cats.length && dn < cats.length) {
+      h += '<div class="card pad" style="margin-top:12px"><div class="note">'
+        + 'Study the MENU tab first (' + dn + ' / ' + cats.length + ' categories done). Questions come from the menu training material.<br>'
+        + '메뉴 탭을 먼저 학습하세요 (' + dn + ' / ' + cats.length + ' 분류 완료). 문제는 메뉴 교육자료에서 나옵니다.</div></div>';
+    }
+    h += '<div class="card pad" style="margin-top:12px"><div class="note">'
+      + 'Questions are drawn at random each time, so you can retake as often as you need. '
+      + 'Short answers accept English or Korean.<br>'
+      + '응시할 때마다 문제가 새로 뽑혀 몇 번이든 다시 볼 수 있습니다. 주관식은 영문 · 한글 모두 정답 처리됩니다.</div></div>';
+    h += '<button class="btn" style="margin-top:16px" data-qstart>' + ico(I.pen)
+      + L(rec ? 'Take the test again' : 'Start the test', rec ? '다시 응시하기' : '시험 시작') + '</button>';
+    return h;
+  }
+
+  function quizQuestion() {
+    var q = QZ.qs[QZ.i], a = QZ.ans[QZ.i], n = QZ.qs.length;
+    var h = '<div class="qtop"><span>Q ' + (QZ.i + 1) + ' / ' + n + '</span>'
+      + '<span class="qtype">' + (q.t === 'sa' ? 'SHORT ANSWER · 주관식' : 'MULTIPLE CHOICE · 객관식') + '</span></div>'
+      + '<div class="bar"><i style="width:' + Math.round(QZ.i / n * 100) + '%"></i></div>'
+      + '<div class="card pad qcard"><div class="qq">' + L(q.q[0], q.q[1]) + '</div>'
+      + (q.img ? '<div class="qimg"><img src="' + esc(q.img) + '" alt=""></div>' : '')
+      + '</div>';
+    if (q.t === 'mc') {
+      h += '<div class="qopts">' + q.opts.map(function (o, i) {
+        return '<button class="qo" data-qopt="' + i + '" aria-pressed="' + (a === i) + '">'
+          + '<span class="qk">' + 'ABCD'[i] + '</span>' + L(o.en, o.kr) + '</button>';
+      }).join('') + '</div>';
+    } else {
+      h += '<input class="fi qa" id="qa" autocomplete="off" autocapitalize="off" spellcheck="false"'
+        + ' enterkeyhint="next" value="' + esc(a || '') + '" placeholder="English or 한글 · 영문 또는 한글로 입력">';
+    }
+    var last = QZ.i === n - 1;
+    h += '<button class="btn" style="margin-top:16px" data-qnext' + (a == null || a === '' ? ' disabled' : '') + '>'
+      + L(last ? 'Submit' : 'Next', last ? '제출하고 채점' : '다음 문제') + '</button>'
+      + '<div class="qnav">'
+      + (QZ.i ? '<button class="btn sec2" data-qprev>' + L('Back', '이전') + '</button>' : '')
+      + '<button class="btn sec2" data-qquit>' + L('Quit', '그만두기') + '</button></div>';
+    return h;
+  }
+
+  function quizResult() {
+    var ok = QZ.score >= QUIZ_PASS, n = QZ.qs.length;
+    var h = '<div class="qres' + (ok ? ' ok' : '') + '">'
+      + '<div class="qsc">' + QZ.score + '<small>점</small></div>'
+      + '<b>' + (ok ? 'PASSED · 합격' : 'NOT PASSED · 불합격') + '</b>'
+      + '<span>' + QZ.right + ' / ' + n + ' correct · 정답 ' + QZ.right + '개</span>'
+      + '<span>Pass ' + QUIZ_PASS + '+ · ' + QUIZ_PASS + '점 이상 이수</span></div>';
+    var wrong = [];
+    QZ.qs.forEach(function (q, i) { if (!quizRight(q, QZ.ans[i])) wrong.push({ q: q, a: QZ.ans[i] }); });
+    if (wrong.length) {
+      h += '<h2 class="sect">REVIEW · 틀린 문제 ' + wrong.length + '</h2><div class="qrev">'
+        + wrong.map(function (w) {
+          var mine = w.q.t === 'mc' ? (w.q.opts[w.a] ? w.q.opts[w.a].en + ' · ' + w.q.opts[w.a].kr : '-') : (w.a || '-');
+          var right = w.q.t === 'mc'
+            ? w.q.opts.filter(function (o) { return o.ok; }).map(function (o) { return o.en + ' · ' + o.kr; })[0]
+            : w.q.show;
+          return '<div class="card pad">'
+            + (w.q.img ? '<img class="qrimg" src="' + esc(w.q.img) + '" alt="">' : '')
+            + '<div class="qq sm">' + L(w.q.q[0], w.q.q[1]) + '</div>'
+            + '<div class="qmine">✕ ' + esc(mine) + '</div>'
+            + '<div class="qright">✓ ' + esc(right) + '</div></div>';
+        }).join('') + '</div>';
+    }
+    h += '<button class="btn" style="margin-top:16px" data-qstart>' + ico(I.reset)
+      + L('Retake with new questions', '새 문제로 다시 응시') + '</button>';
+    if (ok) h += '<a class="btn sec2" style="margin-top:8px" href="#/cert">'
+      + L('Go to my certificate', '수료 확인으로') + '</a>';
+    else h += '<a class="btn sec2" style="margin-top:8px" href="#/menu">'
+      + L('Review the menu', '메뉴 다시 공부하기') + '</a>';
+    return h;
+  }
+
   /* ── 체크리스트 탭 ─────────────────────────────────── */
   function viewCheck() {
     var deck = mainManual(S.brand);
@@ -1072,6 +1276,7 @@
       '포지션: ' + (S.me.posLabel || '-'),
       '진도: ' + p.done + '/' + p.total,
       '학습시간: ' + mins(studyTotal(S.brand)),
+      '메뉴시험: ' + (S.quiz[S.brand] ? S.quiz[S.brand].best + '점' : '미응시'),
       '트레이너: ' + (S.sign ? S.sign.by : '-'),
       '서명일: ' + (S.sign ? S.sign.at : '-'),
       '확인코드: ' + certCode(S.brand)].join('\n');
@@ -1095,6 +1300,7 @@
     var b = S.brand, p = progress(b);
     return { v: 1, b: b, n: S.me.name, p: S.me.phone || '', ps: S.me.posLabel || '',
       d: p.done, t: p.total, by: S.sign ? S.sign.by : '', at: S.sign ? S.sign.at : '',
+      q: S.quiz[b] ? S.quiz[b].best : null,
       c: certCode(b), ts: p.items.map(function (x) { return studyOf(x.k).s; }) };
   }
   function certLink() {
@@ -1108,7 +1314,8 @@
     var secs = (o.ts || []).reduce(function (a, c) { return a + (c || 0); }, 0);
     var r = { brand: o.b, name: o.n, phone: o.p, pos: o.ps,
       done: o.d || 0, total: o.t || 0, by: o.by, at: o.at,
-      code: String(o.c || '').toUpperCase(), ts: o.ts || [], secs: secs };
+      code: String(o.c || '').toUpperCase(), ts: o.ts || [], secs: secs,
+      quiz: o.q == null ? null : o.q };
     r.ok = codeFrom(r.name, r.pos, r.brand, r.done, r.total, r.at) === r.code;
     r.id = r.brand + '|' + r.name + '|' + r.phone + '|' + r.pos;
     return r;
@@ -1144,6 +1351,7 @@
       + '<div class="kv"><span>진도</span><b>' + r.done + ' / ' + r.total
       + (done ? ' <span style="color:var(--good)">수료</span>' : ' <span>진행중</span>') + '</b></div>'
       + '<div class="kv"><span>학습 시간</span><b>' + mins(r.secs) + '</b></div>'
+      + '<div class="kv"><span>메뉴 시험</span><b>' + (r.quiz == null ? '-' : r.quiz + '점') + '</b></div>'
       + '<div class="kv"><span>트레이너 · 서명일</span><b>' + esc(r.by || '-') + ' · ' + esc(r.at || '-') + '</b></div>'
       + '<div class="kv"><span>확인코드</span><b style="letter-spacing:.06em">' + esc(r.code) + ' '
       + (r.ok ? '<span style="color:var(--good)">정상</span>'
@@ -1289,6 +1497,16 @@
           .catch(function () { VIDEOS = []; render(); });
       }
     }
+    else if (tab === 'test') {
+      body = viewTest(); title = 'MENU TEST'; opts.kicker = '메뉴 시험 · ' + QUIZ_PASS + '점 이상 이수';
+      if (QZ && !QZ.end) opts.brands = false;   // 푸는 중에는 브랜드를 바꾸지 못하게
+      if (!QUIZ) {
+        fetch('quiz.json?v=' + (document.currentScript && document.currentScript.src.split('v=')[1] || '1'))
+          .then(function (r) { return r.json(); })
+          .then(function (j) { QUIZ = j; render(); })
+          .catch(function () { QUIZ = {}; render(); });
+      }
+    }
     else if (tab === 'check') { body = viewCheck(); title = 'CHECKLIST'; opts.kicker = '오픈 · 마감 체크리스트'; }
     else if (tab === 'cert') { body = viewCert(); title = 'MY CERTIFICATE'; opts.kicker = '내 교육 수료'; }
     else if (tab === 'admin') {
@@ -1375,6 +1593,23 @@
       });
       return;
     }
+    if (e.target.closest('[data-qstart]')) { startQuiz(S.brand); render(); window.scrollTo(0, 0); return; }
+    if (t = e.target.closest('[data-qopt]')) {
+      QZ.ans[QZ.i] = parseInt(t.dataset.qopt, 10);
+      keepScroll(function () {});
+      return;
+    }
+    if (e.target.closest('[data-qnext]')) {
+      if (QZ.i < QZ.qs.length - 1) QZ.i++; else finishQuiz();
+      render(); window.scrollTo(0, 0);
+      var qa = document.getElementById('qa'); if (qa) qa.focus();
+      return;
+    }
+    if (e.target.closest('[data-qprev]')) { if (QZ.i) QZ.i--; render(); window.scrollTo(0, 0); return; }
+    if (e.target.closest('[data-qquit]')) {
+      if (!confirm('시험을 그만두면 지금까지 푼 답이 사라집니다. 그만둘까요?')) return;
+      QZ = null; render(); window.scrollTo(0, 0); return;
+    }
     if (t = e.target.closest('[data-jump]')) {
       var el = document.getElementById(t.dataset.jump);
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1451,7 +1686,7 @@
     }
     if (e.target.closest('[data-reset]')) {
       if (!confirm('학습 기록과 서명을 모두 지웁니다. 계속할까요?')) return;
-      S.done = {}; S.study = {}; S.daily = {}; S.sign = null; save(); render(); return;
+      S.done = {}; S.study = {}; S.daily = {}; S.sign = null; S.quiz = {}; QZ = null; save(); render(); return;
     }
   });
 
@@ -1468,6 +1703,13 @@
       if (!S.me.start) S.me.start = today();
       save(); return;
     }
+    if (t.id === 'qa' && QZ) {
+      // 다시 그리면 키보드가 내려가므로 버튼만 직접 켠다
+      QZ.ans[QZ.i] = t.value;
+      var nb = $main.querySelector('[data-qnext]');
+      if (nb) nb.disabled = !t.value.trim();
+      return;
+    }
     if (t.id === 'sq') {
       S.q = t.value;
       var y = window.scrollY; render(); window.scrollTo(0, y);
@@ -1476,6 +1718,10 @@
 
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') closeSheet();
+    if (e.key === 'Enter' && e.target.id === 'qa') {
+      var nb = $main.querySelector('[data-qnext]');
+      if (nb && !nb.disabled) nb.click();
+    }
   });
   window.addEventListener('hashchange', function () { closeSheet(); render(); window.scrollTo(0, 0); });
 

@@ -1,7 +1,7 @@
 /* 오프라인 지원: 앱 껍데기와 자료를 캐시에 두고, 사진은 열어본 것만 담아 둔다.
    매장 와이파이가 끊겨도 학습을 이어갈 수 있게 하는 것이 목적. */
-var V = 'slnc-sop-v1';
-var SHELL = ['./', './index.html', './style.css', './app.js', './data.json', './manifest.webmanifest'];
+var V = 'slnc-sop-v2';
+var SHELL = ['./', './index.html', './style.css', './app.js', './data.json', './quiz.json', './manifest.webmanifest'];
 
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(V).then(function (c) { return c.addAll(SHELL); }).then(function () {

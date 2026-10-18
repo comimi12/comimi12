@@ -252,6 +252,7 @@ python build/kkotsal.py --reuse  # 캡처본 재사용하고 다시 인코딩만
 │   ├── floor_plan.py       # Brea Floor Plan PDF → 테이블 배치도 이미지 (store_info가 호출)
 │   ├── verify.py           # 14개 화면 자동 캡처 + 콘솔오류·가로스크롤·깨진이미지 검사
 │   ├── verify_study.py     # 학습 시간 게이트·수료 등록 링크를 브라우저에서 끝까지 확인
+│   ├── verify_quiz.py      # 메뉴 시험(TEST 탭) 전부 정답/전부 오답으로 풀어 채점·이수 확인
 │   ├── deploy.py           # src/ → GitHub Pages 저장소 push
 │   └── shots/              # verify.py 캡처 결과
 └── _deploy/                # 배포용 클론 (git 무시)
@@ -329,6 +330,7 @@ python build/thumbs.py                         # 메뉴 카드용 축소본 생�
 python -m http.server 8766 --directory src     # 로컬 확인
 python build/verify.py 8766                    # 화면 자동 검증
 python build/verify_study.py 8766              # 학습 시간 게이트 + 등록 링크 검증
+python build/verify_quiz.py 8766               # 메뉴 시험 채점 · 80점 이수 검증
 python build/deploy.py                         # 배포
 python build/verify.py https://comimi12.github.io/slnc-sop-dashboard/   # 배포본 검증
 ```
@@ -349,3 +351,12 @@ python build/verify.py https://comimi12.github.io/slnc-sop-dashboard/   # 배포
 
 본 자료는 **SIM US의 자산**이며 원본에 무단 복제·배포·공개·외부 반출 금지가 명시되어 있다.
 현재 공개(Public) GitHub Pages로 배포되어 있으므로, 링크를 아는 사람은 누구나 열람할 수 있다.
+
+## 메뉴 시험 (TEST 탭, 2026-10-18)
+
+- 문제은행: `src/quiz.json` — 브랜드별 객관식(`mc`, `o[0]`이 정답 · 화면에서 섞음) + 주관식(`sa`, `ans`는 인정 표기 목록).
+  영문·국문을 함께 쓴다. 사진 문제 3개는 `app.js` `photoQs()`가 메뉴 사진으로 자동 출제.
+- 한 시험 = 객관식 12 + 사진 3 + 주관식 5 = 20문항 × 5점. **80점 이상**이면 `quiz:브랜드`가 완료로 찍혀 수료 필수 항목이 채워진다(`QUIZ_PASS`, `QUIZ_N`).
+- `ref`가 같은 문항은 한 시험에 하나만, 그 메뉴는 사진 문제 보기에서도 빠진다 — 보기의 한글명이 다른 문항의 답을 알려 주지 않게. 문제를 추가할 때 메뉴명 `ref`를 꼭 달 것.
+- 주관식 채점: 대소문자·띄어쓰기·문장부호 무시, 숫자 답은 입력 속 첫 숫자만 비교(`500g` → 500).
+- 수료 보고(카톡 텍스트·등록 링크)에 메뉴 시험 최고점이 함께 간다.
