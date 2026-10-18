@@ -502,7 +502,6 @@ h2.sect[id]{ scroll-margin-top:72px }
   background:var(--surf2); color:var(--mut); font-size:13px; font-weight:800; font-family:'Archivo',sans-serif }
 .qo[aria-pressed="true"]{ border-color:var(--pri); background:var(--pri-soft) }
 .qo[aria-pressed="true"] .qk{ background:var(--pri); color:var(--pri-on) }
-.qa{ margin-top:14px; height:58px !important; font-size:17px !important }
 .qnav{ display:flex; gap:8px; margin-top:8px }
 .qnav .btn{ min-height:46px; padding:10px 14px; font-size:14px }
 .qres{ text-align:center; padding:28px 20px 24px; border-radius:var(--r);

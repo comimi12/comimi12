@@ -46,11 +46,9 @@ def answer_of(brand, page):
     if img.count():
         src = img.get_attribute("src")
         return "mc", THUMB[src]
-    bank = QUIZ[brand]
-    kind = "sa" if page.locator("#qa").count() else "mc"
-    for q in bank[kind]:
+    for q in QUIZ[brand]["mc"]:
         if q["q"][0] == qen:
-            return kind, (q["o"][0][0] if kind == "mc" else q["ans"][0])
+            return "mc", q["o"][0][0]
     raise RuntimeError("문항을 찾지 못함: " + qen)
 
 
@@ -73,13 +71,12 @@ def run(page, brand, right):
             if pick is None:
                 raise RuntimeError("보기 선택 실패: %r / %r" % (ans, [btns.nth(i).inner_text() for i in range(btns.count())]))
             btns.nth(pick).click()
-        else:
-            page.fill("#qa", ans if right else "zzz")
-        if n == 2 and brand == "KSC" and right:
+        if n == 2 and right:
             page.screenshot(path=os.path.join(OUT, "%s-q.png" % brand), full_page=True)
         page.click("[data-qnext]")
         n += 1
     check(n == 20, "%s 문항 수 20 (실제 %d)" % (brand, n))
+    check(page.locator("#qa").count() == 0, "주관식 입력칸 없음")
     sc = page.locator(".qres .qsc").inner_text().strip()
     page.screenshot(path=os.path.join(OUT, "%s-%s.png" % (brand, "pass" if right else "fail")), full_page=True)
     return sc
@@ -101,6 +98,8 @@ with sync_playwright() as p:
         check(page.locator('.nv[href="#/test"]').count() == 1, "레일에 TEST 탭")
         sc = run(page, brand, right=False)
         check(sc.startswith("0"), "전부 오답 → 0점 (%s)" % sc)
+        nimg = page.locator(".qrev .qrimg").count()
+        check(nimg == 15, "사진 문제 15개 (%d)" % nimg)
         check(page.locator(".qrev .card").count() == 20, "오답 복습 20건")
         check(page.locator(".qres.ok").count() == 0, "불합격 표시")
         sc = run(page, brand, right=True)

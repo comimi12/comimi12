@@ -1,5 +1,5 @@
 {
-  "_note": "메뉴 시험 문제은행. 출처 = data.json 메뉴 교육자료. mc의 o[0]이 정답(화면에서는 섞어서 보여준다). ref가 같은 문항은 한 시험에 하나만 나온다(답이 서로 드러나지 않게). sa의 ans는 정답으로 인정할 표기들(대소문자·띄어쓰기 무시). 사진 문제는 app.js가 메뉴 사진으로 자동 출제.",
+  "_note": "메뉴 시험 문제은행(전부 객관식 · 사용자 지시로 주관식 없음). 출처 = data.json 메뉴 교육자료. o[0]이 정답(화면에서는 섞어서 보여준다). ref가 같은 문항은 한 시험에 하나만, 그 메뉴는 사진 문제에서도 빠진다. 사진 문제(시험의 대부분)는 app.js photoQs()가 메뉴 사진으로 자동 출제.",
   "KSC": {
     "mc": [
       {"q": ["What does the LUNCH SET include?", "런치 세트 구성은?"], "o": [["1 stew + 1 meat of your choice", "찌개 1 + 고기 1 선택"], ["2 stews of your choice", "찌개 2 선택"], ["1 meat + cold noodles", "고기 1 + 냉면"], ["1 rice bowl + 1 side", "덮밥 1 + 사이드 1"]], "ref": "LUNCH SET"},
@@ -13,7 +13,6 @@
       {"q": ["Which kalbi is finished right at the table — as much show as flavor?", "테이블에서 바로 마무리해 보는 재미까지 주는 갈비는?"], "o": [["Tableside Kalbi", "즉석갈비"], ["Woo-dae Kalbi", "우대갈비"], ["Non-Marinated Kalbi", "생갈비"], ["LA Kalbi", "LA갈비"]], "ref": "TABLESIDE"},
       {"q": ["A guest wants to taste the beef itself, with no marinade. What do you recommend?", "양념 없이 고기 본연의 맛을 원하는 손님께 추천할 메뉴는?"], "o": [["Non-Marinated Kalbi", "생갈비"], ["48 Hour Kalbi", "48시간 숙성갈비"], ["LA Kalbi", "LA갈비"], ["Bulgogi", "불고기"]], "ref": "NON-MARINATED KALBI"},
       {"q": ["Which cut is thick, bone-in, and served as the table's centerpiece?", "두툼한 뼈째 갈비로 테이블 메인으로 임팩트 있게 추천하는 메뉴는?"], "o": [["Woo-dae Kalbi", "우대갈비"], ["Prime Brisket", "차돌"], ["Tableside Kalbi", "즉석갈비"], ["Bulgogi", "불고기"]], "ref": "WOO-DAE KALBI"},
-      {"q": ["PRIME ROSE STEAK is which cut in Korean?", "PRIME ROSE STEAK의 한글 메뉴명은?"], "o": [["Kkotsal", "꽃살"], ["Chadol", "차돌"], ["Nakyeopsal", "낙엽살"], ["Saeng-galbi", "생갈비"]], "ref": "PRIME ROSE STEAK"},
       {"q": ["Which cut is thin-sliced and cooks quickly on the grill?", "얇게 썰어 그릴에서 빠르게 굽는 고기는?"], "o": [["Prime Brisket", "차돌"], ["Woo-dae Kalbi", "우대갈비"], ["LA Kalbi", "LA갈비"], ["48 Hour Kalbi", "48시간 숙성갈비"]], "ref": "PRIME BRISKET"},
       {"q": ["The STARTER EXPERIENCE is set for how many guests?", "STARTER EXPERIENCE는 몇 인 기준 세트인가?"], "o": [["2 guests", "2인"], ["2–3 guests", "2~3인"], ["3–4 guests", "3~4인"], ["5–6 guests", "5~6인"]], "ref": "STARTER EXPERIENCE"},
       {"q": ["The CHEF'S EXPERIENCE is set for how many guests?", "CHEF'S EXPERIENCE는 몇 인 기준 세트인가?"], "o": [["3–4 guests", "3~4인"], ["2 guests", "2인"], ["2–3 guests", "2~3인"], ["5–6 guests", "5~6인"]], "ref": "CHEF'S EXPERIENCE"},
@@ -27,18 +26,6 @@
       {"q": ["Which is a light starter to share before the meat?", "고기 시작 전에 가볍게 나눠 먹기 좋은 메뉴는?"], "o": [["Kalbi Dumplings", "갈비만두"], ["Woo-dae Kalbi", "우대갈비"], ["Ox Bone Soup", "설렁탕"], ["Kimchi Fried Rice", "김치볶음밥"]], "ref": "KALBI DUMPLINGS"},
       {"q": ["Which dessert contains milk?", "우유가 들어 있는 디저트는?"], "o": [["Oranda Ice Cream", "오란다 아이스크림"], ["Hotteok", "호떡"], ["Egg Soufflé", "계란찜"], ["White Cucumber", "화이트 오이"]], "ref": "ORANDA ICE CREAM"},
       {"q": ["To close out the meal or for a quick lunch, which rice dish is recommended?", "식사 마무리나 점심 한 끼로 추천하는 밥 메뉴는?"], "o": [["Kimchi Fried Rice", "김치볶음밥"], ["Seafood Pajeon", "해물 파전"], ["Hotteok", "호떡"], ["Korean Beef Tartare", "육회"]], "ref": "KIMCHI FRIED RICE"}
-    ],
-    "sa": [
-      {"q": ["How many guests is the STARTER EXPERIENCE for? (number)", "STARTER EXPERIENCE는 몇 인 세트인가요? (숫자)"], "ans": ["2"], "show": "2", "ref": "STARTER EXPERIENCE"},
-      {"q": ["How many grams of Woo-dae Kalbi are in the KALBI SELECTION EXPERIENCE? (number)", "KALBI SELECTION EXPERIENCE에 우대갈비는 몇 g 들어가나요? (숫자)"], "ans": ["500"], "show": "500g", "ref": "KALBI SELECTION"},
-      {"q": ["LUNCH SET: choose 1 stew and 1 ___ .", "런치 세트: 찌개 1개와 ___ 1개를 고른다."], "ans": ["meat", "고기"], "show": "Meat · 고기", "ref": "LUNCH SET"},
-      {"q": ["Name one allergen of the CHEESE POTATO PANCAKE.", "치즈 감자전의 알러지 성분 하나를 쓰세요."], "ans": ["milk", "우유", "wheat", "밀", "dairy", "유제품"], "show": "Milk · 우유 / Wheat · 밀", "ref": "CHEESE POTATO PANCAKE"},
-      {"q": ["COLD NOODLES are made with ___ noodles.", "물냉면은 ___면으로 만든다."], "ans": ["buckwheat", "메밀", "메밀면"], "show": "Buckwheat · 메밀", "ref": "COLD NOODLES"},
-      {"q": ["BULGOGI JAPCHAE is made with ___ noodles.", "불고기 잡채는 ___으로 만든다."], "ans": ["glass", "glassnoodles", "당면", "sweetpotatonoodles"], "show": "Glass noodles · 당면", "ref": "BULGOGI JAPCHAE"},
-      {"q": ["Name the allergen of the HOTTEOK.", "호떡의 알러지 성분을 쓰세요."], "ans": ["wheat", "밀", "gluten", "글루텐"], "show": "Wheat · 밀", "ref": "HOTTEOK"},
-      {"q": ["Name the allergen of the ORANDA ICE CREAM.", "오란다 아이스크림의 알러지 성분을 쓰세요."], "ans": ["milk", "우유", "dairy", "유제품"], "show": "Milk · 우유", "ref": "ORANDA ICE CREAM"},
-      {"q": ["Our house-made kimchi may contain fish ___ .", "하우스메이드 김치에는 ___이 들어 있을 수 있다 (생선 알러지 주의)."], "ans": ["sauce", "fishsauce", "젓갈", "액젓", "멸치액젓"], "show": "Fish sauce · 젓갈", "ref": "SHAKE THAT KIMCHI"},
-      {"q": ["What is the short-rib patty on the KID'S MENU called?", "키즈 메뉴의 갈비 패티 메뉴 이름은?"], "ans": ["tteokkalbi", "tteokgalbi", "ddeokgalbi", "떡갈비"], "show": "Tteokkalbi · 떡갈비", "ref": "TTEOKKALBI"}
     ]
   },
   "WASA": {
@@ -73,18 +60,6 @@
       {"q": ["A guest wants a less sweet dessert. Which do you recommend?", "덜 단 디저트를 원하는 손님께 추천할 것은?"], "o": [["Matcha Ice Cream", "말차 아이스크림"], ["Strawberry Ice Cream", "딸기 아이스크림"], ["Ube Leche Flan", "우베 레체 플란"], ["Sweet Potato", "스위트 포테이토"]], "ref": "Ice Cream Matcha"},
       {"q": ["Why does the fish on the WASA SASHIMI PLATTER vary?", "와사 사시미 플래터의 어종이 매번 다른 이유는?"], "o": [["It depends on the day's delivery", "당일 입고에 따라 구성"], ["The guest picks every fish", "손님이 전부 고른다"], ["It's always the same 3 fish", "항상 같은 3종이다"], ["It depends on the server", "서버가 정한다"]], "ref": "Wasa Sashimi Platter"},
       {"q": ["For a vegetarian table, which hot starter do you recommend first?", "채식 손님께 가장 먼저 추천할 따뜻한 전채는?"], "o": [["Vegetable Tempura", "야채 텐푸라"], ["Mixed Tempura", "모둠 텐푸라"], ["Fried Gyoza", "야키 교자"], ["Chicken Karaage", "치킨 가라아게"]], "ref": "Vegetable Tempura"}
-    ],
-    "sa": [
-      {"q": ["How many pieces are in the SHRIMP TEMPURA? (number)", "새우튀김은 몇 조각인가요? (숫자)"], "ans": ["5"], "show": "5", "ref": "Shrimp Tempura 5pc"},
-      {"q": ["About 1 in how many SHISHITO PEPPERS is spicy? (number)", "시시토 페퍼는 대략 몇 개 중 1개가 매운가요? (숫자)"], "ans": ["10"], "show": "10", "ref": "Shishito Pepper"},
-      {"q": ["TSUKUNE is dipped in egg ___ .", "츠쿠네는 계란 ___에 찍어 먹는다."], "ans": ["yolk", "노른자", "egg yolk", "계란노른자"], "show": "Yolk · 노른자", "ref": "Tsukune"},
-      {"q": ["EDAMAME is served with an empty bowl for the ___ .", "에다마메를 낼 때 ___ 담을 빈 볼을 함께 준다."], "ans": ["shells", "shell", "pods", "껍질", "껍데기"], "show": "Shells · 껍질", "ref": "Edamame"},
-      {"q": ["IKURA is the roe of which fish?", "IKURA는 어떤 생선의 알인가요?"], "ans": ["salmon", "연어"], "show": "Salmon · 연어", "ref": "Ikura"},
-      {"q": ["UNI in English is sea ___ .", "UNI는 영어로 sea ___ (한글: 성게알)."], "ans": ["urchin", "seaurchin", "성게", "성게알"], "show": "Sea urchin · 성게알", "ref": "Uni"},
-      {"q": ["What is the main fish on the DRAGON ROLL?", "드래곤 롤의 주재료 생선은?"], "ans": ["eel", "unagi", "장어"], "show": "Eel · 장어", "ref": "Dragon Roll"},
-      {"q": ["Name one of our vegetarian rolls.", "채식 롤 하나를 쓰세요."], "ans": ["cucumber", "오이", "avocado", "아보카도", "veggie caterpillar", "caterpillar", "베지 캐터필러", "캐터필러"], "show": "Cucumber · Avocado · Veggie Caterpillar (오이 · 아보카도 · 베지 캐터필러)", "ref": "vegroll"},
-      {"q": ["Name the Japanese chili crisp used on GARLIC EDAMAME.", "갈릭 에다마메에 쓰는 일본식 칠리 크리스프 이름은?"], "ans": ["senba", "센바", "garlic senba", "갈릭센바"], "show": "Garlic senba · 갈릭 센바", "ref": "Garlic Edamame"},
-      {"q": ["UBE in UBE LECHE FLAN is purple ___ .", "우베 레체 플란의 우베(UBE)는 무엇인가요?"], "ans": ["yam", "purpleyam", "자색고구마", "보라색고구마", "자색참마", "참마"], "show": "Purple yam · 자색고구마", "ref": "Ube Leche Flan"}
     ]
   }
 }
