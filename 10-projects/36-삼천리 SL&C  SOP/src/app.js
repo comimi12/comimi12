@@ -891,7 +891,14 @@
     }
     function hit(core, w) {
       return core === w || core === w + 'S' || (w.length >= 4 && core.indexOf(w) >= 0)
-        || (w.length >= 5 && core.slice(0, 5) === w.slice(0, 5));   // TTEOKBOKI / tteokbokki
+        || (w.length >= 5 && oneIns(core, w));   // TTEOKBOKI / tteokbokki 처럼 한 글자만 다른 철자
+    }
+    // 한쪽에 한 글자만 더 들어간 철자인지 — VEGETABLE/VEGETARIAN처럼 앞만 같은 다른 낱말은 가리지 않는다
+    function oneIns(a, b) {
+      if (Math.abs(a.length - b.length) !== 1) return false;
+      var l = a.length > b.length ? a : b, s = a.length > b.length ? b : a;
+      for (var i = 0; i < l.length; i++) if (l.slice(0, i) + l.slice(i + 1) === s) return true;
+      return false;
     }
     function maskEn(line, name) {
       var ws = words(name);
