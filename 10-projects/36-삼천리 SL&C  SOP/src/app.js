@@ -31,6 +31,7 @@
     sign: null,    // { img, by, at }
     team: [],      // 관리자 기기에 모인 팀 수료 보고
     quiz: {},      // 브랜드 -> { best, last, at, tries }  (메뉴 시험)
+    qseen: {},     // 브랜드 -> 직전 시험에 나온 문항 키 (재시험 때 다른 문제를 먼저 낸다)
     adminOn: 0,
     q: ''
   };
@@ -47,7 +48,7 @@
       localStorage.setItem(KEY, JSON.stringify({
         brand: S.brand, theme: S.theme, me: S.me,
         done: S.done, study: S.study, daily: S.daily, sign: S.sign,
-        team: S.team, adminOn: S.adminOn, dv: S.dv, quiz: S.quiz
+        team: S.team, adminOn: S.adminOn, dv: S.dv, quiz: S.quiz, qseen: S.qseen
       }));
     } catch (e) { /* 저장 불가여도 화면은 계속 동작 */ }
   }
@@ -849,7 +850,7 @@
       seen[k] = seen[it.img] = 1; pool.push(it);
     });
     function words(s) { return s.toUpperCase().split(/[^A-Z]+/).filter(function (w) { return w.length >= 4; }); }
-    return shuffle(pool).slice(0, n).map(function (it) {
+    return fresh(pool, function (it) { return 'p:' + it.en; }).slice(0, n).map(function (it) {
       var ws = words(it.en);
       var others = shuffle(pool.filter(function (x) {
         return x !== it && !words(x.en).some(function (w) { return ws.indexOf(w) >= 0; });
@@ -910,7 +911,7 @@
       return out.replace(/____(\s*____)+/g, '____');
     }
     var wsOf = function (x) { return words(x.it.en).filter(function (w) { return w.length >= 4; }); };
-    return shuffle(pool).slice(0, n).map(function (p) {
+    return fresh(pool, function (p) { return 's:' + p.it.en; }).slice(0, n).map(function (p) {
       var ws = wsOf(p);
       var others = shuffle(pool.filter(function (x) {
         return x !== p && !wsOf(x).some(function (w) { return ws.indexOf(w) >= 0; });
@@ -920,6 +921,14 @@
                q: ['Which menu item is this recommendation for?', '다음 추천 멘트는 어떤 메뉴를 추천하는 말인가요?'],
                quote: [maskEn(p.en, p.it.en), maskEn(maskKr(p.kr, p.it.kr || SELL_KR[p.it.en] || ''), p.it.en)], opts: shuffle(opts), ref: p.it.en };
     });
+  }
+
+  /** 섞되, 직전 시험에 안 나온 문항을 앞에 둔다 — 재시험마다 최대한 다른 문제가 나오게 */
+  function fresh(list, key) {
+    var seen = (S.qseen || {})[S.brand] || [];
+    var a = shuffle(list);
+    return a.filter(function (x) { return seen.indexOf(key(x)) < 0; })
+      .concat(a.filter(function (x) { return seen.indexOf(key(x)) >= 0; }));
   }
 
   function startQuiz(b) {
@@ -933,7 +942,7 @@
       if (r) used.push(r);
       return true;
     }
-    var mc = shuffle(bank.mc).filter(take).slice(0, QUIZ_N.mc);
+    var mc = fresh(bank.mc, function (q) { return 'm:' + q.q[0]; }).filter(take).slice(0, QUIZ_N.mc);
     used = mc.map(function (q) { return String(q.ref || '').toUpperCase(); }).filter(Boolean);
     mc = mc.map(function (q) {
       return { t: 'mc', q: q.q, ref: q.ref,
@@ -941,6 +950,9 @@
     });
     QZ = { b: b, qs: shuffle(mc.concat(photoQs(b, QUIZ_N.photo, used), sellQs(b, QUIZ_N.sell))),
            i: 0, ans: [], end: false };
+    S.qseen = S.qseen || {};
+    S.qseen[b] = QZ.qs.map(function (q) { return (q.img ? 'p:' : q.sell ? 's:' : 'm:') + (q.img || q.sell ? q.ref : q.q[0]); });
+    save();
   }
   function quizRight(q, a) {
     return a != null && !!(q.opts[a] && q.opts[a].ok);
@@ -1728,7 +1740,7 @@
     }
     if (e.target.closest('[data-reset]')) {
       if (!confirm('학습 기록과 서명을 모두 지웁니다. 계속할까요?')) return;
-      S.done = {}; S.study = {}; S.daily = {}; S.sign = null; S.quiz = {}; QZ = null; save(); render(); return;
+      S.done = {}; S.study = {}; S.daily = {}; S.sign = null; S.quiz = {}; S.qseen = {}; QZ = null; save(); render(); return;
     }
   });
 
