@@ -209,7 +209,7 @@ def neg_signal(text):
 
 # AI 전수 판정 구간 — 이 기간은 출처·기존 라벨과 무관하게 내용 있는 모든 리뷰를 Claude 가 판정한다.
 # 기초 데이터(월별 프로그램 파일)가 확정된 달까지 FULL_AI_UNTIL 을 늘린다. 그 밖의 달은 후보만 판정.
-FULL_AI_FROM, FULL_AI_UNTIL = "2026-01", "2026-09"
+FULL_AI_FROM, FULL_AI_UNTIL = "2026-01", "2026-10"
 
 
 def ai_targets(rows):
@@ -514,6 +514,9 @@ def dedupe_key(r):
     return (r["store"], r["date"], t)
 
 
+FLOOR_PROG = 15
+
+
 def build_reviews():
     files = [f for f in sorted(glob.glob(os.path.join(REVIEW_DIR, "*.csv")))
              if not os.path.basename(f).startswith("_")]
@@ -530,6 +533,7 @@ def build_reviews():
             prio = 1 if (bn.startswith("naver_collected") or "merged" in bn.lower()) else 2
             for r in rs:
                 r["_prio"] = prio
+                r["_file"] = p
             rows.extend(rs)
             used.append(bn)
     for p in sorted(glob.glob(os.path.join(REVIEW_DIR, "NaverReviews_*.xlsx"))):
@@ -537,6 +541,7 @@ def build_reviews():
         if rs:
             for r in rs:
                 r["_prio"] = 2
+                r["_file"] = p
             rows.extend(rs)
             used.append(os.path.basename(p))
     if not rows:
@@ -569,8 +574,39 @@ def build_reviews():
     prog_n = collections.Counter(r["month"] for r in rows if r.get("_prio", 0) >= 2 and r["source"] == "naver")
     auto_n = collections.Counter(r["month"] for r in rows if r.get("_prio", 0) < 2 and r["source"] == "naver")
     drop_naver_months = {m for m in prog_n if prog_n[m] >= auto_n.get(m, 0)}
+    # 데이터 파일(프로그램)이 기준: 그 달 1~3일부터 시작하는 프로그램 파일이 있으면(=당월 주력 파일)
+    # 프로그램 마지막 날짜까지는 자동수집 네이버를 버리고 프로그램 값만 쓴다. 이후 날짜만 자동수집 보충.
+    # (auto_n 은 여러 수집 파일의 중복까지 세므로 건수 비교만으론 당월이 자동수집으로 남는 문제가 있었음)
+    # 그 달의 주력 데이터 파일 = 그 달 네이버 행이 가장 많은 프로그램 파일. 주력 파일 범위(마지막 날짜까지)는
+    # 자동수집뿐 아니라 '더 오래된' 프로그램 파일의 넘침분(예: 9월 파일의 10/1 방문분)도 버린다 —
+    # 최신 데이터 파일에서 수정·삭제된 리뷰가 옛 파일 값으로 남지 않게.
+    per_file = collections.defaultdict(list)
+    for r in rows:
+        if r.get("_prio", 0) >= 2 and r["source"] == "naver" and r.get("date") and r.get("_file"):
+            per_file[(r["month"], r["_file"])].append(r["date"])
+    main_file = {}
+    for (m, f), ds in per_file.items():
+        if m not in main_file or len(ds) > len(per_file[(m, main_file[m])]):
+            main_file[m] = f
+    # 적용 대상은 가장 최근에 넣은 데이터 파일이 주력인 달(=진행 중인 당월)뿐. 확정된 과거 월은 기존 집계 유지.
+    newest = max(main_file.values(), key=os.path.getmtime) if main_file else None
+    prog_until = {}
+    for m, f in main_file.items():
+        ds = per_file[(m, f)]
+        if f == newest and len(ds) >= FLOOR_PROG and min(ds)[8:10] <= "03":
+            prog_until[m] = (max(ds), f, os.path.getmtime(f))
+
+    def overridden(r):
+        m = r["month"]
+        if r["source"] != "naver" or m not in prog_until or (r.get("date") or "") > prog_until[m][0]:
+            return False
+        if r.get("_prio", 0) < 2:
+            return True
+        f = r.get("_file")
+        return bool(f) and f != prog_until[m][1] and os.path.getmtime(f) < prog_until[m][2]
     rows = [r for r in rows
-            if not (r.get("_prio", 0) < 2 and r["source"] == "naver" and r["month"] in drop_naver_months)]
+            if not ((r.get("_prio", 0) < 2 and r["source"] == "naver" and r["month"] in drop_naver_months)
+                    or overridden(r))]
     # 중복 제거(우선순위 반영). 캐치테이블은 출처마다 날짜 컬럼이 달라(방문↔작성) 내용 기준,
     # 네이버는 (매장·날짜·내용) 기준. 동일 리뷰면 prio 높은(프로그램 감성) 행을 채택.
     best = {}
