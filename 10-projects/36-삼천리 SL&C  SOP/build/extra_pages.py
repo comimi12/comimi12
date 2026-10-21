@@ -132,6 +132,12 @@ _RETURN = ['Returning guest: say "Welcome back!", take drinks, then go straight 
            '재방문: "Welcome back!" 인사 후 음료 받고 바로 주문 응대']
 _SEND = ['After payment, keep eye contact and say goodbye as guests walk to the door.',
          '계산 후 출입구까지 시선 맞추고 인사']
+# 3단계(중간 체크)의 프리버싱 — 2026-10-21 사용자 추가 지시 "접시 정리 잘 될 수 있도록"
+_PREBUS = ['Pre-bus on every pass: never walk by empty-handed — clear finished plates, empty glasses '
+           'and empty side dishes right away.',
+           '프리버싱: 테이블을 지날 때마다 빈손으로 지나가지 않기 — 다 드신 접시·빈 잔·빈 반찬 그릇은 바로 정리',
+           'Ask "May I take this for you?" before clearing, and make room before the next dish arrives.',
+           '치우기 전 "May I take this for you?"로 여쭙고, 다음 요리가 나오기 전 테이블 공간 확보']
 SERVER_CODE = {
     'ksc-manual': {
         'lines': ['Servers also work as grill attendants — in Step 3 you grill the first round yourself.',
@@ -152,11 +158,11 @@ SERVER_CODE = {
                        '사이드·주류 페어링 함께 제안'],
              'say': ['"For first-timers, our ○○ Kalbi is the most popular."']},
             {'t': ['GRILL CARE', '그릴 케어'],
-             'sum': ['Grill & check satisfaction', '굽기·만족도 확인'],
+             'sum': ['Grill, check satisfaction & pre-bus', '굽기·만족도 확인·프리버싱'],
              'lines': ['Grill the first round yourself and explain how to enjoy each cut.',
                        '첫 고기는 서버가 직접 굽고 부위별 먹는 법 안내',
                        'Change the grill plate, refill banchan and offer more before guests have to ask.',
-                       '불판 교체·반찬 리필·추가 주문 선제 확인'],
+                       '불판 교체·반찬 리필·추가 주문 선제 확인'] + _PREBUS,
              'say': ['"Let me grill the first round for you. How is everything tasting?"']},
             {'t': ['SEND-OFF', '배웅 인사'],
              'sum': ['Invite them back', '재방문 유도'],
@@ -186,11 +192,11 @@ SERVER_CODE = {
                        '인원 기준 2~3개 플레이트부터 시작하도록 가이드'],
              'say': ['"Our ○○ is a must-try, and it pairs great with your drink."']},
             {'t': ['CHECK-BACK', '중간 체크'],
-             'sum': ['Pace the plates & offer more', '순차 서빙·추가 주문 확인'],
+             'sum': ['Pace the plates, pre-bus & offer more', '순차 서빙·프리버싱·추가 주문 확인'],
              'lines': ['Return to the table as each dish comes out.',
                        '요리 나오는 순서에 맞춰 테이블 재방문',
-                       'Clear empty glasses and plates; suggest more dishes and drinks.',
-                       '빈 잔·빈 접시 정리, 추가 요리·음료 제안'],
+                       'Suggest more dishes and drinks before glasses run empty.',
+                       '잔이 비기 전 추가 요리·음료 제안'] + _PREBUS,
              'say': ['"How is everything so far? Would you like another round of drinks?"']},
             {'t': ['SEND-OFF', '배웅 인사'],
              'sum': ['Invite them back', '재방문 유도'],
