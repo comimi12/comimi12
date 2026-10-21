@@ -205,7 +205,39 @@ SERVER_CODE = {
 }
 
 
+# 착석 후 서버 첫 인사 시간 = 1분 이내로 통일 (2026-10-21 사용자 지시, 행동강령 기준).
+# 호스트의 입구 인사(3초 · POSITION MAP 의 HOST greet <30 sec)와 배웅의 '마지막 30초'는 다른 얘기라 그대로 둔다.
+GREET_FIX = [
+    ('Greet within 30 seconds:', 'Greet within 1 minute of seating:'),
+    ('착석 30초 내 인사', '착석 1분 내 인사'),
+    ('Greet the table within 60 seconds of seating', 'Greet the table within 1 minute of seating'),
+    ('착석 후 60초 내 인사', '착석 후 1분 내 인사'),
+    ('greeting within 30 seconds of being seated', 'greeting within 1 minute of being seated'),
+    ('착석 30초 안에', '착석 1분 안에'),
+    ('SERVER (within 30 sec of seating)', 'SERVER (within 1 min of seating)'),
+]
+
+
+def _fix_greet(page):
+    def fx(s):
+        for a, b in GREET_FIX:
+            s = s.replace(a, b)
+        return s
+    blocks = page.get('blocks', [])
+    for i, b in enumerate(blocks):
+        b['head'] = fx(b['head'])
+        b['lines'] = [fx(t) for t in b['lines']]
+        # 서비스 10단계의 시간 칩은 별도 블록 — SERVER GREET 바로 뒤의 '≤ 30 sec'
+        if b['head'] == '≤ 30 sec' and i and blocks[i - 1]['head'].startswith('SERVER GREET'):
+            b['head'] = '≤ 1 min'
+    page['tables'] = [[[fx(c) for c in r] for r in t] for t in page.get('tables', [])]
+
+
 def apply_server_code(decks):
+    for deck in decks:
+        if deck.get('id') in SERVER_CODE:
+            for p in deck['pages']:
+                _fix_greet(p)
     for deck in decks:
         spec = SERVER_CODE.get(deck.get('id'))
         if not spec:
