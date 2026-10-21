@@ -221,6 +221,7 @@ def main():
     # 원본에 없는 추가 교육 페이지(안전교육 등)
     import extra_pages
     extra_pages.apply(decks)
+    extra_pages.apply_server_code(decks)
     extra_pages.apply_menu_photos(decks)
 
     with open(DATA, 'w', encoding='utf-8') as f:

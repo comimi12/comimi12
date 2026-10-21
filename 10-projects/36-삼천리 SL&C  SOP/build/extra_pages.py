@@ -123,6 +123,105 @@ EXTRA = [
 ]
 
 
+# 2026-10-21 서버 4대 행동강령: Downloads\서버 4대 행동강령 (KSC · IZAKAYA WASA).docx
+# 서버 페이지(내 포지션 SOP) 맨 위에 강조 카드로 넣는다 (사용자 지시). 원문은 국문 + 영문 멘트라
+# 영문 줄은 번역해 채움. 단계마다 t=[영문, 국문], sum=한눈에 보기 표의 칸, lines=[영문, 국문, ...],
+# say=영문 멘트(번역 없이 그대로 말하는 문장). ○○ 는 원문 그대로 둔다(매장 시그니처로 바꿔 말함).
+_GREET = ['Greet within 1 minute of seating.', '착석 후 1분 이내 응대']
+_RETURN = ['Returning guest: say "Welcome back!", take drinks, then go straight to the food order.',
+           '재방문: "Welcome back!" 인사 후 음료 받고 바로 주문 응대']
+_SEND = ['After payment, keep eye contact and say goodbye as guests walk to the door.',
+         '계산 후 출입구까지 시선 맞추고 인사']
+SERVER_CODE = {
+    'ksc-manual': {
+        'lines': ['Servers also work as grill attendants — in Step 3 you grill the first round yourself.',
+                  '서버가 그릴 어텐던트를 겸무하므로 3단계에서 첫 고기 굽기를 직접 진행합니다.'],
+        'steps': [
+            {'t': ['GREET THE TABLE', '테이블 인사'],
+             'sum': ['Ask about first visit + drink order', '방문 여부 질문 + 음료 주문'],
+             'lines': _GREET + [
+                 'First visit: after the drink order, let them know the server grills the meat for them.',
+                 '첫 방문: 음료 주문 후, 서버가 고기를 구워드린다는 점 안내'] + _RETURN,
+             'say': ['"Hi, welcome to Kalbi Social Club! Have you dined with us before?"',
+                     '"Would you like to start with some drinks while you look over the menu?"']},
+            {'t': ['RECOMMEND THE MENU', '메뉴 추천'],
+             'sum': ['Suggest our signature meats', '시그니처 고기 제안'],
+             'lines': ['Suggest the right amount of meat and the right combo for the party size.',
+                       '인원에 맞는 고기 양·콤보 제안',
+                       'Suggest side dishes and drink pairings together.',
+                       '사이드·주류 페어링 함께 제안'],
+             'say': ['"For first-timers, our ○○ Kalbi is the most popular."']},
+            {'t': ['GRILL CARE', '그릴 케어'],
+             'sum': ['Grill & check satisfaction', '굽기·만족도 확인'],
+             'lines': ['Grill the first round yourself and explain how to enjoy each cut.',
+                       '첫 고기는 서버가 직접 굽고 부위별 먹는 법 안내',
+                       'Change the grill plate, refill banchan and offer more before guests have to ask.',
+                       '불판 교체·반찬 리필·추가 주문 선제 확인'],
+             'say': ['"Let me grill the first round for you. How is everything tasting?"']},
+            {'t': ['SEND-OFF', '배웅 인사'],
+             'sum': ['Invite them back', '재방문 유도'],
+             'lines': _SEND + [
+                 'First-time guests: recommend dishes for next time and tell them about our lunch menu.',
+                 '첫 방문 고객: 다음 방문 추천 메뉴·런치 메뉴 안내'],
+             'say': ['"Thank you for coming! Hope to see you again soon."']},
+        ],
+        'note': ['○○ = say the name of our signature kalbi.', '○○ 은 매장 시그니처 메뉴명으로 바꿔 말합니다.'],
+    },
+    'wasa-manual': {
+        'lines': ['As an izakaya, we take the drink order first and serve shared plates one after another.',
+                  '이자카야 특성상 음료를 먼저 받고, 셰어 플레이트를 순차적으로 서빙합니다.'],
+        'steps': [
+            {'t': ['GREET THE TABLE', '테이블 인사'],
+             'sum': ['Ask about first visit + drink order', '방문 여부 질문 + 음료 주문'],
+             'lines': _GREET + [
+                 'First visit: after the drink order, explain how to order several shared plates.',
+                 '첫 방문: 음료 주문 후, 셰어 플레이트로 여러 개 주문하는 방식 안내'] + _RETURN,
+             'say': ['"Irasshaimase! Welcome to Izakaya Wasa. Is this your first time with us?"',
+                     '"Can I start you off with some drinks first? We have a great selection of sake and highballs."']},
+            {'t': ['RECOMMEND THE MENU', '메뉴 추천'],
+             'sum': ['Suggest our signature robata', '시그니처 로바타 제안'],
+             'lines': ['When you serve the drinks, recommend a signature robata dish.',
+                       '음료 서빙 시 로바타 시그니처 메뉴 추천',
+                       'Guide guests to start with 2–3 plates, depending on party size.',
+                       '인원 기준 2~3개 플레이트부터 시작하도록 가이드'],
+             'say': ['"Our ○○ is a must-try, and it pairs great with your drink."']},
+            {'t': ['CHECK-BACK', '중간 체크'],
+             'sum': ['Pace the plates & offer more', '순차 서빙·추가 주문 확인'],
+             'lines': ['Return to the table as each dish comes out.',
+                       '요리 나오는 순서에 맞춰 테이블 재방문',
+                       'Clear empty glasses and plates; suggest more dishes and drinks.',
+                       '빈 잔·빈 접시 정리, 추가 요리·음료 제안'],
+             'say': ['"How is everything so far? Would you like another round of drinks?"']},
+            {'t': ['SEND-OFF', '배웅 인사'],
+             'sum': ['Invite them back', '재방문 유도'],
+             'lines': _SEND + [
+                 'First-time guests: recommend dishes for their next visit.',
+                 '첫 방문 고객: 다음 방문 추천 메뉴 안내'],
+             'say': ['"Arigatou gozaimashita! Thank you, see you next time."']},
+        ],
+        'note': ['○○ = say the name of our signature dish. For sake and highballs, name items from our actual drink list.',
+                 '○○ 은 매장 시그니처 메뉴명, sake·highball 은 실제 주류 라인업으로 바꿔 말합니다.'],
+    },
+}
+
+
+def apply_server_code(decks):
+    for deck in decks:
+        spec = SERVER_CODE.get(deck.get('id'))
+        if not spec:
+            continue
+        page = next((p for p in deck['pages'] if p['title'].upper().startswith('SERVER')), None)
+        if not page:
+            print('[!] %s: SERVER 페이지 없음 → 행동강령 미삽입' % deck['id'])
+            continue
+        # y 는 원본 첫 블록(1.22)·사진(1.04)보다 0.25 이상 위 → 페이지 맨 위 단독 줄
+        page['blocks'] = [b for b in page['blocks'] if b.get('kind') != 'code']
+        page['blocks'].insert(0, {'head': 'SERVER CODE OF CONDUCT  |  서버 4대 행동강령', 'kind': 'code',
+                                  'lines': spec['lines'], 'steps': spec['steps'], 'note': spec['note'],
+                                  'x': 0.55, 'y': 0.4, 'w': 7.1})
+        print('  %s p%d 서버 4대 행동강령' % (deck['id'], page['n']))
+
+
 def build_page(n, ref, spec=SAFETY):
     blocks = [{'head': h, 'lines': lines, 'kind': 'normal', 'x': 0.55, 'y': 1.2 + i, 'w': 7.1}
               for i, (h, lines) in enumerate(spec['blocks'])]
@@ -235,6 +334,7 @@ def apply_menu_photos(decks):
 def main():
     decks = json.load(open(DATA, encoding='utf-8'))
     apply(decks)
+    apply_server_code(decks)
     apply_menu_photos(decks)
     with open(DATA, 'w', encoding='utf-8') as f:
         json.dump(decks, f, ensure_ascii=False, separators=(",", ":"))

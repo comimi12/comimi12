@@ -247,6 +247,39 @@ h2.sect:first-child{ margin-top:2px }
 .blk.script li{ border-top-color:color-mix(in srgb,var(--warn) 20%,transparent) }
 .blk.script li .en{ font-style:italic }
 
+/* 서버 4대 행동강령 — 서버 페이지 맨 위 강조 카드 */
+.blk.code{ background:var(--pri-soft); border:2px solid var(--pri); padding:20px 18px }
+.blk .code-hd h3{ margin:10px 0 0; font-size:19px; letter-spacing:0; text-transform:none; color:var(--pri-t) }
+.code-tag{ display:inline-block; background:var(--pri); color:var(--pri-on); font-size:11px; font-weight:800;
+  letter-spacing:.08em; padding:5px 10px; border-radius:99px; font-family:'Archivo',sans-serif }
+.code-kr{ font-size:17px; font-weight:800; color:var(--pri-t); margin-top:3px }
+.code-hd p{ margin:10px 0 0; font-size:14.5px; line-height:1.5 }
+.code-hd p.kr{ margin-top:3px; font-size:13px; color:var(--mut) }
+.blk .code-flow{ list-style:none; margin:16px 0 4px; padding:0; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px }
+.blk .code-flow li{ display:flex; align-items:center; gap:9px; background:var(--surf); border:0;
+  border-radius:var(--r3); padding:10px 10px; min-width:0 }
+.code-flow b{ flex:0 0 auto; display:grid; place-items:center; width:24px; height:24px; border-radius:7px;
+  background:var(--pri); color:var(--pri-on); font-size:12px; font-family:'Archivo',sans-serif }
+.code-flow li > div{ min-width:0 }
+.blk .code-flow li .en{ display:block; font-size:10.5px; font-weight:800; line-height:1.25; letter-spacing:0; overflow-wrap:anywhere }
+.blk .code-flow li .kr{ display:block; font-size:13px; font-weight:700; color:var(--ink); margin-top:1px }
+.code-step{ display:flex; gap:12px; background:var(--surf); border-radius:var(--r2); padding:15px 14px; margin-top:10px }
+.code-n{ flex:0 0 auto; width:30px; height:30px; border-radius:10px; background:var(--pri); color:var(--pri-on);
+  display:grid; place-items:center; font-weight:800; font-size:15px; font-family:'Archivo',sans-serif }
+.code-bd{ min-width:0; flex:1 }
+.code-t{ font-size:15px; font-weight:800; letter-spacing:.02em; color:var(--pri-t); font-family:'Archivo',sans-serif }
+.code-t em{ display:block; font-style:normal; font-family:inherit; letter-spacing:0; margin-top:1px }
+.code-sum{ font-size:14px; font-weight:700; margin-top:4px }
+.code-sum span{ display:block; font-size:12.5px; font-weight:500; color:var(--mut) }
+.code-bd ul{ margin:10px 0 0; padding:0; list-style:none }
+.blk .code-bd li{ padding:9px 0; border-top:1px solid var(--line) }
+.blk .code-bd li .en{ display:block; font-size:14.5px; line-height:1.5 }
+.blk .code-bd li .kr{ display:block; font-size:13px; color:var(--mut); margin-top:3px; line-height:1.55 }
+.code-say{ margin-top:8px; background:var(--warn-soft); border-left:3px solid var(--warn); border-radius:8px;
+  padding:9px 11px; font-size:14.5px; font-style:italic; line-height:1.5 }
+.code-note{ margin-top:12px; font-size:12.5px; color:var(--mut); line-height:1.5 }
+.code-note span{ display:block }
+
 .shot{ margin:0; border-radius:var(--r); overflow:hidden; box-shadow:var(--sh); background:var(--surf2) }
 .shot img{ display:block; width:100%; aspect-ratio:16/10; object-fit:cover }
 .shot.fit img{ object-fit:contain; padding:10px }

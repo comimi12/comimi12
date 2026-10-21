@@ -529,7 +529,32 @@
 
   var STEP_RX = /^[①②③④⑤⑥⑦⑧⑨]|^\d\s*[).]/;
 
+  /** 서버 4대 행동강령 (build/extra_pages.py SERVER_CODE) — 서버 페이지 맨 위 강조 카드 */
+  function codeHtml(b) {
+    var hd = b.head.split('|');
+    var h = '<section class="blk code"><div class="code-hd"><span class="code-tag">'
+      + 'MUST KNOW · 필수 숙지</span><h3>' + esc(hd[0].trim()) + '</h3>'
+      + '<div class="code-kr">' + esc((hd[1] || '').trim()) + '</div>'
+      + '<p class="en">' + esc(b.lines[0]) + '</p><p class="kr">' + esc(b.lines[1]) + '</p></div>';
+    // 한눈에 보기: 고객 동선 4단계
+    h += '<ol class="code-flow">' + b.steps.map(function (s, i) {
+      return '<li><b>' + (i + 1) + '</b><div><span class="en">' + esc(s.t[0]) + '</span>'
+        + '<span class="kr">' + esc(s.t[1]) + '</span></div></li>';
+    }).join('') + '</ol>';
+    h += b.steps.map(function (s, i) {
+      return '<div class="code-step"><div class="code-n">' + (i + 1) + '</div><div class="code-bd">'
+        + '<div class="code-t">' + esc(s.t[0]) + ' <em>' + esc(s.t[1]) + '</em></div>'
+        + '<div class="code-sum">' + esc(s.sum[0]) + '<span>' + esc(s.sum[1]) + '</span></div>'
+        + '<ul>' + pairLines(s.lines).map(function (p) { return itemHtml(p); }).join('') + '</ul>'
+        + s.say.map(function (t) { return '<div class="code-say">' + esc(t) + '</div>'; }).join('')
+        + '</div></div>';
+    }).join('');
+    if (b.note) h += '<div class="code-note">' + esc(b.note[0]) + '<span>' + esc(b.note[1]) + '</span></div>';
+    return h + '</section>';
+  }
+
   function blockHtml(b) {
+    if (b.kind === 'code') return codeHtml(b);
     // 제목 없는 긴 도입 문단은 현장에서 쓸 내용이 아니라 간소화 화면에서 뺀다
     if (!b.head && b.lines.join(' ').length > 60) return '';
     var cls = 'blk' + (b.kind && b.kind !== 'normal' ? ' ' + b.kind : '');
@@ -1528,7 +1553,10 @@
       deck.pages.forEach(function (p) {
         if (p.divider || !(keep[p.n] || role[p.n])) return;
         var parts = [];
-        (p.blocks || []).forEach(function (b) { parts.push(b.head, b.lines.join(' ')); });
+        (p.blocks || []).forEach(function (b) {
+          parts.push(b.head, b.lines.join(' '));
+          (b.steps || []).forEach(function (s) { parts.push(s.t.join(' '), s.lines.join(' '), s.say.join(' ')); });
+        });
         (p.checklist || []).forEach(function (c) {
           parts.push(c.title);
           c.items.forEach(function (l) { parts.push(l.join(' ')); });
