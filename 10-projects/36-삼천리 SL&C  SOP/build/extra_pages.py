@@ -302,6 +302,8 @@ KSC_MENU_PHOTOS = {
     'ORANDA ICE CREAM': 'ksc-oranda-icecream.jpg',
     'HOTTEOK': 'ksc-hotteok.jpg',
     'TTEOKKALBI + RICEBALL + BANCHAN': 'ksc-kids-menu.jpg',
+    # 2026-10-27 매장 촬영본(검은 대리석 위) — 그릇·음식만 누끼, 흰 바탕(u2net ∪ 밝은 접시 영역)
+    'WHITE CUCUMBER': 'ksc-white-cucumber.jpg',
 }
 # 기존 사진이 있어도 덮어쓰는 메뉴 (영문명 앞부분 → 파일)
 #  - LUNCH SET: 쭈꾸미제육+된장찌개 사진을 메인으로(사용자 지시)
