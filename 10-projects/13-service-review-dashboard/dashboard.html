@@ -2532,11 +2532,14 @@ function closeVmonModal(){ document.getElementById('vmon-modal').classList.remov
   const last=R.months[R.months.length-1];
   const visitMonths=R.months.slice(1).concat([nextMonth(last)]);
   visitMonths.forEach(m=>sel.add(new Option(R.months.includes(m)?m:`${m} (예정)`,m)));
-  sel.value=last;   // 기본: 최신 데이터월 방문(선정기준=전월)
+  // 기본: 이번 달 방문(선정기준=전월 VOC). 이번 달이 목록에 없으면 최신 데이터월
+  const nowYm=new Date().toISOString().slice(0,7);
+  const def=visitMonths.includes(nowYm)?nowYm:last;
+  sel.value=def;
   document.getElementById('vmon-apply').addEventListener('click',()=>renderVmon(sel.value));
   const mo=document.getElementById('vmon-modal');
   if(mo) mo.addEventListener('click',e=>{ if(e.target.id==='vmon-modal') closeVmonModal(); });
-  renderVmon(last);
+  renderVmon(def);
 })();
 
 /* ---------- VIEW 8: 현장 모니터링 결과입력 (ECK CS 체크리스트용 AI 초안) ---------- */
@@ -3476,7 +3479,7 @@ function vdailyInit(){
   DREC = (DLY.records||[]).map(a=>{ const st=DLY.stores[a[2]];
     return {d:a[0],vd:a[1],store:st,brand:DLY.store_brand[st]||'(미상)',s:a[3],src:a[4],cat:a[5],author:a[6],seen:a[7],text:a[8]}; });
   document.getElementById('vd-src').textContent =
-    DLY.from+' ~ '+DLY.to+' 원문 '+fmt(DLY.n)+'건 보관 · 자동수집 최신 '+(DLY.last_collected||'–');
+    DLY.from+' ~ '+DLY.to+' 원문 '+fmt(DLY.n)+'건 보관 · 최신 수집 '+(DLY.last_collected||'–');
   const bs=document.getElementById('vd-brand');
   bs.innerHTML='<option value="">전체</option>'+R.brands.map(b=>'<option>'+b+'</option>').join('');
   bs.addEventListener('change',()=>{ dlyBrand=bs.value; dlyAll=false; renderDaily(); });

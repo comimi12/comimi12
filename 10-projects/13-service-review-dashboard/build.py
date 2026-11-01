@@ -498,12 +498,16 @@ def build_daily(rows, window=DAILY_WINDOW):
 
     days = sorted({d for d, _ in sel}, reverse=True)                              # 작성일 기준 날짜
     collected_days = sorted({r.get("first_seen") for _, r in sel if r.get("first_seen")}, reverse=True)
+    # 데이터 파일(프로그램 xlsx)로 채운 구간은 수집일이 없으므로 파일 저장일도 '최신 수집'으로 본다
+    prog_dates = [datetime.date.fromtimestamp(os.path.getmtime(r["_file"])).isoformat()
+                  for _, r in sel if r.get("_prio", 0) >= 2 and r.get("_file") and os.path.exists(r["_file"])]
+    last_collected = max([d for d in collected_days[:1] + prog_dates if d], default=None)
     return {
         "from": start, "to": end, "window": window,
         "days": days, "collected_days": collected_days,
         "cols": DAILY_COLS, "stores": stores, "store_brand": store_brand,
         "records": records,
-        "last_collected": collected_days[0] if collected_days else None,
+        "last_collected": last_collected,
         "n": len(records),
     }
 
