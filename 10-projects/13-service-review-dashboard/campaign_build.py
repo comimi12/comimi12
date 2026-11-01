@@ -69,6 +69,9 @@ MONTHS = [
     dict(ym="2026-10", label="10월", kind="QSCS 통합 캠페인", theme="음식 제공 응대 스크립트",
          items=[("음식 제공 응대 스크립트", "26.10/QSCS_10월_통합캠페인.pdf", 1, 2,
                  "26.10/QSCS_10월_통합캠페인.pptx", 3)]),
+    dict(ym="2026-11", label="11월", kind="QSCS 통합 캠페인", theme="테이블 정리 · 재셋업",
+         items=[("테이블 정리 · 재셋업", "26.11/11월_QSCS캠페인.pdf", 0, 1,
+                 "26.11/11월_QSCS캠페인.pptx", 2)]),
 ]
 
 DRM_MAGIC = b"\x9b DRMONE"
@@ -198,6 +201,16 @@ def main():
     from PIL import Image
     os.makedirs(OUT_IMG, exist_ok=True)
     do_extract = "--extract" in sys.argv
+    # 지난 빌드 결과 — 원본이 재암호화돼 다시 못 읽는 달은 예전에 뽑아 둔 텍스트를 유지한다
+    prev = {}
+    if os.path.exists(OUT_JS):
+        try:
+            js = open(OUT_JS, encoding="utf-8").read()
+            for pm in json.loads(js[js.index("=") + 1:js.rstrip().rindex(";")])["months"]:
+                for pe in pm.get("edu", []):
+                    prev[(pm["ym"], pe["title"])] = pe
+        except (ValueError, KeyError):
+            prev = {}
     months = []
     for m in MONTHS:
         ym = m["ym"]
@@ -208,14 +221,25 @@ def main():
             path = os.path.join(ROOT, pdf)
             e = {"title": title, "src": pdf.replace("/", " › ")}
             doc = None
+            ptitle = f"{title} 캠페인 포스터" if len(m["items"]) > 1 else "캠페인 포스터"
             if os.path.exists(path) and not is_drm(path):
-                doc = fitz.open(path)
-                posters.append({"title": f"{title} 캠페인 포스터" if len(m["items"]) > 1 else "캠페인 포스터",
+                try:
+                    doc = fitz.open(path)
+                except Exception:          # 시간이 지나 재암호화된 PDF(매직바이트 없이 열리지 않음)
+                    doc = None
+            if doc is not None:
+                posters.append({"title": ptitle,
                                 "img": save_jpg(render_page(doc, ppg, POSTER_W), f"{ym}_poster{n}.jpg", POSTER_W),
                                 "src": e["src"]})
                 e["img"] = save_jpg(render_page(doc, epg, EDU_W), f"{ym}_edu{n}.jpg", EDU_W)
             else:
-                print(f"    ⚠ 평문 PDF 아님(DRM) — 이미지 생략: {pdf}")
+                # 원본을 못 열면 예전에 렌더해 둔 이미지를 그대로 쓴다(재암호화돼도 지난달 자료 유지)
+                pj, ej = f"{ym}_poster{n}.jpg", f"{ym}_edu{n}.jpg"
+                if os.path.exists(os.path.join(OUT_IMG, pj)):
+                    posters.append({"title": ptitle, "img": "assets/campaign/" + pj, "src": e["src"]})
+                if os.path.exists(os.path.join(OUT_IMG, ej)):
+                    e["img"] = "assets/campaign/" + ej
+                print(f"    ⚠ PDF 열 수 없음(DRM) — 기존 이미지 사용: {pdf}")
             jp = os.path.join(SRC_JSON, f"{ym}_{n}.json")
             if not os.path.exists(jp) and do_extract:
                 extract(ym, n, pptx)
@@ -224,6 +248,12 @@ def main():
                 lines = slide_text(json.load(open(jp, encoding="utf-8-sig")), slide)
             if len(lines) < 10 and doc is not None:       # PPT 표가 개체(OLE)라 텍스트가 비면 PDF 로
                 lines = pdf_text(doc[epg])
+            pe = prev.get((ym, title))
+            if doc is None and pe and len(pe.get("text", [])) > len(lines):
+                e["text"], e["scripts"] = pe["text"], pe.get("scripts", [])
+                print(f"    {title}: 지난 빌드 텍스트 유지 ({len(pe['text'])}블록)")
+                edus.append(e)
+                continue
             if lines:
                 e["text"] = lines
                 e["scripts"] = scripts_of(lines)
