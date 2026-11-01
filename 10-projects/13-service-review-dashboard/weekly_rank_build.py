@@ -7,7 +7,8 @@ r"""
 대상 = 2026-10 부터. 끝난 주만 '확정', 진행 중인 주는 '집계중'.
 
 입력
-  data.js                     REVIEW_DATA.reviews.daily (build.py 가 만든 최근 120일 리뷰 원문, 작성일 기준)
+  data.js                     REVIEW_DATA.reviews.daily (build.py 가 만든 최근 120일 리뷰 원문 — 주차는 방문일자 기준)
+  data/reviews/일자별매출_*.xlsx  POS 일자별 객수 내보내기(있으면 guests.json 보다 우선)
   data/pos/guests.json        {"updated":..., "stores": {POS매장명: {"YYYY-MM-DD": 객수}}}  ← pos_guests.py
   pos_store_map.json          POS매장명 → 리뷰 매장키("브랜드·지점") 수동 매핑(자동 매칭 실패분만)
   data/staff_ai_cache.json    리뷰 문장 → 직원 이름·감동사연 판정 캐시 (claude -p, sentiment_ai 와 같은 방식)
@@ -80,10 +81,12 @@ def load_reviews():
     ALL_STORES = set(stores)                 # 매칭 로스터 = 최근 120일 리뷰가 있는 전 매장
     recs = []
     for r in dl["records"]:
-        if r[0] < START_MONTH:
-            continue
         st = stores[r[2]]
-        recs.append({"date": r[0], "store": st, "brand": brand.get(st, st.split("·")[0]),
+        # 주차 = 방문일자 기준(r[1]) — 데이터 파일·월별 집계와 같은 날짜라 주차 합계 = 월 리뷰수
+        d = r[1] or r[0]
+        if d < START_MONTH:
+            continue
+        recs.append({"date": d, "store": st, "brand": brand.get(st, st.split("·")[0]),
                      "sent": r[3], "src": r[4], "author": r[6], "text": r[8]})
     return recs
 
@@ -93,13 +96,44 @@ def review_key(store):
     return K.key_of(b, s)
 
 
+def load_sales_files():
+    """data/reviews/일자별매출_*.xlsx → {POS매장명: {date: 객수}}. 여러 파일이면 최근 파일이 우선."""
+    import glob
+    import openpyxl
+    out = {}
+    for f in sorted(glob.glob(os.path.join(HERE, "data", "reviews", "일자별매출_*.xlsx")), key=os.path.getmtime):
+        try:
+            wb = openpyxl.load_workbook(f, data_only=True)   # read_only 는 시트 범위를 1행으로 잘못 읽음
+        except Exception:
+            print(f"    [skip] {os.path.basename(f)} — 열 수 없음(DRM?)")
+            continue
+        it = wb.active.iter_rows(values_only=True)
+        hdr = [str(h or "").strip() for h in next(it, [])]
+        if not {"매장명", "매출일자", "객수"} <= set(hdr):
+            continue
+        ni, di, gi = hdr.index("매장명"), hdr.index("매출일자"), hdr.index("객수")
+        cur = {}
+        for row in it:
+            if not row[ni] or not row[di]:
+                continue
+            d = row[di].strftime("%Y-%m-%d") if hasattr(row[di], "strftime") else str(row[di])[:10]
+            acc = cur.setdefault(str(row[ni]).strip(), {})
+            acc[d] = acc.get(d, 0) + int(row[gi] or 0)
+        for s, days in cur.items():
+            out.setdefault(s, {}).update(days)
+    return out
+
+
 def load_guests(review_stores):
     """POS 객수 → {리뷰매장: {date: 객수}}. 매칭: 수동맵 → 키 정규화 → 퍼지."""
     manual_ok = True
     if not os.path.exists(GUESTS):
         return {}, None, []
     g = json.load(open(GUESTS, encoding="utf-8"))
-    manual = json.load(open(MAP, encoding="utf-8")) if os.path.exists(MAP) else {}
+    # 데이터 폴더의 일자별매출 파일(POS 내보내기)이 있으면 그 객수가 우선 — 파일 범위 날짜는 파일 값으로 덮어씀
+    for pos_name, days in load_sales_files().items():
+        g.setdefault("stores", {}).setdefault(pos_name, {}).update(days)
+    manual =json.load(open(MAP, encoding="utf-8")) if os.path.exists(MAP) else {}
     by_key = {review_key(s): s for s in review_stores}
     roster = {k: {"brand": k.split("|")[0], "suffix": k.split("|")[1]} for k in by_key}
     out, unmatched = {}, []
