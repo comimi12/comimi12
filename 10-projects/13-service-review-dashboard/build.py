@@ -227,7 +227,7 @@ def ai_targets(rows):
 
 
 def refine_sentiment(rows):
-    """리뷰 감성 교차 판정 → 판정 반영된 rows 반환('제외' 판정 리뷰는 집계에서 뺀다).
+    """리뷰 감성 교차 판정 → 판정 반영된 rows 반환('제외'(매장 무관) 판정은 중립으로 센다).
        최종 = AI 판정(칭찬/불만/중립/제외) 있으면 AI, 없으면 규칙 v2. 대상이 아니면 기존 라벨 유지.
        기존 라벨과 달라졌거나 제외된 건은 data/sentiment_crosscheck.csv 로 남긴다."""
     import sentiment_ai
@@ -251,8 +251,11 @@ def refine_sentiment(rows):
         w.writerow(["방문일", "매장", "출처", "기존라벨", "규칙v2", "AI", "AI근거", "최종", "리뷰내용"])
         w.writerows(sorted(changed, reverse=True))
     excluded = [r for r in rows if r["sentiment"] == "제외"]
-    print(f"[감성교차] 대상 {len(cands)} · AI판정 {n_ai} · 라벨변경 {len(changed)} · 제외(매장 무관) {len(excluded)}")
-    return [r for r in rows if r["sentiment"] != "제외"]
+    print(f"[감성교차] 대상 {len(cands)} · AI판정 {n_ai} · 라벨변경 {len(changed)} · 매장 무관→중립 {len(excluded)}")
+    # 데이터 파일 건수와 맞추기 위해 빼지 않고 중립으로 센다(칭찬·불만에는 반영 안 됨)
+    for r in excluded:
+        r["sentiment"] = "중립"
+    return rows
 
 
 def tag_topics(text):
@@ -610,8 +613,13 @@ def build_reviews():
     # 중복 제거(우선순위 반영). 캐치테이블은 출처마다 날짜 컬럼이 달라(방문↔작성) 내용 기준,
     # 네이버는 (매장·날짜·내용) 기준. 동일 리뷰면 prio 높은(프로그램 감성) 행을 채택.
     best = {}
+    # 같은 키(매장·날짜·내용)라도 한 파일 안에서 작성자가 다르면 서로 다른 리뷰(주로 별점만 남긴 빈 리뷰).
+    # 키별로 '한 파일 안의 서로 다른 작성자 수'의 최댓값만큼 살린다 — 파일 간 중복·같은 작성자 중복 행은 1건.
+    by_author = {}      # (키, 파일) → {작성자: 행}
     for r in rows:
         k = dedupe_key(r)
+        if r.get("author") and (r["source"] == "naver" or not (r["text"] or "").strip()):
+            by_author.setdefault((k, r.get("_file") or "merged"), {}).setdefault(r["author"], r)
         ex = best.get(k)
         if ex is None or r.get("_prio", 0) > ex.get("_prio", 0):
             best[k] = r
@@ -628,7 +636,21 @@ def build_reviews():
             r["first_seen"] = first_seen[k]
         if not r.get("wdate") and wdate_map.get(k):
             r["wdate"] = wdate_map[k]
-    rows = refine_sentiment(list(best.values()))
+    extra, widest = [], {}
+    for (k, f), au in by_author.items():
+        if len(au) > len(widest.get(k, {})):
+            widest[k] = au
+    for k, au in widest.items():
+        if len(au) < 2 or k not in best:
+            continue
+        keep = best[k]
+        others = [(a, r) for a, r in au.items() if a != keep.get("author")]
+        # 대표 행의 작성자가 그 파일에 없으면(다른 파일에서 채택) 대표 행이 그중 1명 몫 → 하나 덜 더한다
+        if keep.get("author") not in au:
+            others = others[1:]
+        for a, r in others:
+            extra.append(dict(keep, author=a, wdate=keep.get("wdate") or r.get("wdate")))
+    rows = refine_sentiment(list(best.values()) + extra)
     # 별점만 있고 내용 없는 리뷰는 불만으로 세지 않음 → 중립 처리(전체 건수는 유지).
     # 네이버·캐치테이블 공통. 실제 불만 텍스트가 있는 리뷰만 불만 건수·불만 상세에 반영.
     for r in rows:
