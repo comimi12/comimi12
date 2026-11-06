@@ -14,7 +14,7 @@ $tm.StartPosition = 'CenterScreen'; $tm.Size = '0,0'; $tm.Show(); $tm.Hide()
 
 $msg = "오늘 서비스 리뷰 대시보드를 업데이트할까요?`n`n" +
        "· 네이버 리뷰 · 고객의 소리(VOC) · ECK(CS/QSCS) 수집`n" +
-       "· data.js 재생성 → 공유사이트 재배포 (약 2분)`n`n" +
+       "· data.js 재생성 → 공유사이트 재배포 (약 20분)`n`n" +
        "[예] 지금 업데이트   ·   [아니오] 오늘은 건너뜀"
 $res = [System.Windows.Forms.MessageBox]::Show(
     $tm, $msg, "서비스 리뷰 대시보드 — 평일 자동 업데이트",
@@ -47,7 +47,7 @@ if ($res -eq [System.Windows.Forms.DialogResult]::Yes) {
     $sub.Location = New-Object System.Drawing.Point(20, 110)
     $sub.Size = New-Object System.Drawing.Size(430, 22)
     $sub.ForeColor = [System.Drawing.Color]::Gray
-    $sub.Text = "이 창은 자동으로 닫힙니다. 닫지 말고 기다려 주세요 (약 2분)."
+    $sub.Text = "이 창은 자동으로 닫힙니다. 닫지 말고 기다려 주세요 (약 20분)."
 
     $pf.Controls.AddRange(@($lbl, $bar, $sub))
     $pf.Show(); $pf.Refresh()
@@ -57,7 +57,8 @@ if ($res -eq [System.Windows.Forms.DialogResult]::Yes) {
         'VOC 수집'        = '① 고객의 소리(VOC) 수집 중…'
         'ECK 수집'        = '② ECK CS/QSCS 다운로드 중…'
         'ECK 집계'        = '③ ECK 데이터 집계 중…'
-        '리뷰 수집'       = '④ 네이버 리뷰 수집 중… (가장 오래 걸려요)'
+        '리뷰 수집'       = '④ 네이버 리뷰 수집 중… (가장 오래 걸려요 · 15~25분)'
+        '캐치테이블 수집' = '④-2 캐치테이블 리뷰 수집 중…'
         'build (data.js)' = '⑤ 대시보드 데이터 생성 중…'
         '공유파일'        = '⑥ 공유 파일 생성 중…'
         '사이트 배포'     = '⑦ 공유 사이트 배포 중…'

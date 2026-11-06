@@ -58,7 +58,11 @@ def widths(ws, w):
 
 def main():
     d = load_js()
-    R = d.get("reviews") or {}
+    R0 = d.get("reviews") or {}
+    # data.js 가 {reviews:{months, by_month_total, ...}, voc:{...}} 로 한 단계 중첩됨 → 리뷰 키를 위로 펼침
+    R = dict(R0)
+    if isinstance(R0.get("reviews"), dict):
+        R.update(R0["reviews"])
     AI = d.get("ai") or {}
     ECK = d.get("eck") or {}
     sm = R.get("store_month", {})
