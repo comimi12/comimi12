@@ -161,6 +161,7 @@
     { g: 'STANDARDS', gk: '기본 기준', t: '클락인 · 클락아웃 규정', m: 'CLOCK-IN & CLOCK-OUT' },  // extra_pages.py
     { g: 'MY POSITION', gk: '내 포지션', t: '내 포지션 표준 절차', role: true },
     { g: 'SERVICE', gk: '서비스', t: '서비스 10단계', m: 'STEPS OF SERVICE' },
+    { g: 'SERVICE', gk: '서비스', t: '고급 사케 제공', m: 'PREMIUM SAKE SERVICE' },  // extra_pages.py, WASA만 (KSC는 페이지 없어 자동 건너뜀)
     { g: 'SERVICE', gk: '서비스', t: '안전교육', m: 'RESTAURANT SAFETY CALL-OUTS' },  // build/extra_pages.py 추가 페이지
     { g: 'SERVICE', gk: '서비스', t: '86 (품절) 처리', m: '86 ITEM' },  // extra_pages.py
     { g: 'SERVICE', gk: '서비스', t: '상황별 응대', m: 'SITUATIONAL PLAYBOOK' },

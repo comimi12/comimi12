@@ -115,11 +115,141 @@ ITEM86 = {
         ]),
     ],
 }
-# (페이지, 바로 앞에 올 페이지 제목 앞부분). 새 번호는 이 순서대로 덱 최대+1 을 받는다.
+# 2026-11-07 고급 사케 제공 매뉴얼 (WASA 전용): Downloads\사케제공메뉴얼.pptx (12장)
+# 서비스 10단계 바로 뒤. 원본 순서 = 기준·역할 → 1~5단계 → 온도표·예외표·안내멘트표 → 6단계.
+# ('IMG', 파일) 항목은 사진 — 원본 AI 시연 이미지 6장을 src/img/wasa-sake-1~6.jpg (1080×720)로 저장.
+# 원본 출처 각주 번호([1]~[6])는 참고문헌 장이 없어 뺐다.
+SAKE = {
+    'title': 'PREMIUM SAKE SERVICE  |  고급 사케 제공 매뉴얼',
+    'badge': '$80+  ·  MANAGER SERVICE',
+    'blocks': [
+        ('$80+ RULE  ·  $80 이상 주류 응대 기준', [
+            '$80 or more: a manager personally handles the service.',
+            '$80 이상 주류는 관리자가 직접 응대합니다.',
+            'Based on the menu price of one alcoholic beverage item. Includes exactly $80 and applies to all alcohol.',
+            '주류 1개 품목의 메뉴 판매가 기준이며, 정확히 $80인 경우를 포함해 모든 주류에 적용합니다.',
+            'Sake bottle service is the example. Other beverages follow their own service standards.',
+            '잔·온도·제공량은 사케 병 서비스 예시입니다. 다른 주류는 해당 제품의 서비스 기준을 적용합니다.',
+        ]),
+        ('WHO DOES WHAT  ·  담당별 역할', [
+            'Service staff: Take the order and brief the manager — table, item, size, quantity and guest requests. Prepare serviceware.',
+            '일반 직원: 주문을 접수해 관리자에게 인계합니다. 테이블·제품명·용량·수량·고객 요청을 전달하고 기물을 준비합니다.',
+            'Manager: Personally explain and present the beverage. Handle opening, every pour, beverage questions and final clearing.',
+            '담당 관리자: 제품 안내·병 제시·개봉·첫 잔·추가 제공, 주류 관련 문의와 마무리까지 직접 담당합니다.',
+            'If unavailable: Contact another on-duty manager and explain the wait. Staff must NOT open or pour in place of the manager.',
+            '관리자 부재 시: 다른 근무 관리자에게 인계하고 고객에게 대기를 안내합니다. 일반 직원이 개봉이나 따르기를 대신하지 않습니다.',
+        ]),
+        ('IMG', 'img/wasa-sake-1.jpg'),
+        ('STEP 1  ·  ORDER HANDOFF & SETUP  ·  주문 인계와 준비', [
+            'Staff handoff: Share the table, item, size, quantity and guest requests with the manager.',
+            '직원 인계: 테이블·제품명·용량·수량과 고객 요청을 관리자에게 전달합니다.',
+            'Setup & check: Staff prepare cups and supplies. The manager checks the item and bottle.',
+            '준비·확인: 직원은 도자기 잔과 기물을 준비하고, 관리자는 제품·병 상태를 확인합니다.',
+            'Set one ceramic cup per guest, water and supplies. Check cups for odors, debris, cracks and chips.',
+            '도자기 잔 1인 1개, 물과 기물을 준비합니다. 잔의 냄새·이물·금·깨짐을 확인합니다.',
+            'SAY: "Our manager will personally take care of your order."',
+            '멘트: "주문하신 주류는 담당 관리자가 직접 안내해드리겠습니다."',
+        ]),
+        ('IMG', 'img/wasa-sake-2.jpg'),
+        ('STEP 2  ·  BOTTLE PRESENTATION  ·  병 제시와 제품 안내', [
+            'Show the label: Support the unopened bottle. Keep the front label visible.',
+            '라벨 제시: 미개봉 병을 안정적으로 받치고 앞 라벨을 가리지 않고 보여줍니다.',
+            'Introduction: Use verified product and tasting notes. Ask permission before opening.',
+            '제품 소개: 제품명과 확인된 향미를 소개하고, 고객의 개봉 의사를 확인합니다.',
+            'Verify size, price and product claims using the actual bottle label and product card.',
+            '용량·판매가·희소성·수상 이력은 확인한 내용만 안내합니다. 실제 병 라벨과 상품 카드를 확인합니다.',
+            'SAY: "Here is your [sake name]. May I open it for you?"',
+            '멘트: "주문하신 ○○입니다. 지금 개봉해드려도 괜찮으실까요?"',
+        ]),
+        ('IMG', 'img/wasa-sake-3.jpg'),
+        ('STEP 3  ·  MANAGER OPENS THE BOTTLE  ·  관리자의 직접 개봉', [
+            'Steady opening: Keep the bottle upright and steady. The manager unscrews the cap.',
+            '안정된 개봉: 병을 세워 고정한 뒤 관리자가 스크루캡을 돌려 엽니다.',
+            'Cap & wrap: Remove packaging pieces and keep the cap clean for later use.',
+            '포장·마개 정리: 포장 조각을 치우고, 분리한 마개를 깨끗하게 보관합니다.',
+            'Screw-cap example. Follow product-specific chilling and opening instructions for sparkling or active nigori sake.',
+            '사진은 스크루캡 시연입니다. 발포·활성 니고리는 해당 제품의 냉각·개봉 지침을 우선합니다.',
+            'SAY: "I\'ll open it for you now."',
+            '멘트: "지금 개봉해드리겠습니다."',
+        ]),
+        ('IMG', 'img/wasa-sake-4.jpg'),
+        ('STEP 4  ·  OPTIONAL TASTE & FIRST POUR  ·  선택 시음과 첫 잔 제공', [
+            'Controlled pour: Keep the cup on the table. Pour the set amount without touching the rim.',
+            '안정된 따르기: 테이블 위 잔에 병구가 닿지 않게 매장 정량을 안정적으로 따릅니다.',
+            'Optional taste: Offer a taste only if the guest wants it. Count it toward the first pour.',
+            '선택 시음: 선택 시음량도 첫 잔 총량에 포함하며, 생략하면 첫 잔을 바로 제공합니다.',
+            'Measure the actual cup and set the pour size. Record both on the product card. Photo fill levels are not measuring guides.',
+            '잔 용량과 1회 제공량은 실측해 상품 카드에 기록합니다. 사진의 액면은 정량 기준으로 사용하지 않습니다.',
+            'SAY: "I\'ll pour your sake for you."',
+            '멘트: "잠시 사케 따라드리겠습니다. 잔에 여유를 두고 준비하겠습니다."',
+        ]),
+        ('IMG', 'img/wasa-sake-5.jpg'),
+        ('STEP 5  ·  COOLER & TEMPERATURE  ·  쿨러 배치와 온도 관리', [
+            'Cooler setup: Follow cooler instructions. Keep the bottle upright and check temperature.',
+            '쿨러 배치: 쿨러 사용법에 따라 병을 세우고, 제품별 제공 온도를 확인합니다.',
+            'Between pours: Wipe the bottle dry when removed. Replace the clean cap for longer pauses.',
+            '다음 제공 준비: 꺼낸 병의 물기를 닦고, 오래 대기하면 깨끗한 마개로 닫아 둡니다.',
+            'Follow the cooler instructions for chilling and for any use of water or ice.',
+            '쿨러의 냉각 방법과 물·얼음 사용 가능 여부는 해당 기물 안내를 확인합니다.',
+            'SAY: "I\'ll keep the bottle in the cooler and check the temperature."',
+            '멘트: "병은 쿨러에 두고, 드시는 동안 온도를 확인하겠습니다."',
+        ]),
+        ('SERVING & STORAGE TEMPERATURES  ·  사케의 제공 온도와 보관 온도', [
+            'Chilled aromatic sake: Consider about 10°C as a starting point. JSS general range 8–15°C, DASSAI guidance 10–12°C.',
+            '향기로운 냉주: 약 10℃ 전후를 출발점으로 검토합니다. JSS 일반 냉주 범위 8~15℃, 닷사이 안내 10~12℃.',
+            'Room temp / warm: Confirm the sake is suitable. JSS general ranges: room temp 15–25°C, warm sake 40–50°C.',
+            '상온 또는 온주: 적합한 제품인지 먼저 확인합니다. JSS 일반 범위: 상온 15~25℃, 온주 40~50℃.',
+            'Nama / sparkling / ginjo: NRIB generally recommends storage at 4°C or below. Confirm serving temperature separately.',
+            '나마·발포·긴조류: NRIB는 일반적으로 4℃ 이하 보관을 안내합니다. 보관 지침이며 제공 온도와 구분합니다.',
+            'Sparkling example: The referenced HOURAISEN product is chilled to 5°C or below, then opened gently. Applies only to that product.',
+            '발포 사케 예시: HOURAISEN 해당 스파클링 제품은 5℃ 이하 냉각 후 조용히 개봉합니다. 다른 발포 사케에 일괄 적용하지 않습니다.',
+            'Product and cooler instructions come first. Do not apply these examples to the pictured Kubota.',
+            '제조사·제품 안내와 쿨러 사용법을 우선합니다. 사진 속 구보타에 다른 제품의 온도 기준을 그대로 적용하지 않습니다.',
+        ]),
+        ('OPENING & STORAGE EXCEPTIONS  ·  개봉과 보관의 예외', [
+            'Sparkling / active nigori: Do not shake. Chill as directed. Open slowly away from guests and tableware, opening pointed away from people.',
+            '발포·활성 니고리: 흔들지 않고 제품 지시대로 냉각합니다. 고객·식기에서 떨어져 천천히 열고, 병구를 사람에게 향하지 않습니다.',
+            'Warm sake: Confirm suitability. Warm only the needed amount in a warming vessel. Check temperature. Never heat a sealed bottle.',
+            '온주 요청: 온주 적합 여부를 확인합니다. 필요한 분량만 전용 주기에 옮겨 데우고 온도를 확인합니다. 밀봉한 병은 가열하지 않습니다.',
+            'Unfinished guest bottles: Never resell to another table. If stored, record the guest and opening date/time. Reseal and refrigerate as directed.',
+            '개봉 후 남은 병: 다른 테이블 판매용으로 전환하지 않습니다. 보관 시 고객과 개봉일시를 기록하고 제품 지침에 맞춰 밀봉·냉장합니다.',
+            'By-the-glass stock: Log opening date/time and quality checks separately. Set sale limits by producer guidance and house standards.',
+            '잔 판매 재고: 개봉일시와 품질 확인 기록을 별도 관리합니다. 제조사 안내와 매장 품질 기준에 따라 판매 기한을 관리합니다.',
+            'Stop serving if aroma, taste, bottle or cap seems abnormal. The manager checks and follows house replacement/refund policy.',
+            '향·맛 또는 병·마개 이상 시 제공을 멈추고 관리자가 직접 확인합니다. 교환·환불은 매장 기준으로 안내합니다.',
+        ]),
+        ('GUEST COMMUNICATION  ·  상황별 고객 안내 멘트', [
+            'Staff, taking the order: "Our manager will personally take care of your beverage service."',
+            '직원 주문 접수: "주문하신 주류는 담당 관리자가 직접 안내해드리겠습니다."',
+            'Manager, hello: "Hello, I\'m [name], the manager. I\'ll personally take care of your [product] today."',
+            '관리자 인사: "안녕하세요. 담당 매니저 ○○입니다. 주문하신 ○○는 제가 직접 안내해드리겠습니다."',
+            'Manager, presentation: "Here is your [product], [volume] mL, with [aroma and flavor]. May I open it for you?"',
+            '관리자 병 소개: "주문하신 ○○, ○○mL입니다. ○○ 향과 ○○한 맛이 특징입니다. 지금 개봉해드려도 괜찮으실까요?"',
+            'Staff, wait: "Our manager will personally prepare your order. Thank you for your patience."',
+            '직원 대기 안내: "담당 관리자가 직접 준비해드릴 예정입니다. 잠시만 기다려주시겠습니까?"',
+            'Give only a confirmed wait estimate. To confirm price, add: "The price is $[amount]."',
+            '대기 시간은 확인한 예상 시간만 안내합니다. 가격 확인이 필요하면 "가격은 $○○입니다"를 덧붙입니다.',
+        ]),
+        ('IMG', 'img/wasa-sake-6.jpg'),
+        ('STEP 6  ·  ADDITIONAL POURS & CLEARING  ·  추가 응대와 마무리', [
+            'Ask first: Check pace and temperature. Pour more personally only with guest consent.',
+            '고객 의사 확인: 음용 속도와 온도를 확인하고, 고객 동의 후 관리자가 직접 따릅니다.',
+            'Follow-up: Answer beverage questions. Ask before clearing the empty bottle and cooler.',
+            '상태 확인·마무리: 주류 문의에 직접 응대하고, 빈 병과 쿨러 정리 의사를 확인합니다.',
+            'Use a fresh cup for a different sake.',
+            '다른 사케를 주문하면 새 잔을 준비합니다.',
+            'SAY: "May I pour you a little more? Is the temperature to your liking?"',
+            '멘트: "조금 더 따라드릴까요? 지금 온도는 괜찮으실까요?"',
+        ]),
+    ],
+}
+
+# (페이지, 바로 앞에 올 페이지 제목 앞부분[, 넣을 덱]). 새 번호는 이 순서대로 덱 최대+1 을 받는다.
 EXTRA = [
     (SAFETY, AFTER),
     (ITEM86, 'RESTAURANT SAFETY CALL-OUTS'),
     (CLOCK, 'POSITION MAP'),
+    (SAKE, AFTER, ('wasa-manual',)),  # 서비스 10단계 바로 뒤 (안전교육보다 앞)
 ]
 
 
@@ -261,11 +391,15 @@ def apply_server_code(decks):
 
 
 def build_page(n, ref, spec=SAFETY):
-    blocks = [{'head': h, 'lines': lines, 'kind': 'normal', 'x': 0.55, 'y': 1.2 + i, 'w': 7.1}
-              for i, (h, lines) in enumerate(spec['blocks'])]
+    blocks, images = [], []
+    for i, (h, lines) in enumerate(spec['blocks']):
+        if h == 'IMG':   # 사진 — 다음 블록 바로 위 (y 순서대로 그려짐)
+            images.append({'src': lines, 'x': 0.55, 'y': 1.2 + i, 'w': 7.1, 'h': 4.73})
+            continue
+        blocks.append({'head': h, 'lines': lines, 'kind': 'normal', 'x': 0.55, 'y': 1.2 + i, 'w': 7.1})
     return {'n': n, 'title': spec['title'], 'badge': spec['badge'],
             'chapter': ref.get('chapter'), 'ch': ref.get('ch'), 'divider': False,
-            'blocks': blocks, 'images': [], 'tables': [], 'extra': True}
+            'blocks': blocks, 'images': images, 'tables': [], 'extra': True}
 
 
 def apply(decks):
@@ -273,7 +407,9 @@ def apply(decks):
         if deck.get('id') not in DECKS:
             continue
         pages = deck['pages']
-        for spec, after in EXTRA:
+        for spec, after, *only in EXTRA:
+            if only and deck['id'] not in only[0]:
+                continue
             old = [p for p in pages if p.get('title') == spec['title']]
             n = old[0]['n'] if old else max(p['n'] for p in pages) + 1
             pages[:] = [p for p in pages if p.get('title') != spec['title']]
