@@ -30,7 +30,7 @@ export function CardHeader({
   return (
     <header
       className={cn(
-        'flex items-start justify-between gap-3 border-b border-line px-4 py-3',
+        'flex items-start justify-between gap-3 border-b border-line px-3.5 py-2.5 md:px-4 md:py-3',
         className,
       )}
     >
@@ -153,7 +153,8 @@ export function Input({ className, ...props }: React.ComponentProps<'input'>) {
   return (
     <input
       className={cn(
-        'h-7 rounded-sm border border-line bg-white px-2 text-[12px] text-ink outline-none',
+        // 스마트폰: 16px 미만이면 iOS 가 입력 시 화면을 확대한다 → 모바일은 16px · 높이 36px
+        'h-9 rounded-md border border-line bg-white px-2.5 text-[16px] text-ink outline-none md:h-7 md:rounded-sm md:px-2 md:text-[12px]',
         'placeholder:text-muted/60 focus:border-blue-accent',
         className,
       )}
@@ -166,7 +167,7 @@ export function Select({ className, ...props }: React.ComponentProps<'select'>) 
   return (
     <select
       className={cn(
-        'h-7 max-w-[190px] rounded-sm border border-line bg-white px-1.5 text-[11.5px] text-ink outline-none focus:border-blue-accent',
+        'h-9 w-full min-w-0 rounded-md border border-line bg-white px-2 text-[16px] text-ink outline-none focus:border-blue-accent md:h-7 md:w-auto md:max-w-[190px] md:rounded-sm md:px-1.5 md:text-[11.5px]',
         className,
       )}
       {...props}
@@ -191,12 +192,12 @@ export function SectionTitle({
 }) {
   return (
     <div className="flex items-end justify-between gap-3 pb-1 pt-1">
-      <div className="flex items-baseline gap-2">
+      <div className="flex min-w-0 items-baseline gap-2">
         <span className="text-[11px] font-bold tracking-widest text-blue-accent tabular">
           {step}
         </span>
         <h2 className="text-[15px] font-bold tracking-tight text-navy-900">{title}</h2>
-        <span className="text-[12px] text-muted">{ko}</span>
+        <span className="hidden text-[12px] text-muted sm:inline">{ko}</span>
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}
     </div>
@@ -218,7 +219,7 @@ export function Metric({
 }) {
   return (
     <div className={cn('flex items-baseline gap-1', className)}>
-      <span className="text-[30px] font-bold leading-none tracking-tight text-navy-900 tabular">
+      <span className="text-[24px] font-bold leading-none tracking-tight text-navy-900 tabular md:text-[30px]">
         {value}
       </span>
       {unit ? <span className="text-[12px] text-muted">{unit}</span> : null}

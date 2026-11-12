@@ -28,7 +28,7 @@ export function ArticleBrief({ article, rank }: { article: NewsArticle; rank?: n
   const summary = briefSummary(article)
 
   return (
-    <li className="px-4 py-3 hover:bg-blue-soft/30">
+    <li className="px-3.5 py-3 hover:bg-blue-soft/30 md:px-4">
       <div className="flex items-start gap-3">
         {rank ? (
           <span className="mt-0.5 w-5 shrink-0 text-[12px] font-bold text-blue-accent tabular">
@@ -40,7 +40,7 @@ export function ArticleBrief({ article, rank }: { article: NewsArticle; rank?: n
           <Link href={`/article/${article.id}`} className="group block min-w-0">
             <span
               data-tr
-              className="line-clamp-2 text-[13px] font-semibold leading-snug text-navy-900 group-hover:text-blue-accent"
+              className="line-clamp-2 text-[14.5px] font-semibold leading-snug text-navy-900 group-hover:text-blue-accent md:text-[13px]"
             >
               {article.titleKo}
             </span>
@@ -49,15 +49,18 @@ export function ArticleBrief({ article, rank }: { article: NewsArticle; rank?: n
           {summary ? (
             <p
               data-tr
-              className="mt-1 line-clamp-2 text-[12px] leading-relaxed text-ink"
+              className="mt-1 line-clamp-2 text-[13px] leading-relaxed text-ink/90 md:text-[12px]"
             >
               {summary}
             </p>
           ) : null}
 
-          <p className="mt-1.5 text-[10.5px] text-muted">
-            {formatDate(article.publishedAt)} · {article.source} · {article.region}
-            {article.brands.length ? ` · ${article.brands.slice(0, 3).join(', ')}` : ''}
+          <p className="mt-1.5 text-[11px] text-muted md:text-[10.5px]">
+            {formatDate(article.publishedAt)} · {article.source}
+            <span className="hidden md:inline">
+              {` · ${article.region}`}
+              {article.brands.length ? ` · ${article.brands.slice(0, 3).join(', ')}` : ''}
+            </span>
             {` · 중요도 ${article.totalScore}`}
           </p>
         </div>
@@ -67,10 +70,11 @@ export function ArticleBrief({ article, rank }: { article: NewsArticle; rank?: n
           target="_blank"
           rel="noreferrer"
           title={`${article.source} 원문 열기`}
-          className="inline-flex h-7 shrink-0 items-center gap-1 rounded-sm border border-line px-2 text-[11px] font-medium text-navy-800 transition-colors hover:border-navy-700 hover:text-blue-accent"
+          aria-label={`${article.source} 원문 열기`}
+          className="inline-flex h-9 w-9 shrink-0 items-center justify-center gap-1 rounded-full border border-line text-[11px] font-medium text-navy-800 transition-colors hover:border-navy-700 hover:text-blue-accent md:h-7 md:w-auto md:rounded-sm md:px-2"
         >
-          원문
-          <ExternalLink className="h-3 w-3" aria-hidden />
+          <span className="hidden md:inline">원문</span>
+          <ExternalLink className="h-4 w-4 md:h-3 md:w-3" aria-hidden />
         </a>
       </div>
     </li>

@@ -35,7 +35,7 @@ export async function RegionDashboard({ region }: { region: Region }) {
       />
       <RegionTabs showGlobal={hasGlobalArticles(articles)} />
 
-      <div className="space-y-3 p-4">
+      <div className="space-y-3 p-3 md:p-4">
         <div className="grid grid-cols-2 gap-px border border-line bg-line md:grid-cols-4">
           {[
             { label: '오늘 기사', value: summary.today },
@@ -43,11 +43,11 @@ export async function RegionDashboard({ region }: { region: Region }) {
             { label: '추적 브랜드', value: summary.brands.length },
             { label: '활성 카테고리', value: summary.categories.length },
           ].map((s) => (
-            <div key={s.label} className="bg-white px-3.5 py-2.5">
+            <div key={s.label} className="bg-white px-3 py-2 md:px-3.5 md:py-2.5">
               <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">
                 {s.label}
               </p>
-              <p className="mt-1 text-[22px] font-semibold leading-none text-navy-900 tabular">
+              <p className="mt-1 text-[20px] font-semibold md:text-[22px] leading-none text-navy-900 tabular">
                 {s.value}
               </p>
             </div>

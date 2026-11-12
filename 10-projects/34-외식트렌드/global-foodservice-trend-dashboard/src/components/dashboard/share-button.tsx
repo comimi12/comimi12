@@ -69,12 +69,14 @@ export function ShareButton({
         className="inline-flex h-8 items-center gap-1.5 rounded-sm border border-navy-800 bg-navy-800 px-3 text-[12px] font-semibold text-white transition-colors hover:bg-navy-700"
       >
         <Share2 className="h-3.5 w-3.5" aria-hidden />
-        카카오톡 공유
+        <span className="sm:hidden">공유</span>
+        <span className="hidden sm:inline">카카오톡 공유</span>
       </button>
+      {/* 스마트폰 공유 시트에 '복사'가 있으므로 PC에서만 보인다. */}
       <button
         onClick={() => copy(shareUrl())}
         aria-label="링크 복사"
-        className="inline-flex h-8 items-center gap-1.5 rounded-sm border border-line bg-white px-3 text-[12px] font-medium text-navy-800 transition-colors hover:border-navy-700"
+        className="hidden h-8 sm:inline-flex items-center gap-1.5 rounded-sm border border-line bg-white px-3 text-[12px] font-medium text-navy-800 transition-colors hover:border-navy-700"
       >
         {status === 'copied' ? (
           <>

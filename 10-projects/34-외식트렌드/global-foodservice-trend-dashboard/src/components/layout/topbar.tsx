@@ -1,7 +1,9 @@
 'use client'
 
+import { useState } from 'react'
+import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Search } from 'lucide-react'
+import { BarChart3, Search, X } from 'lucide-react'
 import { Input, Select } from '@/components/ui/primitives'
 import { REGION_ORDER } from '@/lib/categories'
 import { PageTranslateButton } from './page-translate'
@@ -10,6 +12,7 @@ import { PageTranslateButton } from './page-translate'
 export function Topbar({ lastUpdated, demo }: { lastUpdated: string; demo: boolean }) {
   const router = useRouter()
   const params = useSearchParams()
+  const [searchOpen, setSearchOpen] = useState(false)
 
   function go(next: Record<string, string>) {
     const sp = new URLSearchParams()
@@ -26,7 +29,64 @@ export function Topbar({ lastUpdated, demo }: { lastUpdated: string; demo: boole
   }
 
   return (
-    <header className="no-print flex h-14 shrink-0 items-center justify-between gap-4 border-b border-line bg-white px-5">
+    <>
+    {/* ── 스마트폰 상단바: 제목 · 번역 · 검색 아이콘만 ── */}
+    <header className="no-print sticky top-0 z-30 border-b border-line bg-white/95 backdrop-blur md:hidden">
+      <div className="flex h-12 items-center justify-between gap-2 px-3">
+        <Link href="/" className="flex min-w-0 items-center gap-1.5">
+          <BarChart3 className="h-4 w-4 shrink-0 text-blue-accent" aria-hidden />
+          <span className="min-w-0">
+            <span className="block truncate text-[14px] font-bold leading-tight text-navy-900">
+              글로벌 외식 트렌드
+            </span>
+            <span className="block truncate text-[10px] leading-tight text-muted tabular">
+              {demo ? 'DEMO DATA · ' : ''}업데이트 {lastUpdated}
+            </span>
+          </span>
+        </Link>
+        <div className="flex shrink-0 items-center gap-1">
+          <PageTranslateButton compact />
+          <button
+            type="button"
+            onClick={() => setSearchOpen((v) => !v)}
+            aria-label={searchOpen ? '검색 닫기' : '기사 검색'}
+            aria-expanded={searchOpen}
+            className="flex h-9 w-9 items-center justify-center rounded-full text-navy-800 active:bg-canvas"
+          >
+            {searchOpen ? <X className="h-5 w-5" aria-hidden /> : <Search className="h-5 w-5" aria-hidden />}
+          </button>
+        </div>
+      </div>
+      {searchOpen ? (
+        <form
+          className="relative px-3 pb-2.5"
+          onSubmit={(e) => {
+            e.preventDefault()
+            const value = new FormData(e.currentTarget).get('q')
+            setSearchOpen(false)
+            go({ q: String(value ?? '') })
+          }}
+        >
+          <Search
+            className="pointer-events-none absolute left-6 top-[18px] h-4 w-4 -translate-y-1/2 text-muted"
+            aria-hidden
+          />
+          <Input
+            name="q"
+            type="search"
+            enterKeyHint="search"
+            autoFocus
+            defaultValue={params.get('q') ?? ''}
+            placeholder="브랜드 · 메뉴 · 국가 · 키워드"
+            aria-label="기사 검색"
+            className="w-full pl-9"
+          />
+        </form>
+      ) : null}
+    </header>
+
+    {/* ── PC 상단바 ── */}
+    <header className="no-print hidden h-14 shrink-0 items-center justify-between gap-4 border-b border-line bg-white px-5 md:flex">
       <div className="min-w-0">
         <h1 className="truncate text-[15px] font-bold tracking-tight text-navy-900">
           GLOBAL FOODSERVICE TREND INTELLIGENCE
@@ -96,5 +156,6 @@ export function Topbar({ lastUpdated, demo }: { lastUpdated: string; demo: boole
         </Select>
       </div>
     </header>
+    </>
   )
 }

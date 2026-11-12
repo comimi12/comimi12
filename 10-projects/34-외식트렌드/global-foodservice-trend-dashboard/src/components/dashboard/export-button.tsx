@@ -22,7 +22,7 @@ export function ExportButton({
 }) {
   const base = `/api/export?resource=${resource}${query ? `&${query}` : ''}`
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="hidden items-center gap-1.5 md:flex">
       <a href={`${base}&format=csv`} download>
         <Button>
           <Download className="h-3 w-3" aria-hidden />

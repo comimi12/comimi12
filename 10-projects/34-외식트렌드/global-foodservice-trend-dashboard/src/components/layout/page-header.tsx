@@ -10,16 +10,17 @@ export function PageHeader({
   action?: React.ReactNode
 }) {
   return (
-    <div className="flex items-end justify-between gap-4 border-b border-line bg-white px-5 py-4">
+    <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2 border-b border-line bg-white px-4 py-3 md:flex-nowrap md:px-5 md:py-4">
       <div className="min-w-0">
         {eyebrow ? (
           <p className="text-[9.5px] font-semibold uppercase tracking-[0.16em] text-blue-accent">
             {eyebrow}
           </p>
         ) : null}
-        <h1 className="text-[18px] font-bold tracking-tight text-navy-900">{title}</h1>
+        <h1 className="text-[17px] font-bold leading-snug tracking-tight text-navy-900 md:text-[18px]">{title}</h1>
         {description ? (
-          <p className="mt-1 max-w-4xl text-[12.5px] leading-relaxed text-muted">
+          // 스마트폰에서는 긴 안내문을 숨겨 바로 본문이 보이게 한다.
+          <p className="mt-1 hidden max-w-4xl text-[12.5px] leading-relaxed text-muted md:block">
             {description}
           </p>
         ) : null}

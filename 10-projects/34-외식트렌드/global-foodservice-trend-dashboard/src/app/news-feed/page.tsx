@@ -71,7 +71,7 @@ export default async function NewsFeedPage({
         <FilterBar countries={countries} brands={brands} sources={sources} />
       </Suspense>
 
-      <div className="p-4">
+      <div className="p-3 md:p-4">
         <Card>
           <CardHeader
             title="검색 결과"

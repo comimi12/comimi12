@@ -1,9 +1,11 @@
 'use client'
 
+import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { RotateCcw } from 'lucide-react'
+import { ChevronDown, RotateCcw, SlidersHorizontal } from 'lucide-react'
 import { Button, Input, Select } from '@/components/ui/primitives'
 import { CATEGORY_LABEL, CATEGORY_ORDER, REGION_ORDER } from '@/lib/categories'
+import { cn } from '@/lib/utils'
 
 /** §20 — 필수 필터: Date · Region · Country · Category · Brand · Score · Source */
 export function FilterBar({
@@ -27,10 +29,15 @@ export function FilterBar({
 
   const get = (key: string, fallback = 'ALL') => params.get(key) ?? fallback
   const range = get('range', '7D')
+  const [more, setMore] = useState(false)
+  // 상세 필터 중 몇 개가 걸려 있는지 — 접혀 있어도 알 수 있게 숫자로 보여준다.
+  const extraCount = ['country', 'category', 'brand', 'source', 'minScore', 'dupes'].filter(
+    (k) => params.get(k) && params.get(k) !== '0',
+  ).length
 
   return (
-    <div className="no-print flex flex-wrap items-end gap-x-3 gap-y-2 border-b border-line bg-white px-5 py-2.5">
-      <Field label="검색">
+    <div className="no-print grid grid-cols-2 items-end gap-x-2 gap-y-2 border-b border-line bg-white px-3 py-2.5 md:flex md:flex-wrap md:gap-x-3 md:px-5">
+      <Field label="검색" className="col-span-2 md:col-span-1">
         <form
           onSubmit={(e) => {
             e.preventDefault()
@@ -41,8 +48,10 @@ export function FilterBar({
             name="q"
             key={params.get('q') ?? ''}
             defaultValue={params.get('q') ?? ''}
+            type="search"
+            enterKeyHint="search"
             placeholder="브랜드 · 메뉴 · 국가 · 키워드"
-            className="w-[200px]"
+            className="w-full md:w-[200px]"
           />
         </form>
       </Field>
@@ -65,7 +74,7 @@ export function FilterBar({
               type="date"
               value={get('from', '')}
               onChange={(e) => set('from', e.target.value)}
-              className="w-[130px]"
+              className="w-full md:w-[130px]"
             />
           </Field>
           <Field label="To">
@@ -73,7 +82,7 @@ export function FilterBar({
               type="date"
               value={get('to', '')}
               onChange={(e) => set('to', e.target.value)}
-              className="w-[130px]"
+              className="w-full md:w-[130px]"
             />
           </Field>
         </>
@@ -90,6 +99,19 @@ export function FilterBar({
         </Select>
       </Field>
 
+      {/* 스마트폰: 상세 필터는 접어둔다 */}
+      <button
+        type="button"
+        onClick={() => setMore((v) => !v)}
+        aria-expanded={more}
+        className="col-span-2 flex h-9 items-center justify-center gap-1.5 rounded-md border border-line text-[13px] font-medium text-navy-800 md:hidden"
+      >
+        <SlidersHorizontal className="h-4 w-4" aria-hidden />
+        상세 필터{extraCount ? ` (${extraCount})` : ''}
+        <ChevronDown className={cn('h-4 w-4 transition-transform', more ? 'rotate-180' : '')} aria-hidden />
+      </button>
+
+      <div className={cn('col-span-2 grid-cols-2 gap-2 md:contents', more ? 'grid' : 'hidden')}>
       <Field label="Country">
         <Select value={get('country')} onChange={(e) => set('country', e.target.value)}>
           <option value="ALL">전체</option>
@@ -154,17 +176,26 @@ export function FilterBar({
         </Select>
       </Field>
 
-      <Button onClick={() => router.push('/news-feed')} className="mb-px">
+      <Button onClick={() => router.push('/news-feed')} className="mb-px h-9 justify-center md:h-7">
         <RotateCcw className="h-3 w-3" aria-hidden />
         초기화
       </Button>
+      </div>
     </div>
   )
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+  className,
+}: {
+  label: string
+  children: React.ReactNode
+  className?: string
+}) {
   return (
-    <label className="flex flex-col gap-0.5">
+    <label className={cn('flex min-w-0 flex-col gap-0.5', className)}>
       <span className="text-[9.5px] font-semibold uppercase tracking-wide text-muted">
         {label}
       </span>

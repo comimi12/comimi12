@@ -1,8 +1,9 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Suspense } from 'react'
 import './globals.css'
 import { Sidebar } from '@/components/layout/sidebar'
 import { Topbar } from '@/components/layout/topbar'
+import { MobileNav } from '@/components/layout/mobile-nav'
 import { dataMode } from '@/lib/db'
 import { getArticles, getSources } from '@/lib/repository'
 import { hasGlobalArticles } from '@/lib/analytics'
@@ -19,6 +20,8 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: SITE_TITLE,
   description: SITE_DESC,
+  // 스마트폰 '홈 화면에 추가' 시 앱처럼 열리게 한다.
+  appleWebApp: { capable: true, title: '외식 트렌드', statusBarStyle: 'default' },
   openGraph: {
     type: 'website',
     locale: 'ko_KR',
@@ -32,6 +35,13 @@ export const metadata: Metadata = {
     title: SITE_TITLE,
     description: SITE_DESC,
   },
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#0f2f54',
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
@@ -58,23 +68,28 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="ko">
       <body className="bg-white text-ink antialiased">
-        <div className="flex h-screen w-full overflow-hidden">
+        {/*
+          PC(md 이상): 좌측 사이드바 + 내부 스크롤.
+          스마트폰: 문서 자체 스크롤(주소창 자동 숨김) + 상단 고정바 + 하단 탭바.
+        */}
+        <div className="w-full md:flex md:h-screen md:overflow-hidden">
           <Sidebar
-              sources={panelSources}
-              skippedSources={skippedSources}
-              showGlobal={showGlobal}
-            />
+            sources={panelSources}
+            skippedSources={skippedSources}
+            showGlobal={showGlobal}
+          />
           <div className="flex min-w-0 flex-1 flex-col">
             <Suspense
               fallback={<div className="h-14 shrink-0 border-b border-line bg-white" />}
             >
               <Topbar lastUpdated={lastUpdated} demo={demo} />
             </Suspense>
-            <main className="print-full min-w-0 flex-1 overflow-y-auto bg-canvas">
+            <main className="print-full mobile-main min-h-screen min-w-0 flex-1 bg-canvas md:min-h-0 md:overflow-y-auto">
               {children}
             </main>
           </div>
         </div>
+        <MobileNav showGlobal={showGlobal} />
       </body>
     </html>
   )

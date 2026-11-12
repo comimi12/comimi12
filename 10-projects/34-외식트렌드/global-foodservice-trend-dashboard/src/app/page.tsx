@@ -5,6 +5,7 @@ import { ArticleBriefList } from '@/components/news/article-brief'
 import { PrintButton } from '@/components/dashboard/print-button'
 import { ShareButton } from '@/components/dashboard/share-button'
 import { Card, CardHeader, Empty, SectionTitle } from '@/components/ui/primitives'
+import { MobileMore, MobileTabs } from '@/components/ui/mobile-tabs'
 import {
   buildDailyBrief,
   computeKpis,
@@ -41,6 +42,8 @@ export default async function DashboardPage() {
   const regionBlocks: {
     key: string
     title: string
+    /** 스마트폰 탭 칩 라벨 */
+    short: string
     href: string
     caption: string
     articles: NewsArticle[]
@@ -48,6 +51,7 @@ export default async function DashboardPage() {
     {
       key: 'KOREA',
       title: 'KOREA · 한국',
+      short: '한국',
       href: '/korea',
       caption: `오늘 ${korea.today}건 · 30일 ${korea.total30d}건 · 해외 보도 ${korea.overseas.length}건`,
       articles: koreaTop(articles, 3, reference),
@@ -66,6 +70,7 @@ export default async function DashboardPage() {
         return {
           key: region,
           title: `${region} · ${REGION_LABEL_KO[region]}`,
+          short: REGION_LABEL_KO[region],
           href: `/${region.toLowerCase()}`,
           caption: `오늘 ${summary.today}건 · 30일 ${summary.total}건`,
           articles: list,
@@ -87,7 +92,7 @@ export default async function DashboardPage() {
     <div className="min-h-full">
       <PageHeader
         eyebrow="EXECUTIVE DASHBOARD · DAILY BRIEF"
-        title={`오늘의 글로벌 외식 브리프 — ${brief.date}`}
+        title={`오늘의 외식 브리프 · ${brief.date}`}
         description="매일 09:00 자동 갱신. 요약 → 핵심 뉴스 → 지역 → 주제 순으로 3분. 기사마다 [원문] 버튼이 있고, 상단바 '한국어 번역'으로 이 화면 전체를 번역합니다."
         action={
           <div className="flex items-center gap-2">
@@ -101,22 +106,24 @@ export default async function DashboardPage() {
         }
       />
 
-      <div className="space-y-6 p-5">
+      <div className="space-y-5 p-3 md:space-y-6 md:p-5">
         {meta.source === 'demo' ? (
           <p className="rounded-sm border border-blue-accent/30 bg-blue-soft px-3.5 py-2 text-[12px] leading-relaxed text-navy-800">
             {DEMO_NOTICE} 실데이터 연결 방법은 <code className="font-mono">README.md</code> 를
             참고하세요.
           </p>
         ) : untranslated ? (
-          <p className="rounded-sm border border-line bg-canvas px-3.5 py-2 text-[12px] leading-relaxed text-ink">
+          <p className="rounded-sm border border-line bg-white px-3 py-2 text-[12px] md:bg-canvas md:px-3.5 leading-relaxed text-ink">
             <b className="text-navy-800">원문 수집 모드</b> · 매일 09:00 자동 수집 · 실기사{' '}
             {meta.count}건
             {meta.generatedAt ? (
               <span className="text-muted"> · 최근 수집 {formatDate(meta.generatedAt)}</span>
             ) : null}
-            <br />
-            한국어 번역·요약 없음. 요약은 원문 발췌이고, 중요도 점수는 본문 분석 없이 산출돼
-            참고용입니다.
+            <span className="hidden md:inline">
+              <br />
+              한국어 번역·요약 없음. 요약은 원문 발췌이고, 중요도 점수는 본문 분석 없이 산출돼
+              참고용입니다.
+            </span>
           </p>
         ) : null}
 
@@ -175,28 +182,34 @@ export default async function DashboardPage() {
         <section className="space-y-2">
           <SectionTitle
             step="03"
-            title="오늘의 핵심 뉴스 TOP 10"
+            title="핵심 뉴스 TOP 10"
             ko="Today's Global Trend"
             action={
               <Link
                 href="/news-feed"
                 className="text-[12px] font-medium text-blue-accent hover:underline"
               >
-                전체 기사 보기 →
+                전체 기사 →
               </Link>
             }
           />
           <Card>
-            <ArticleBriefList articles={top10} rank />
+            <MobileMore total={top10.length}>
+              <ArticleBriefList articles={top10} rank />
+            </MobileMore>
           </Card>
         </section>
 
         {/* ④ 지역별 */}
         <section className="space-y-2">
-          <SectionTitle step="04" title="한국 · 지역별 TOP 3" ko="Country & Region Brief" />
-          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-            {regionBlocks.map((b) => (
-              <Card key={b.key}>
+          <SectionTitle step="04" title="지역별 TOP 3" ko="Country & Region Brief" />
+          <MobileTabs
+            gridClassName="xl:grid-cols-2"
+            items={regionBlocks.map((b) => ({
+              key: b.key,
+              label: b.short,
+              content: (
+              <Card>
                 <CardHeader
                   title={b.title}
                   subtitle={b.caption}
@@ -208,16 +221,21 @@ export default async function DashboardPage() {
                 />
                 <ArticleBriefList articles={b.articles} rank empty="오늘 노출할 기사 없음" />
               </Card>
-            ))}
-          </div>
+              ),
+            }))}
+          />
         </section>
 
         {/* ⑤ 주제별 */}
         <section className="space-y-2">
           <SectionTitle step="05" title="주제별" ko="Menu · Tech · Expansion" />
-          <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-            {topicBlocks.map((t) => (
-              <Card key={t.title}>
+          <MobileTabs
+            gridClassName="xl:grid-cols-3"
+            items={topicBlocks.map((t) => ({
+              key: t.title,
+              label: t.title,
+              content: (
+              <Card>
                 <CardHeader
                   title={t.title}
                   action={
@@ -231,8 +249,9 @@ export default async function DashboardPage() {
                 />
                 <ArticleBriefList articles={t.articles} empty="오늘 해당 기사 없음" />
               </Card>
-            ))}
-          </div>
+              ),
+            }))}
+          />
         </section>
       </div>
     </div>

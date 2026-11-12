@@ -22,7 +22,7 @@ export function RegionTabs({ showGlobal = false }: { showGlobal?: boolean }) {
   const TABS = tabs(showGlobal)
 
   return (
-    <nav className="no-print flex items-center gap-1 border-b border-line bg-white px-5">
+    <nav className="no-print no-scrollbar flex items-center gap-1 overflow-x-auto whitespace-nowrap border-b border-line bg-white px-2 md:px-5">
       {TABS.map((tab) => {
         const active = pathname === tab.href
         return (
@@ -31,7 +31,7 @@ export function RegionTabs({ showGlobal = false }: { showGlobal?: boolean }) {
             href={tab.href}
             aria-current={active ? 'page' : undefined}
             className={cn(
-              '-mb-px border-b-2 px-3 py-1.5 text-[12px] font-medium transition-colors',
+              '-mb-px shrink-0 border-b-2 px-3 py-2.5 text-[13px] font-medium transition-colors md:py-1.5 md:text-[12px]',
               active
                 ? 'border-blue-accent text-navy-800'
                 : 'border-transparent text-muted hover:text-navy-800',

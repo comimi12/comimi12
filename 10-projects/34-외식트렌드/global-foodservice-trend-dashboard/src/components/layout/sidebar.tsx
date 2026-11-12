@@ -20,7 +20,7 @@ import { cn } from '@/lib/utils'
 import { SourcePanel, type PanelSource } from './source-panel'
 
 /** §28 — 좌측 Navigation (영문 라벨 + 한글 병기) */
-const NAV = [
+export const NAV = [
   {
     group: null,
     items: [
@@ -71,7 +71,7 @@ export function Sidebar({
   const pathname = usePathname()
 
   return (
-    <nav className="no-print flex h-full w-[212px] shrink-0 flex-col border-r border-line bg-white">
+    <nav className="no-print hidden h-full w-[212px] shrink-0 flex-col border-r border-line bg-white md:flex">
       <div className="border-b border-line px-4 py-3.5">
         <Link href="/" className="block">
           <div className="flex items-center gap-1.5">

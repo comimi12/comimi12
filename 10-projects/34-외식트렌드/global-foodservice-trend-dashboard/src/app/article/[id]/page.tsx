@@ -64,7 +64,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ id: st
     Boolean(article.expansion || article.tech || article.menu)
 
   return (
-    <div className="min-h-full p-4">
+    <div className="min-h-full p-3 md:p-4">
       <div className="mx-auto max-w-4xl space-y-3">
         <div className="flex items-center justify-between gap-3">
           <Link
@@ -83,10 +83,10 @@ export default async function ArticlePage({ params }: { params: Promise<{ id: st
 
         <Card>
           {/* 제목 · 메타 */}
-          <div className="border-b border-line px-5 py-4">
+          <div className="border-b border-line px-4 py-4 md:px-5">
             <h1
               data-tr
-              className="text-[19px] font-bold leading-snug tracking-tight text-navy-900"
+              className="text-[18px] font-bold leading-snug md:text-[19px] tracking-tight text-navy-900"
             >
               {article.titleKo}
             </h1>
@@ -111,7 +111,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ id: st
           </div>
 
           {/* ① 상단 요약 */}
-          <section className="border-b border-line px-5 py-4">
+          <section className="border-b border-line px-4 py-4 md:px-5">
             <h2 className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-blue-accent">
               요약
             </h2>
@@ -133,7 +133,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ id: st
                 href={article.articleUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex h-8 items-center gap-1.5 rounded-sm border border-navy-800 bg-navy-800 px-3.5 text-[12px] font-semibold text-white transition-colors hover:bg-navy-700"
+                className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-md border border-navy-800 bg-navy-800 px-3.5 text-[14px] md:h-8 md:w-auto md:rounded-sm md:text-[12px] font-semibold text-white transition-colors hover:bg-navy-700"
               >
                 원문 기사 열기
                 <ExternalLink className="h-3.5 w-3.5" aria-hidden />
@@ -148,7 +148,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ id: st
           </section>
 
           {/* ③ 번역 */}
-          <div className="px-5 py-4">
+          <div className="px-4 py-4 md:px-5">
             <OriginalTranslation
               title={article.title}
               titleKo={article.titleKo}
@@ -162,7 +162,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ id: st
 
           {/* 부가 분석 — 필요할 때만 펼친다 */}
           {hasExtra ? (
-            <details className="border-t border-line px-5 py-3">
+            <details className="border-t border-line px-4 py-3 md:px-5">
               <summary className="cursor-pointer text-[12px] font-semibold text-navy-800">
                 분석 상세 (분류 · 키워드 · 점수)
               </summary>

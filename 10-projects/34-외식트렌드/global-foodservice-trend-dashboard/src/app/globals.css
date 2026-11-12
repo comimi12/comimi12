@@ -67,3 +67,24 @@ body {
     font-size: 11pt;
   }
 }
+
+/* ============================================================
+   Mobile — 하단 탭바(56px + 안전영역)만큼 본문 아래 여백 확보
+   ============================================================ */
+@media (max-width: 767px) {
+  .mobile-main {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom));
+  }
+  /* 가로로 넘치는 칩 줄 — 스크롤바 숨김 */
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
