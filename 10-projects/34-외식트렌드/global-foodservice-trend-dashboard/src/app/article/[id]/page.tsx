@@ -6,11 +6,10 @@ import { TierTag } from '@/components/news/bits'
 import { ArticleBriefList } from '@/components/news/article-brief'
 import { OriginalTranslation } from '@/components/news/original-translation'
 import { ShareButton } from '@/components/dashboard/share-button'
-import { getArticleById, getArticles } from '@/lib/repository'
+import { dataSourceMeta, getArticleById, getArticles } from '@/lib/repository'
 import { relatedInGroup } from '@/lib/dedupe'
 import { CATEGORY_LABEL, REGION_LABEL_KO } from '@/lib/categories'
 import { SCORE_WEIGHTS } from '@/lib/scoring'
-import { dataMode } from '@/lib/db'
 import { formatDateTime } from '@/lib/utils'
 import { cleanSummaryLines } from '@/lib/summary'
 
@@ -139,7 +138,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ id: st
                 <ExternalLink className="h-3.5 w-3.5" aria-hidden />
               </a>
               <span className="text-[11px] text-muted">{article.source}</span>
-              {dataMode() === 'demo' ? (
+              {dataSourceMeta().isDemo ? (
                 <span className="text-[10.5px] text-muted">
                   DEMO 데이터 — 링크는 출처 사이트로 연결됩니다.
                 </span>

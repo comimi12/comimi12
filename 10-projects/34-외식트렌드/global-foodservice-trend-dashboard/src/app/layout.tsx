@@ -4,8 +4,7 @@ import './globals.css'
 import { Sidebar } from '@/components/layout/sidebar'
 import { Topbar } from '@/components/layout/topbar'
 import { MobileNav } from '@/components/layout/mobile-nav'
-import { dataMode } from '@/lib/db'
-import { getArticles, getSources } from '@/lib/repository'
+import { dataSourceMeta, getArticles, getSources } from '@/lib/repository'
 import { hasGlobalArticles } from '@/lib/analytics'
 import type { PanelSource } from '@/components/layout/source-panel'
 import { formatDateTime, now } from '@/lib/utils'
@@ -45,7 +44,9 @@ export const viewport: Viewport = {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const demo = dataMode() === 'demo'
+  // DATA_MODE 환경변수가 아니라 실제로 화면에 쓰이는 데이터 기준 —
+  // collected.json(매일 수집 실기사)이 있으면 DEMO 가 아니다.
+  const demo = dataSourceMeta().isDemo
   const lastUpdated = formatDateTime(now().toISOString())
 
   // 사이드바 최상단 "수집 출처" 목록 — 실제로 수집되는(RSS 보유) 매체만 보여준다.
