@@ -320,24 +320,68 @@ def normalize_reviews_file(path):
 def load_program_xlsx(path):
     """네이버 프로그램(매크로) 원본 NaverReviews_*.xlsx — review_26.MM월.csv 와 같은 양식A(채널 컬럼만 없음).
        예전엔 사람이 CSV로 바꿔 넣어야 반영됐다(10월분 누락 원인). 읽을 수 없는 파일(DRM)은 건너뜀."""
+    # DRM 재암호화 대비: 한 번 읽은 파일은 평문 캐시(data/reviews/_xlsx_cache/<이름>.csv)로 남겨 재사용.
+    #   (11/1 페이지20 재수집본이 DRM 재암호화돼 skip → 10월이 250건 상한 파일로 되돌아간 사고, 2026-11-16)
+    cache_dir = os.path.join(REVIEW_DIR, "_xlsx_cache")
+    cache = os.path.join(cache_dir, os.path.splitext(os.path.basename(path))[0] + ".csv")
     try:
         import openpyxl
         wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
     except Exception:
-        print(f"[skip] {os.path.basename(path)} — 열 수 없음(DRM?)")
-        return []
-    it = wb.active.iter_rows(values_only=True)
+        wb = None
+    if wb is None:
+        if not os.path.exists(cache):            # Excel COM(Fasoo 에이전트 복호화)으로 1회 추출 시도
+            os.makedirs(cache_dir, exist_ok=True)
+            ps1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), "extract_active_sheet.ps1")
+            try:
+                subprocess.run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", ps1,
+                                os.path.abspath(path), os.path.abspath(cache)],
+                               capture_output=True, timeout=300)
+            except Exception:
+                pass
+        if not os.path.exists(cache) or os.path.getsize(cache) < 100:
+            print(f"[skip] {os.path.basename(path)} — 열 수 없음(DRM?)")
+            return []
+        with open(cache, encoding="utf-8-sig", newline="") as f:
+            rows = list(csv.reader(f))
+        hdr = [str(h or "").strip() for h in (rows[0] if rows else [])]
+        if "리뷰유형" not in hdr or "매장명" not in hdr:
+            return []
+        print(f"[cache] {os.path.basename(path)} — DRM 평문 캐시 사용 ({len(rows)-1}행)")
+        it = iter(rows[1:])
+        wb = None
+    else:
+        it = wb.active.iter_rows(values_only=True)
+        hdr = None
+    if hdr is not None:
+        with tempfile.NamedTemporaryFile("w", suffix=".csv", delete=False, encoding="utf-8-sig", newline="") as f:
+            tmp = f.name
+            w = csv.writer(f)
+            w.writerow(hdr + ["채널"])
+            for row in it:
+                w.writerow(list(row) + ["네이버"])
+        try:
+            return normalize_reviews_file(tmp)
+        finally:
+            os.remove(tmp)
     hdr = [str(h or "").strip() for h in next(it, [])]
     if "리뷰유형" not in hdr or "매장명" not in hdr:
         return []
+    body = [["" if v is None else (v.strftime("%Y-%m-%d") if hasattr(v, "strftime") else v) for v in row]
+            for row in it]
+    wb.close()
+    try:                                          # 평문일 때 캐시 저장(나중에 DRM 재암호화돼도 반영 유지)
+        os.makedirs(cache_dir, exist_ok=True)
+        with open(cache, "w", encoding="utf-8-sig", newline="") as cf:
+            cw = csv.writer(cf); cw.writerow(hdr); cw.writerows(body)
+    except Exception:
+        pass
     with tempfile.NamedTemporaryFile("w", suffix=".csv", delete=False, encoding="utf-8-sig", newline="") as f:
         tmp = f.name
         w = csv.writer(f)
         w.writerow(hdr + ["채널"])
-        for row in it:
-            w.writerow(["" if v is None else (v.strftime("%Y-%m-%d") if hasattr(v, "strftime") else v)
-                        for v in row] + ["네이버"])
-    wb.close()
+        for row in body:
+            w.writerow(row + ["네이버"])
     try:
         return normalize_reviews_file(tmp)
     finally:
