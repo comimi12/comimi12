@@ -371,7 +371,7 @@ python build/verify.py https://comimi12.github.io/slnc-sop-dashboard/   # 배포
 
 한국 매장이라 **화면 문구·본문 모두 한글만** 쓴다(영문 위 / 국문 아래 구성 없음). 형태(5탭·이수·시험·서명)는 KSC·WASA와 같다.
 
-- 원본: `Desktop\교육팀. 신규매장매뉴얼, 교안\오픈매장 매뉴얼\서리재\어온가\` (DRM 아님)
+- 원본: `Desktop\교육팀\4. 신규매장매뉴얼, 교안\오픈매장 매뉴얼\서리재\어온가\` (DRM 아님)
   - `어온가_입문_매뉴얼.pptx/.pdf` (22장) · `260918_어온가_메뉴 제공 방식 매뉴얼_최종_미래사업.pdf` (메뉴별 제공 기물)
   - `260914_어온가 상품리스트(마케팅전달용).xlsx` (가격·구성·원산지/중량) · `[어온가]메뉴사진_티오더_크롭컷\` (사진 41장)
 - 빌드: `python build/eonga.py` → `src/data.json`의 `eonga-manual`·`eonga-menu` 교체 + `quiz.json`의 `EONGA` + `src/img/eonga-*`. 뒤에 `python build/thumbs.py`.
