@@ -35,6 +35,9 @@ def main():
     if not os.path.exists(os.path.join(SRC, "data.json")):
         raise SystemExit("[ERR] src/data.json 없음 — 먼저 `python build/extract.py` 실행")
 
+    # 메뉴 카드는 img/t/ 축소본만 쓴다 — 새 사진의 축소본이 빠지면 카드에 글자만 남으므로 배포 전에 항상 맞춘다
+    subprocess.run([sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "thumbs.py")], check=True)
+
     if not os.path.isdir(os.path.join(CLONE, ".git")):
         print("[clone] %s" % repo)
         r = subprocess.run(["git", "clone", "--depth", "1", repo, CLONE],

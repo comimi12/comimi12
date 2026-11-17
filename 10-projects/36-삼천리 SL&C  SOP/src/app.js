@@ -756,7 +756,8 @@
     return '<button class="mc" data-item="' + i + '">'
       + '<span class="im">' + (it.img
         ? '<img src="' + esc(thumb(it.img)) + '" alt="' + esc(it.en)
-          + '" loading="lazy" decoding="async">'
+          + '" loading="lazy" decoding="async" data-full="' + esc(it.img)
+          + '" onerror="if(this.dataset.full&&this.src.indexOf(this.dataset.full)<0)this.src=this.dataset.full">'
         : it.video ? '<span class="no vid">' + ico(I.play) + 'VIDEO<br>영상 보기</span>'
         : '<span class="no">' + (isKo(deck.brand) ? '사진' : 'PHOTO') + '<br>준비 중</span>') + '</span>'
       + '<span class="bd"><b>' + esc(it.en) + '</b>'
