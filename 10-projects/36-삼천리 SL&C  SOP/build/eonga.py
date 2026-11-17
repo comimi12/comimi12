@@ -89,6 +89,32 @@ def img_entry(rel_size, y, **kw):
     return e
 
 
+# 플로어플랜 번호 정정 (원본 픽셀 좌표, 4299x3035 기준) — 원본에 37번이 두 개라
+# 사용자 지시(2026-11-17)로 위쪽(39와 37 사이) 37번을 38번으로 바꾼다.
+FLOOR_RELABEL = [((3999, 888, 4156, 991), "38")]
+
+
+def relabel_floor(im):
+    from PIL import ImageDraw, ImageFont
+    im = im.convert("RGB")
+    if im.size != (4299, 3035):
+        print("[!] 플로어플랜 크기가 바뀜 %s — FLOOR_RELABEL 좌표 확인 필요" % (im.size,))
+        return im
+    d = ImageDraw.Draw(im)
+    try:
+        import matplotlib
+        font_path = os.path.join(os.path.dirname(matplotlib.__file__), "mpl-data", "fonts", "ttf", "DejaVuSans-Bold.ttf")
+        font = ImageFont.truetype(font_path, 80)
+    except Exception:
+        font = ImageFont.truetype("arialbd.ttf", 80)
+    for (x0, y0, x1, y1), label in FLOOR_RELABEL:
+        col = im.getpixel((x0 + 20, y0 + 12))           # 배지 바탕색
+        d.rectangle((x0 + 14, y0 + 10, x1 - 14, y1 - 10), fill=col)
+        cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+        d.text((cx, cy), label, font=font, fill=(255, 255, 255), anchor="mm")
+    return im
+
+
 # ── SOP 페이지 ─────────────────────────────────────────
 def B(head, lines, kind="normal", **kw):
     b = dict(head=head, lines=lines, kind=kind, x=0, w=6.7)
@@ -155,6 +181,7 @@ def build_pages():
         for s in _prs.slides[4].shapes:
             if "PICTURE" in str(s.shape_type):
                 fl = Image.open(io.BytesIO(s.image.blob))
+    fl = relabel_floor(fl)
     # 왼쪽 '전달 사항 · 예약 사항' 빈칸은 잘라낸다 (매장 기록용 서식이라 학습 내용이 아니다)
     W, H = fl.size
     fl = fl.crop((int(W * 0.235), int(H * 0.02), W, H))
