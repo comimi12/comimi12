@@ -13,6 +13,8 @@ const N = +process.argv[2] || 300;
 const HANGUL = /[가-힣]/;
 function thumb(s) { return s.replace(/^img\/(.+)\.[a-z]+$/, 'img/t/$1.jpg'); }
 function save() {}
+// 한글 전용 브랜드(어온가) 판정 — app.js의 BRAND_META.ko 와 같게 둔다
+function isKo(b) { return b === 'EONGA'; }
 let S = { brand: 'KSC', qseen: {} };
 function menuDeck(b) { return data.filter(d => d.kind === 'menu' && d.brand === b)[0]; }
 eval(block);
@@ -80,6 +82,48 @@ for (const b of ['KSC', 'WASA']) {
   }
   console.log('[' + b + '] 시험 ' + N + '회 생성 · 연속 응시 간 최대 겹침 ' + overlapMax + '문항');
   if (missingKr.size) console.log('  국문 이름 없는 보기: ' + [...missingKr].join(', '));
+}
+// ── 어온가(한글 전용): 사진 15 + 메뉴 설명 10 + 메뉴 지식 5 ──
+if (menuDeck('EONGA')) {
+  const b = 'EONGA', deck = menuDeck(b), grpOf = {};
+  deck.items.forEach(it => { grpOf[it.en] = it.grp || []; });
+  let prev = null, overlapMax = 0;
+  for (let r = 0; r < N; r++) {
+    S = { brand: b, qseen: S.qseen || {} };
+    startQuiz(b);
+    const qs = QZ.qs, cnt = { photo: 0, sell: 0, mc: 0 };
+    if (qs.length !== 30) bad(b, 'count', '문항 수 ' + qs.length);
+    const keys = qs.map(q => (q.img ? 'p:' : q.sell ? 's:' : 'm:') + (q.img || q.sell ? q.ref : q.q[1]));
+    if (new Set(keys).size !== keys.length) bad(b, 'dup', '한 시험 안에 같은 문항');
+    if (prev) overlapMax = Math.max(overlapMax, keys.filter(k => prev.has(k)).length);
+    prev = new Set(keys);
+    const refs = qs.filter(q => !q.img && !q.sell).map(q => String(q.ref || '').toUpperCase()).filter(Boolean);
+    qs.forEach(q => {
+      const t = q.img ? 'photo' : q.sell ? 'sell' : 'mc';
+      cnt[t]++;
+      if (!HANGUL.test(q.q[1] || '')) bad(b, t, '질문 국문 없음');
+      if (q.opts.length !== 4) bad(b, t, '보기 ' + q.opts.length + '개: ' + (q.ref || q.q[1]));
+      if (q.opts.filter(o => o.ok).length !== 1) bad(b, t, '정답 수 오류: ' + (q.ref || q.q[1]));
+      const names = q.opts.map(o => o.kr || o.en);
+      if (names.some(n => !n)) bad(b, t, '빈 보기: ' + (q.ref || q.q[1]));
+      if (new Set(names).size !== names.length) bad(b, t, '보기 중복: ' + (q.ref || q.q[1]));
+      if (q.img && !fs.existsSync(path.join(SRC, q.img))) bad(b, t, '사진 없음: ' + q.img);
+      if (q.img || q.sell) {
+        const ans = q.opts.filter(o => o.ok)[0].en, g = grpOf[ans];
+        q.opts.filter(o => !o.ok).forEach(o => {
+          if ((grpOf[o.en] || []).some(x => g.indexOf(x) >= 0)) bad(b, t, '같은 묶음 보기(애매): ' + ans + ' vs ' + o.en);
+        });
+        if (refs.some(rf => q.ref.toUpperCase().indexOf(rf) === 0)) bad(b, t, '메뉴 지식 문항과 같은 메뉴가 정답: ' + q.ref);
+      }
+      if (q.sell) {
+        const quote = q.quote[1], ans = q.opts.filter(o => o.ok)[0].en;
+        grpOf[ans].forEach(x => { if (quote.indexOf(x) >= 0) bad(b, t, '설명에 답이 드러남: ' + ans + ' → ' + quote); });
+        if (quote.replace(/____|\s/g, '').length < 8) bad(b, t, '설명이 거의 다 가려짐: ' + quote);
+      }
+    });
+    if (cnt.photo !== 15 || cnt.sell !== 10 || cnt.mc !== 5) bad(b, 'count', '유형 비율 ' + JSON.stringify(cnt));
+  }
+  console.log('[' + b + '] 시험 ' + N + '회 생성 · 연속 응시 간 최대 겹침 ' + overlapMax + '문항');
 }
 // 상황어가 겹친 보기 — 조건을 다 맞추는 보기가 3개가 안 될 때만 생긴다(완화 단계). 0이 목표.
 if (amb.length) console.log('  상황어가 겹친 보기 ' + amb.length + '건: ' + [...new Set(amb)].slice(0, 10).join(' / '));

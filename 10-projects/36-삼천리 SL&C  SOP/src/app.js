@@ -17,8 +17,38 @@
     KSC: { name: 'KALBI SOCIAL CLUB', kr: '칼비 소셜 클럽 · 코리안 바비큐',
            mark: 'KALBI', tag: '코리안 바비큐' },
     WASA: { name: 'IZAKAYA WASA', kr: '이자카야 와사 · 스시 · 로바타',
-            mark: 'WASA', tag: '이자카야 · 스시' }
+            mark: 'WASA', tag: '이자카야 · 스시' },
+    // 한국 매장 — 화면 문구·본문 모두 한글만 쓴다(ko). 원본 구성이 달라 과정·포지션을 따로 둔다.
+    EONGA: { name: '어온가', kr: '어온가 · 남도 직화 정찬', mark: '어온가', tag: '남도 생선구이',
+             store: '어온가 스타필드 고양점', ko: true,
+             positions: [
+               { id: 'hall', label: '홀 서버', group: 'FOH' },
+               { id: 'cashier', label: '캐셔 · 안내', group: 'FOH' },
+               { id: 'kitchen', label: '주방', group: 'BOH' },
+               { id: 'manager', label: '점장 · 매니저', group: 'MGMT' }
+             ],
+             course: [
+               { g: '브랜드 · 매장', t: 'SL&C · 포지셔닝 · 경험 3요소', m: '브랜드 소개' },
+               { g: '브랜드 · 매장', t: '영업시간 · 주차 · 테이블 배치도', m: '우리 매장 정보' },
+               { g: '기본 기준', t: '두발 · 유니폼 · 공통 사항', m: '용모 복장 가이드' },
+               { g: '기본 기준', t: '손 씻기 · 근무 전 준비 · 안전', m: '위생과 안전관리' },
+               { g: '매장 운영', t: '기물 16종과 쓰임새', m: '기물 명칭 및 용도' },
+               { g: '매장 운영', t: '테이블 · 한상차림 세팅 기준', m: '기본 세팅' },
+               { g: '매장 운영', t: '반찬 12종 · 이용 기준', m: '반찬 바' },
+               { g: '메뉴 제공', t: '정식 · 차림 · 일품 · 곁들임 · 주류', m: '메뉴별 제공 기준' },
+               { g: '메뉴 제공', t: '일품요리 · 모둠 생선구이 멘트', m: '시그니처 랜딩 서비스' },
+               { g: '서비스', t: '입점부터 퇴점까지', m: '고객 응대 스크립트' },
+               { g: '서비스', t: '첫인사 ~ 고급 서비스', m: '서비스 포인트 10' },
+               { g: '서비스', t: '대기 Q&A · 상황별 멘트', m: '대기 고객 · 현장 상황별 응대' },
+               { g: '서비스', t: '잘못된 응대어 → 올바른 응대어', m: '고객불만 예방 멘트' },
+               { g: '서비스', t: '고객이 자주 묻는 10가지', m: '자주 묻는 질문' }
+             ] }
   };
+  function isKo(b) { return !!(BRAND_META[b] || {}).ko; }
+  function KO() { return isKo(S.brand); }
+  /** 한글 전용 브랜드면 국문만, 아니면 "영문 · 국문" */
+  function T(en, kr, sep) { return KO() ? kr : en + (sep == null ? ' · ' : sep) + kr; }
+  function courseOf(b) { return (BRAND_META[b] || {}).course || COURSE; }
 
   /* ── 저장소 ───────────────────────────────────────── */
   var KEY = 'slnc-sop-v1';
@@ -68,11 +98,13 @@
   }
   /** 화면 문구는 영문 위 / 국문 아래로 함께 보여준다 */
   function L(en, kr) {
+    // 한글 전용 브랜드(어온가)는 국문 한 줄만
+    if (KO()) return '<span class="l"><span class="l-en">' + esc(kr || en) + '</span></span>';
     return '<span class="l"><span class="l-en">' + esc(en) + '</span>'
       + '<span class="l-kr">' + esc(kr) + '</span></span>';
   }
   /** 한 줄로 붙여 쓸 때 */
-  function Li(en, kr) { return esc(en) + ' · ' + esc(kr); }
+  function Li(en, kr) { return KO() ? esc(kr) : esc(en) + ' · ' + esc(kr); }
   /** 메뉴 카드용 축소본 (build/thumbs.py 산출물) */
   function thumb(src) { return src.replace(/^img\/(.+)\.[a-z]+$/, 'img/t/$1.jpg'); }
 
@@ -135,6 +167,13 @@
   function positionsOf(b) {
     var deck = mainManual(b), out = [];
     if (!deck) return out;
+    // 어온가 매뉴얼에는 직급별 SOP 장이 없다 — 포지션은 이름표로만 쓴다(과정에 추가되는 장 없음)
+    var fixed = (BRAND_META[b] || {}).positions;
+    if (fixed) {
+      return fixed.map(function (x) {
+        return { id: deck.id + ':' + x.id, n: 0, label: x.label, kr: '', group: x.group };
+      });
+    }
     chaptersOf(deck).forEach(function (c) {
       if (['03', '04', '05'].indexOf(c.ch) < 0) return;
       c.pages.forEach(function (p) {
@@ -174,7 +213,7 @@
   function coursePages(b) {
     var deck = mainManual(b), out = [], used = {};
     if (!deck) return out;
-    COURSE.forEach(function (c) {
+    courseOf(b).forEach(function (c) {
       if (c.role) {
         if (!S.me.pos || S.me.pos.indexOf(deck.id) !== 0) return;
         var rn = parseInt(S.me.pos.split(':')[1], 10), rp = pageOf(deck, rn);
@@ -212,7 +251,7 @@
       });
       // 메뉴 시험 80점 이상이어야 이수 — 통과하면 'quiz:브랜드'가 완료로 찍힌다
       out.push({ k: 'quiz:' + b, kind: 'quiz', ch: 'TEST', chName: '메뉴 시험',
-                 label: 'MENU TEST · ' + QUIZ_PASS + '+' });
+                 label: isKo(b) ? '메뉴 시험 · ' + QUIZ_PASS + '점 이상' : 'MENU TEST · ' + QUIZ_PASS + '+' });
     }
     return out;
   }
@@ -453,16 +492,16 @@
     h += '<div class="card pad"><div class="prog">' + ring(p.pct)
       + '<div class="meta"><b>'
       + (S.me.name ? esc(S.me.name) : L('Register your name', '이름을 등록해 주세요')) + '</b>'
-      + '<span>' + esc(S.me.posLabel || 'No position set · 포지션 미설정')
+      + '<span>' + esc(S.me.posLabel || T('No position set', '포지션 미설정'))
       + (S.me.phone ? ' · ' + esc(S.me.phone) : '') + '</span>'
       + '<span>' + esc(BRAND_META[S.brand].name) + ' · ' + p.done + ' / ' + p.total
-      + ' done · 항목 완료</span></div></div>';
+      + (KO() ? ' 항목 완료' : ' done · 항목 완료') + '</span></div></div>';
     if (!S.me.name || !S.me.pos) {
       h += '<a class="btn" href="#/cert" style="margin-top:14px">'
         + L('Register name & position', '이름 · 포지션 등록하기') + '</a>';
     } else if (next) {
       h += '<a class="btn" href="' + hrefOf(next) + '" style="margin-top:14px">'
-        + L('Continue · ' + next.label, '이어서 학습') + '</a>';
+        + L('Continue · ' + next.label, KO() ? '이어서 학습 · ' + next.label : '이어서 학습') + '</a>';
     } else {
       h += '<a class="btn" href="#/cert" style="margin-top:14px">'
         + L('View certificate', '수료 확인서 보기') + '</a>';
@@ -471,13 +510,13 @@
 
     var dn = 0;
     pages.forEach(function (x) { if (isDone(x.k)) dn++; });
-    h += '<h2 class="sect">ONBOARDING MANUAL · 입문 매뉴얼 &nbsp;' + dn + '/' + pages.length + '</h2>';
+    h += '<h2 class="sect">' + T('ONBOARDING MANUAL', '입문 매뉴얼') + ' &nbsp;' + dn + '/' + pages.length + '</h2>';
 
     pages.forEach(function (x) {
       if (x.g !== g) {
         g = x.g;
         h += (i ? '</div>' : '') + '<h2 class="sect">' + esc(x.g)
-          + ' · ' + esc(x.gk || '') + '</h2><div class="list">';
+          + (x.gk ? ' · ' + esc(x.gk) : '') + '</h2><div class="list">';
       }
       i++;
       h += rowHtml('#/p/' + x.deck + '/' + x.n, String(i), isDone(x.k), x.label, x.sub);
@@ -503,7 +542,10 @@
 
   /** 원본은 영문·국문을 한 문단에 붙여 쓰기도 하고, 문단을 나눠 쓰기도 한다.
    *  어느 쪽이든 [영문, 국문] 한 쌍으로 묶어 영문 위 / 국문 아래로 보여준다. */
+  var PAIR_KO = false;   // 지금 그리는 페이지가 한글 전용 브랜드인지 (viewPage가 정한다)
   function pairLines(lines) {
+    // 한글 전용 본문은 나누지 않는다 — "10:30 ~ 22:00 / LAST ORDER 21:00 (브레이크…" 같은 줄이 영/국으로 쪼개진다
+    if (PAIR_KO) return lines.map(function (t) { return ['', t]; });
     var out = [];
     for (var i = 0; i < lines.length; i++) {
       var t = lines[i];
@@ -554,8 +596,20 @@
     return h + '</section>';
   }
 
+  /** 사진 + 이름 + 설명 카드 묶음 (어온가 기물 16종 · 브랜드 경험 3요소 등) */
+  function gridHtml(b) {
+    return '<section class="blk grid' + (b.small ? ' small' : '') + '">'
+      + (b.head ? '<h3>' + esc(b.head) + '</h3>' : '')
+      + '<div class="gcells">' + b.cells.map(function (c) {
+        return '<figure class="gcell"><div class="gimg"><img src="' + esc(c.img) + '" alt="" loading="lazy"></div>'
+          + '<figcaption><b>' + esc(c.t) + '</b>' + (c.s ? '<span>' + esc(c.s) + '</span>' : '')
+          + '</figcaption></figure>';
+      }).join('') + '</div></section>';
+  }
+
   function blockHtml(b) {
     if (b.kind === 'code') return codeHtml(b);
+    if (b.kind === 'grid') return gridHtml(b);
     // 제목 없는 긴 도입 문단은 현장에서 쓸 내용이 아니라 간소화 화면에서 뺀다
     if (!b.head && b.lines.join(' ').length > 60) return '';
     var cls = 'blk' + (b.kind && b.kind !== 'normal' ? ' ' + b.kind : '');
@@ -616,6 +670,7 @@
     var p = pageOf(deck, n);
     if (!p) return '<div class="empty">페이지를 찾을 수 없습니다.</div>';
     if (p.divider) return '<div class="empty">' + esc(p.title) + '</div>';
+    PAIR_KO = isKo(deck.brand);
 
     var list = coursePages(S.brand), at = -1;
     list.forEach(function (x, i) { if (x.deck === deck.id && x.n === p.n) at = i; });
@@ -633,7 +688,11 @@
       // 가로로 긴 큰 이미지(브랜드 소개 띠 등)는 잘라내지 않고 좌우 스크롤로 전부 보여준다.
       // 원본에서 작게 들어간 로고류는 잘리지 않게 통째로 담는다.
       var r = im.h ? im.w / im.h : 1.6, fig;
-      if (im.plan) {
+      if (im.full) {
+        // 글씨가 들어간 안내 그림(로고 묶음 · 아이콘 · 배치도)은 자르지 않고 폭에 맞춰 통째로
+        fig = '<figure class="shot full"><img src="' + esc(im.src) + '" alt="" loading="lazy">'
+          + (im.cap ? '<figcaption>' + esc(im.cap) + '</figcaption>' : '') + '</figure>';
+      } else if (im.plan) {
         // 테이블 배치도: 자르지 않고 통째로, 눌러서 원본 크기로 확대
         fig = '<figure class="shot plan"><div class="plan-hd">' + L('Table Layout', '테이블 배치도') + '</div>'
           + '<a href="' + esc(im.src) + '" target="_blank" rel="noopener"><img src="' + esc(im.src)
@@ -644,7 +703,7 @@
           + '" alt="" loading="lazy"></div><figcaption>' + L('Swipe ← → to read it all', '좌우로 밀어서 전체 보기')
           + '</figcaption></figure>';
       } else {
-        fig = '<figure class="shot' + (im.w < 3 ? ' fit' : '') + '"><img src="' + esc(im.src)
+        fig = '<figure class="shot' + (im.w < 3 || im.fit ? ' fit' : '') + '"><img src="' + esc(im.src)
           + '" alt="" loading="lazy"></figure>';
       }
       items.push({ y: im.y, x: im.x, html: fig });
@@ -663,18 +722,18 @@
     h += '<div class="blocks">' + out.map(function (i) { return i.html; }).join('') + '</div>';
 
     if ((p.checklist || []).length) h += '<div style="margin-top:12px">' + clHtml(deck.id, p.n, p.checklist) + '</div>';
-    (p.tables || []).forEach(function (t) { h += '<div style="margin-top:10px">' + tableHtml(t) + '</div>'; });
+    (p.tables || []).forEach(function (t) { h += '<div class="ptbl" style="margin-top:10px">' + tableHtml(t) + '</div>'; });
 
     var key = deck.id + ':' + p.n, on = isDone(key);
     h += '<div class="donewrap"><button class="done" data-done="' + esc(key) + '" aria-pressed="' + on + '">'
       + ico(on ? I.tick : I.check)
-      + (on ? L('Completed · ' + S.done[key].slice(0, 10), '학습 완료')
+      + (on ? L('Completed · ' + S.done[key].slice(0, 10), KO() ? '학습 완료 · ' + S.done[key].slice(0, 10) : '학습 완료')
             : L('I have studied this', '이 내용을 학습했습니다')) + '</button>'
       + '<div class="gate"></div></div>';
 
     var nx = at >= 0 ? list[at + 1] : null;
     if (nx) h += '<a class="btn sec2" style="margin-top:10px" href="#/p/' + nx.deck + '/' + nx.n + '">'
-      + L('Next · ' + nx.label, '다음') + '</a>';
+      + L('Next · ' + nx.label, KO() ? '다음 · ' + nx.label : '다음') + '</a>';
     else if (at >= 0) h += '<a class="btn sec2" style="margin-top:10px" href="#/cert">'
       + L('Course complete · go to certificate', '과정 끝 · 수료 확인으로') + '</a>';
     return h;
@@ -699,7 +758,7 @@
         ? '<img src="' + esc(thumb(it.img)) + '" alt="' + esc(it.en)
           + '" loading="lazy" decoding="async">'
         : it.video ? '<span class="no vid">' + ico(I.play) + 'VIDEO<br>영상 보기</span>'
-        : '<span class="no">PHOTO<br>준비 중</span>') + '</span>'
+        : '<span class="no">' + (isKo(deck.brand) ? '사진' : 'PHOTO') + '<br>준비 중</span>') + '</span>'
       + '<span class="bd"><b>' + esc(it.en) + '</b>'
       + (it.kr ? '<span>' + esc(it.kr) + '</span>' : '')
       + (it.price ? '<i>' + esc(it.price) + '</i>' : '') + '</span></button>';
@@ -716,7 +775,7 @@
     // 사진이 첫 화면에 바로 들어오도록 진도는 얇은 한 줄로
     var pct = cats.length ? Math.round(dn / cats.length * 100) : 0;
     var h = '<div class="mprog"><div class="t">'
-      + '<b>' + dn + ' / ' + cats.length + '</b> categories done · 분류 완료'
+      + '<b>' + dn + ' / ' + cats.length + '</b> ' + T('categories done', '분류 완료')
       + '<i>' + deck.items.length + '종</i></div>'
       + '<div class="bar"><i style="width:' + pct + '%"></i></div></div>';
 
@@ -804,11 +863,14 @@
       + (it.price ? '<div style="margin-top:12px;font-size:23px;font-weight:800;color:var(--pri-t);'
         + 'font-family:Archivo,sans-serif">' + esc(it.price) + '</div>' : '')
       + '</div>';
+    var ko = isKo(deck.brand);
     it.sections.forEach(function (s) {
-      var cls = s.en === 'SUGGESTIVE SELLING' ? ' sell' : (s.en === 'ALLERGENS' ? ' alg' : '');
-      h += '<div class="sec' + cls + '"><h4>' + esc(s.en) + ' · ' + esc(s.kr) + '</h4>'
+      var cls = s.en === 'SUGGESTIVE SELLING' || s.en === 'SERVICE SCRIPT' ? ' sell'
+        : (s.en === 'ALLERGENS' ? ' alg' : s.en === 'NOTE' ? ' memo' : '');
+      h += '<div class="sec' + cls + '"><h4>' + (ko ? esc(s.kr) : esc(s.en) + ' · ' + esc(s.kr)) + '</h4>'
         + s.lines.map(function (l) {
-          return '<p class="' + (HANGUL.test(l) ? 'kr' : 'en') + '">' + esc(l) + '</p>';
+          // 한글 전용 브랜드는 본문이 전부 국문이므로 흐린 번역 글씨(kr)가 아니라 본문 글씨로
+          return '<p class="' + (HANGUL.test(l) && !ko ? 'kr' : 'en') + '">' + esc(l) + '</p>';
         }).join('') + '</div>';
     });
     showSheet(h);
@@ -870,19 +932,22 @@
     // 같은 메뉴가 두 분류에 실린 경우(이름·사진 동일, É처럼 표기만 다른 경우 포함)는 한 번만
     var seen = {}, pool = [], imgsOf = {};
     deck.items.forEach(function (it) {
-      var k = it.en.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+      // NFD\ub85c \uc545\uc13c\ud2b8\ub9cc \ub5bc\uace0 NFC\ub85c \ub418\ub3cc\ub9b0\ub2e4 \u2014 \ud55c\uae00\uc740 NFD\uc5d0\uc11c \uc790\ubaa8\ub85c \ud480\ub824 \uba54\ub274 \uc9c0\uc2dd \ubb38\ud56d(ref)\uacfc \ube44\uad50\uac00 \uc5b4\uae0b\ub09c\ub2e4
+      var k = it.en.normalize('NFD').replace(/[\u0300-\u036f]/g, '').normalize('NFC').toUpperCase();
       // \uc790\ub8cc\uc5d0 \uac19\uc740 \uc0ac\uc9c4\uc744 \uc4f0\ub294 \ub2e4\ub978 \uba54\ub274\uac00 \uc788\ub2e4(\uc608: WASA \ub2c8\uae30\ub9ac) \u2014 \uc774\ub984\ubcc4\ub85c \uc4f0\uc778 \uc0ac\uc9c4\uc744 \ubaa8\ub450 \ubaa8\uc544 \ub454\ub2e4
       if (it.img) (imgsOf[k] = imgsOf[k] || []).push(it.img);
       if (!it.img || seen[k] || seen[it.img]) return;
       if (used.some(function (r) { return k.indexOf(r) === 0; })) return;
       seen[k] = seen[it.img] = 1; pool.push(it);
     });
-    function keyOf(it) { return it.en.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase(); }
+    function keyOf(it) { return it.en.normalize('NFD').replace(/[\u0300-\u036f]/g, '').normalize('NFC').toUpperCase(); }
     function words(s) { return s.toUpperCase().split(/[^A-Z]+/).filter(function (w) { return w.length >= 4; }); }
     return fresh(pool, function (it) { return 'p:' + it.en; }).slice(0, n).map(function (it) {
-      var ws = words(it.en);
+      var ws = words(it.en), tags = it.grp || [];
       var others = shuffle(pool.filter(function (x) {
         return x !== it && !words(x.en).some(function (w) { return ws.indexOf(w) >= 0; })
+          // \ud55c\uae00 \uba54\ub274\uba85\uc740 words()\ub85c \ubabb \uac70\ub978\ub2e4 \u2014 \uac19\uc740 \uc0dd\uc120\u00b7\uace0\uae30 \ubb36\uc74c(grp)\uc740 \uc11c\ub85c \ubcf4\uae30\ub85c \uc4f0\uc9c0 \uc54a\ub294\ub2e4
+          && !(x.grp || []).some(function (t) { return tags.indexOf(t) >= 0; })
           && imgsOf[keyOf(x)].indexOf(it.img) < 0;   // \uc774 \uc0ac\uc9c4\uc744 \uc4f0\ub294 \ub2e4\ub978 \uba54\ub274\ub294 \ubcf4\uae30\uc5d0\uc11c \ube80\ub2e4
       })).slice(0, 3);
       var opts = [it].concat(others).map(function (x, i) { return { en: x.en, kr: krOf(x), ok: i === 0 }; });
@@ -926,8 +991,50 @@
     /broth|soup/i, /light\b|lighter/i, /family|group/i];
   function cuesOf(line) { return SELL_CUES.filter(function (r) { return r.test(line); }); }
 
+  /** 한글 전용 브랜드(어온가)의 둘째 유형 — 메뉴 자료의 '메뉴 설명'을 보고 메뉴 고르기.
+   *  설명 속 생선·고기 이름(grp)과 메뉴명은 ____ 로 가리고, 같은 묶음(grp) 메뉴는 보기에서 뺀다. */
+  function descQs(b, n, used) {
+    var deck = menuDeck(b);
+    if (!deck) return [];
+    var seen = {}, pool = [];
+    deck.items.forEach(function (it) {
+      var sec = (it.sections || []).filter(function (x) { return x.en === 'DESCRIPTION'; })[0];
+      var d = sec && sec.lines[0];
+      // 구성표를 그대로 옮긴 설명(어린이 정식)은 메뉴명과 거의 같아 문제가 되지 않는다
+      if (!d || seen[d] || /^미니 /.test(d)) return;
+      seen[d] = 1;
+      pool.push({ it: it, d: d, ask: !used.some(function (r) { return it.en.toUpperCase().indexOf(r) === 0; }) });
+    });
+    function mask(line, it) {
+      var toks = [];
+      // 묶음 이름은 붙여 쓴 꼴(모둠생선구이)과 띄어 쓴 꼴(모둠 생선구이)이 섞여 있다
+      // '#'으로 시작하는 묶음(#육류 · #시그니처)은 보기에서만 빼고 가리지는 않는다
+      (it.grp || []).forEach(function (g) { if (g[0] !== '#') toks.push(g, g.replace(/^(모둠)(생선)/, '$1 $2')); });
+      it.en.replace(/\(.*?\)/g, ' ').split(/\s+/).forEach(function (t) {
+        t = t.replace(/(와|과)$/, '');
+        if (t.length >= 2 && ['솥밥', '차림', '정식', '어온가', '구이'].indexOf(t) < 0) toks.push(t);
+      });
+      toks.sort(function (a, c) { return c.length - a.length; }).forEach(function (t) { line = line.split(t).join('____'); });
+      return line.replace(/____(\s*____)+/g, '____');
+    }
+    // 가리고 나면 남는 말이 거의 없는 설명("매콤 새콤한 ____")은 묻지 않는다 — 다른 보기에도 들어맞는다
+    var asks = pool.filter(function (p) {
+      return p.ask && mask(p.d, p.it).replace(/____|\s/g, '').length >= 8;
+    });
+    return fresh(asks, function (p) { return 's:' + p.it.en; }).slice(0, n).map(function (p) {
+      var tags = p.it.grp || [];
+      var others = shuffle(pool.filter(function (x) {
+        return x !== p && !(x.it.grp || []).some(function (t) { return tags.indexOf(t) >= 0; });
+      })).slice(0, 3);
+      var opts = [p].concat(others).map(function (x, i) { return { en: x.it.en, kr: '', ok: i === 0 }; });
+      return { t: 'mc', sell: true, q: ['', '다음 설명에 해당하는 메뉴는 무엇인가요?'],
+               quote: ['', mask(p.d, p.it)], opts: shuffle(opts), ref: p.it.en };
+    });
+  }
+
   function sellQs(b, n, used) {
     used = used || [];
+    if (isKo(b)) return descQs(b, n, used);
     var deck = menuDeck(b);
     if (!deck) return [];
     var seen = {}, pool = [];
@@ -1064,6 +1171,7 @@
     var md = menuDeck(b), cats = md ? catsOf(md) : [], dn = 0;
     cats.forEach(function (c) { if (isDone('menu:' + md.id + ':' + c)) dn++; });
 
+    if (isKo(b)) return testIntroKo(b, total, rec, passed, cats, dn);
     var h = '<div class="card pad qintro">'
       + '<div class="eyebrow">' + esc(BRAND_META[b].name) + '</div>'
       + '<h2 class="ph">MENU TEST<span class="kr">메뉴 시험</span></h2>'
@@ -1093,14 +1201,39 @@
     return h;
   }
 
+  function testIntroKo(b, total, rec, passed, cats, dn) {
+    var h = '<div class="card pad qintro">'
+      + '<div class="eyebrow">' + esc(BRAND_META[b].name) + '</div>'
+      + '<h2 class="ph">메뉴 시험</h2>'
+      + '<div class="kv"><span>문항</span><b>' + total + '문항 · 100점 만점 환산</b></div>'
+      + '<div class="kv"><span>유형</span><b>전부 객관식 · 사진 ' + QUIZ_N.photo + ' · 메뉴 설명 ' + QUIZ_N.sell
+      + ' · 메뉴 지식 ' + QUIZ_N.mc + '</b></div>'
+      + '<div class="kv"><span>이수 기준</span><b>' + QUIZ_PASS + '점 이상</b></div>'
+      + (rec ? '<div class="kv"><span>내 기록</span><b>최고 ' + rec.best + '점 · 최근 ' + rec.last + '점 · '
+        + rec.tries + '회 응시</b></div>' : '')
+      + '</div>';
+    if (passed) h += '<div class="qpass">' + ico(I.award) + L('', '합격 · 메뉴 시험 이수 완료') + '</div>';
+    if (cats.length && dn < cats.length) {
+      h += '<div class="card pad" style="margin-top:12px"><div class="note">메뉴 탭을 먼저 학습하세요 ('
+        + dn + ' / ' + cats.length + ' 분류 완료). 문제는 메뉴 교육자료에서 나옵니다.</div></div>';
+    }
+    h += '<div class="card pad" style="margin-top:12px"><div class="note">사진 속 메뉴를 고르고, 메뉴 설명이 어떤 메뉴의 것인지 맞히세요. '
+      + '응시할 때마다 문제가 새로 뽑혀 몇 번이든 다시 볼 수 있습니다.</div></div>';
+    h += '<button class="btn" style="margin-top:16px" data-qstart>' + ico(I.pen)
+      + L('', rec ? '다시 응시하기' : '시험 시작') + '</button>';
+    return h;
+  }
+
   function quoteHtml(q) {
     return q.quote ? '<blockquote class="qquote">' + L(q.quote[0], q.quote[1]) + '</blockquote>' : '';
   }
 
   function quizQuestion() {
     var q = QZ.qs[QZ.i], a = QZ.ans[QZ.i], n = QZ.qs.length;
+    var ko = isKo(QZ.b);
     var h = '<div class="qtop"><span>Q ' + (QZ.i + 1) + ' / ' + n + '</span>'
-      + '<span class="qtype">' + (q.img ? 'PHOTO · 사진 문제' : q.sell ? 'SUGGESTIVE SELLING · 추천 멘트' : 'MENU · 메뉴 지식') + '</span></div>'
+      + '<span class="qtype">' + (ko ? (q.img ? '사진 문제' : q.sell ? '메뉴 설명' : '메뉴 지식')
+        : (q.img ? 'PHOTO · 사진 문제' : q.sell ? 'SUGGESTIVE SELLING · 추천 멘트' : 'MENU · 메뉴 지식')) + '</span></div>'
       + '<div class="bar"><i style="width:' + Math.round(QZ.i / n * 100) + '%"></i></div>'
       + '<div class="card pad qcard"><div class="qq">' + L(q.q[0], q.q[1]) + '</div>'
       + (q.img ? '<div class="qimg"><img src="' + esc(q.img) + '" alt=""></div>' : '')
@@ -1122,15 +1255,15 @@
     var ok = QZ.score >= QUIZ_PASS, n = QZ.qs.length;
     var h = '<div class="qres' + (ok ? ' ok' : '') + '">'
       + '<div class="qsc">' + QZ.score + '<small>점</small></div>'
-      + '<b>' + (ok ? 'PASSED · 합격' : 'NOT PASSED · 불합격') + '</b>'
-      + '<span>' + QZ.right + ' / ' + n + ' correct · 정답 ' + QZ.right + '개</span>'
-      + '<span>Pass ' + QUIZ_PASS + '+ · ' + QUIZ_PASS + '점 이상 이수</span></div>';
+      + '<b>' + (ok ? T('PASSED', '합격') : T('NOT PASSED', '불합격')) + '</b>'
+      + '<span>' + QZ.right + ' / ' + n + (KO() ? ' 정답' : ' correct · 정답 ' + QZ.right + '개') + '</span>'
+      + '<span>' + (KO() ? '' : 'Pass ' + QUIZ_PASS + '+ · ') + QUIZ_PASS + '점 이상 이수</span></div>';
     var wrong = [];
     QZ.qs.forEach(function (q, i) { if (!quizRight(q, QZ.ans[i])) wrong.push({ q: q, a: QZ.ans[i] }); });
     if (wrong.length) {
-      h += '<h2 class="sect">REVIEW · 틀린 문제 ' + wrong.length + '</h2><div class="qrev">'
+      h += '<h2 class="sect">' + T('REVIEW', '틀린 문제') + (KO() ? ' ' : ' · 틀린 문제 ') + wrong.length + '</h2><div class="qrev">'
         + wrong.map(function (w) {
-          function nm(o) { return o.en + (o.kr ? ' · ' + o.kr : ''); }
+          function nm(o) { return KO() ? (o.kr || o.en) : o.en + (o.kr ? ' · ' + o.kr : ''); }
           var mine = w.q.opts[w.a] ? nm(w.q.opts[w.a]) : '-';
           var right = nm(w.q.opts.filter(function (o) { return o.ok; })[0]);
           return '<div class="card pad">'
@@ -1155,7 +1288,7 @@
     var pages = (deck.pages || []).filter(function (p) { return (p.checklist || []).length; });
     if (!pages.length) return '<div class="empty">No checklist · 체크리스트가 없습니다.</div>';
     var h = '<div class="card pad"><div class="note">'
-      + 'For today (' + today() + '). Resets automatically when the date changes.<br>'
+      + (KO() ? '' : 'For today (' + today() + '). Resets automatically when the date changes.<br>')
       + '오늘(' + today() + ') 기준입니다. 날짜가 바뀌면 자동으로 초기화됩니다.</div></div>';
     pages.forEach(function (p) {
       h += '<h2 class="sect">' + esc(titleMain(p.title)) + '</h2>' + clHtml(deck.id, p.n, p.checklist);
@@ -1168,44 +1301,45 @@
     var p = progress(S.brand), full = p.total && p.done === p.total;
     var poss = positionsOf(S.brand);
     var h = '<div class="card pad">'
-      + '<div class="fg"><label class="fl" for="nm">NAME · 이름</label>'
+      + '<div class="fg"><label class="fl" for="nm">' + T('NAME', '이름') + '</label>'
       + '<input class="fi" id="nm" data-me="name" value="' + esc(S.me.name) + '" placeholder="홍길동"></div>'
-      + '<div class="fg"><label class="fl" for="ph">LAST 4 DIGITS · 연락처 뒤 4자리</label>'
+      + '<div class="fg"><label class="fl" for="ph">' + T('LAST 4 DIGITS', '연락처 뒤 4자리') + '</label>'
       + '<input class="fi" id="ph" data-me="phone" inputmode="numeric" maxlength="4" value="'
       + esc(S.me.phone || '') + '" placeholder="동명이인 구분용"></div>'
-      + '<div class="fg"><label class="fl" for="ps">POSITION · 포지션</label>'
+      + '<div class="fg"><label class="fl" for="ps">' + T('POSITION', '포지션') + '</label>'
       + '<select class="fi" id="ps" data-me="pos">'
-      + '<option value="">Select · 선택하세요</option>';
+      + '<option value="">' + T('Select', '선택하세요') + '</option>';
     ['FOH', 'BOH', 'MGMT'].forEach(function (g) {
       var sub = poss.filter(function (x) { return x.group === g; });
       if (!sub.length) return;
-      h += '<optgroup label="' + g + '">' + sub.map(function (x) {
+      h += '<optgroup label="' + (KO() ? { FOH: '홀', BOH: '주방', MGMT: '관리자' }[g] : g) + '">' + sub.map(function (x) {
         return '<option value="' + esc(x.id) + '"' + (S.me.pos === x.id ? ' selected' : '') + '>'
           + esc(x.label) + (x.kr ? ' · ' + esc(x.kr) : '') + '</option>';
       }).join('') + '</optgroup>';
     });
     h += '</select></div>'
-      + '<div class="fg" style="margin-bottom:0"><label class="fl">PROGRESS · 진도</label>'
+      + '<div class="fg" style="margin-bottom:0"><label class="fl">' + T('PROGRESS', '진도') + '</label>'
       + '<div style="display:flex;justify-content:space-between;font-size:13px">'
-      + '<span>' + p.done + ' / ' + p.total + ' items · 항목</span><b>' + p.pct + '%</b></div>'
+      + '<span>' + p.done + ' / ' + p.total + T(' items', ' 항목', ' · ') + '</span><b>' + p.pct + '%</b></div>'
       + '<div class="bar"><i style="width:' + p.pct + '%"></i></div></div></div>';
 
-    h += '<h2 class="sect">REMAINING · 남은 항목</h2>';
+    h += '<h2 class="sect">' + T('REMAINING', '남은 항목') + '</h2>';
     var left = p.items.filter(function (x) { return !S.done[x.k]; });
     if (!left.length) {
-      h += '<div class="card pad"><div class="note">All required items are complete. '
-        + 'Get your trainer signature below.<br>모든 필수 항목을 완료했습니다. '
+      h += '<div class="card pad"><div class="note">' + (KO() ? '' : 'All required items are complete. '
+        + 'Get your trainer signature below.<br>') + '모든 필수 항목을 완료했습니다. '
         + '아래에서 트레이너 서명을 받으세요.</div></div>';
     } else {
-      h += '<div class="list">' + left.slice(0, 40).map(function (x) {
-        return rowHtml(hrefOf(x), x.ch, false, x.label, x.chName);
+      h += '<div class="list">' + left.slice(0, 40).map(function (x, i) {
+        // 한글 묶음 이름(브랜드 · 매장 등)은 번호 칸에 안 들어간다 — 순번으로
+        return rowHtml(hrefOf(x), KO() ? String(i + 1) : x.ch, false, x.label, x.chName);
       }).join('') + '</div>';
       if (left.length > 40) h += '<div class="note" style="margin-top:8px">외 ' + (left.length - 40) + '개</div>';
     }
 
     h += studyTableHtml(S.brand);
 
-    h += '<h2 class="sect">TRAINER SIGN-OFF · 트레이너 확인</h2><div class="card pad">';
+    h += '<h2 class="sect">' + T('TRAINER SIGN-OFF', '트레이너 확인') + '</h2><div class="card pad">';
     if (S.sign && !S.sign.stale) {
       h += '<img src="' + esc(S.sign.img) + '" alt="서명" style="width:100%;border-radius:10px;background:#fff">'
         + '<div class="note" style="margin-top:8px"><b>' + esc(S.sign.by) + '</b> · ' + esc(S.sign.at) + '</div>'
@@ -1214,30 +1348,30 @@
     } else {
       if (S.sign && S.sign.stale) {
         h += '<div class="note" style="color:var(--crit);margin-bottom:10px">'
-          + 'Items changed after signing, so the signature was voided. Please sign again.<br>'
+          + (KO() ? '' : 'Items changed after signing, so the signature was voided. Please sign again.<br>')
           + '서명 이후 학습 항목이 변경되어 서명이 무효 처리되었습니다. 다시 받아주세요.</div>';
       }
-      h += '<div class="fg"><label class="fl" for="tn">TRAINER NAME · 트레이너 이름</label>'
-        + '<input class="fi" id="tn" placeholder="Trainer · 교육 담당자"></div>'
+      h += '<div class="fg"><label class="fl" for="tn">' + T('TRAINER NAME', '트레이너 이름') + '</label>'
+        + '<input class="fi" id="tn" placeholder="' + T('Trainer', '교육 담당자') + '"></div>'
         + '<div class="sigw"><canvas class="sig" id="sig"></canvas>'
-        + '<div class="hint" id="sigHint">Sign here with your finger · 여기에 손가락으로 서명</div></div>'
+        + '<div class="hint" id="sigHint">' + T('Sign here with your finger', '여기에 손가락으로 서명') + '</div></div>'
         + '<div style="display:flex;gap:8px;margin-top:10px">'
         + '<button class="btn sec2" data-sigreset>' + L('Clear', '지우기') + '</button>'
         + '<button class="btn" data-sigsave' + (full ? '' : ' disabled') + '>'
         + L('Save signature', '서명 저장') + '</button></div>'
-        + (full ? '' : '<div class="note" style="margin-top:8px">Complete every item before signing.<br>'
+        + (full ? '' : '<div class="note" style="margin-top:8px">' + (KO() ? '' : 'Complete every item before signing.<br>')
           + '모든 항목을 완료해야 서명할 수 있습니다.</div>');
     }
     h += '</div>';
 
     if (S.sign && !S.sign.stale && full && S.me.name) {
       var code = certCode(S.brand);
-      h += '<h2 class="sect">CERTIFICATE · 수료 확인서</h2>'
-        + '<div class="cert"><div class="ey">삼천리 SL&amp;C · ' + esc(S.brand) + ' BREA</div>'
+      h += '<h2 class="sect">' + T('CERTIFICATE', '수료 확인서') + '</h2>'
+        + '<div class="cert"><div class="ey">삼천리 SL&amp;C · ' + esc(BRAND_META[S.brand].store || S.brand + ' BREA') + '</div>'
         + '<h3>' + esc(S.me.name) + '</h3>'
-        + '<div class="who">' + esc(S.me.posLabel || '') + ' · ' + p.done + ' items · 항목 이수</div>'
+        + '<div class="who">' + esc(S.me.posLabel || '') + ' · ' + p.done + T(' items', ' 항목 이수', ' · ') + '</div>'
         + '<div class="code">' + code + '</div>'
-        + '<div class="cl">VERIFICATION CODE · 확인 코드 — 매니저에게 전달</div></div>'
+        + '<div class="cl">' + T('VERIFICATION CODE', '확인 코드') + ' — 매니저에게 전달</div></div>'
         + '<div class="note" style="margin-top:12px">보내면 <b>등록 링크</b>가 같이 갑니다. '
         + '매니저가 카톡에서 그 링크를 누르면 팀 현황에 바로 등록돼요 — 복사·붙여넣기가 필요 없습니다.</div>'
         + '<button class="btn" style="margin-top:10px" data-share>' + ico(I.share)
@@ -1246,9 +1380,9 @@
         + L('Copy as text', '텍스트만 복사') + '</button>';
     }
 
-    h += '<h2 class="sect">RECORD · 기록</h2><div class="card pad">'
-      + '<div class="note">Your record is stored only on this phone. Clearing browser data erases it, '
-      + 'so always send your completion to the manager when you finish.<br>'
+    h += '<h2 class="sect">' + T('RECORD', '기록') + '</h2><div class="card pad">'
+      + '<div class="note">' + (KO() ? '' : 'Your record is stored only on this phone. Clearing browser data erases it, '
+      + 'so always send your completion to the manager when you finish.<br>')
       + '학습 기록은 이 휴대폰에만 저장됩니다. 브라우저 데이터를 지우면 사라지니, '
       + '완료 후에는 반드시 수료 내용을 매니저에게 전달하세요.</div>'
       + '<button class="btn sec2" style="margin-top:12px" data-reset>' + ico(I.reset)
@@ -1262,7 +1396,7 @@
     var items = course(b), tot = 0, any = false;
     items.forEach(function (x) { var s = studyOf(x.k).s; tot += s; if (s) any = true; });
     if (!any) {
-      return '<h2 class="sect">TIME SPENT · 학습 시간</h2>'
+      return '<h2 class="sect">' + T('TIME SPENT', '학습 시간') + '</h2>'
         + '<div class="card pad"><div class="note">아직 기록이 없습니다. '
         + '각 항목을 열어 읽으면 머문 시간이 자동으로 쌓입니다.</div></div>';
     }
@@ -1274,7 +1408,7 @@
       g.rows.push({ x: x, st: st });
       g.s += st.s;
     });
-    var h = '<h2 class="sect">TIME SPENT · 학습 시간</h2>'
+    var h = '<h2 class="sect">' + T('TIME SPENT', '학습 시간') + '</h2>'
       + '<div class="card pad"><div class="prog"><div class="meta" style="margin:0">'
       + '<b>' + mins(tot) + '</b><span>' + items.length + '개 항목 합계 · 이 휴대폰 기준</span>'
       + '</div></div></div>'
@@ -1545,7 +1679,7 @@
         if (['03', '04'].indexOf(c.ch) < 0) return;
         c.pages.forEach(function (pg) { role[pg.n] = 1; });
       });
-      COURSE.forEach(function (c) {
+      courseOf(deck.brand).forEach(function (c) {
         if (c.role) return;
         deck.pages.forEach(function (pg) {
           if (!pg.divider && titleMain(pg.title).toUpperCase().indexOf(c.m) === 0) keep[pg.n] = 1;
@@ -1590,7 +1724,7 @@
     hits.sort(function (a, b) { return (a.brand === S.brand ? -1 : 0) - (b.brand === S.brand ? -1 : 0); });
     if (!hits.length) return h + '<div class="empty">No matches · 일치하는 내용이 없습니다.</div>';
     return h + '<div class="res">' + hits.slice(0, 60).map(function (e) {
-      return '<a href="' + e.href + '"><div class="k">' + esc(e.brand) + ' · ' + esc(e.kind) + '</div>'
+      return '<a href="' + e.href + '"><div class="k">' + esc((BRAND_META[e.brand] || {}).mark || e.brand) + ' · ' + esc(e.kind) + '</div>'
         + '<div class="t">' + hl(e.title, terms) + '</div>'
         + '<div class="s">' + hl(e.sub, terms) + '…</div></a>';
     }).join('') + '</div>';
@@ -1600,24 +1734,26 @@
   function render() {
     var r = route();
     document.documentElement.dataset.brand = S.brand;
+    // 한글 전용 브랜드 — CSS가 영문 줄(레일 영문 탭명 등)을 숨기고 한글 제목 글꼴로 바꾼다
+    if (KO()) document.documentElement.dataset.lang = 'ko'; else delete document.documentElement.dataset.lang;
     if (S.theme) document.documentElement.dataset.theme = S.theme;
     else delete document.documentElement.dataset.theme;
 
     var tab = r.t, body = '', title = '', opts = {};
     if (tab === 'sop') {
-      body = viewSopList(); title = 'ONBOARDING MANUAL'; opts.kicker = '입문 매뉴얼 · 간소화';
+      body = viewSopList(); title = KO() ? '입문 매뉴얼' : 'ONBOARDING MANUAL'; opts.kicker = KO() ? BRAND_META[S.brand].store : '입문 매뉴얼 · 간소화';
     }
     else if (tab === 'p') {
       var d2 = deckById(r.a), p2 = d2 && pageOf(d2, parseInt(r.b, 10));
       body = viewPage(r.a, parseInt(r.b, 10));
       title = p2 ? titleMain(p2.title) : 'SOP';
       opts.back = 'sop';
-      opts.kicker = '입문 매뉴얼 · 간소화';
+      opts.kicker = KO() ? '입문 매뉴얼' : '입문 매뉴얼 · 간소화';
       opts.brands = false;   // 본문에서는 제목에 폭을 양보
     }
     else if (tab === 'menu') {
       var mc = r.b ? decodeURIComponent(r.b) : '';
-      if (!mc || mc === '__all') { body = viewMenuAll(); title = 'MENU SOP'; opts.kicker = '메뉴 학습'; }
+      if (!mc || mc === '__all') { body = viewMenuAll(); title = KO() ? '메뉴' : 'MENU SOP'; opts.kicker = KO() ? '메뉴 학습 · 제공 방식' : '메뉴 학습'; }
       else {
         body = viewMenu(mc);
         title = mc;
@@ -1634,7 +1770,7 @@
       }
     }
     else if (tab === 'test') {
-      body = viewTest(); title = 'MENU TEST'; opts.kicker = '메뉴 시험 · ' + QUIZ_PASS + '점 이상 이수';
+      body = viewTest(); title = KO() ? '메뉴 시험' : 'MENU TEST'; opts.kicker = '메뉴 시험 · ' + QUIZ_PASS + '점 이상 이수';
       if (QZ && !QZ.end) opts.brands = false;   // 푸는 중에는 브랜드를 바꾸지 못하게
       if (!QUIZ) {
         fetch('quiz.json?v=' + (document.currentScript && document.currentScript.src.split('v=')[1] || '1'))
@@ -1643,8 +1779,8 @@
           .catch(function () { QUIZ = {}; render(); });
       }
     }
-    else if (tab === 'check') { body = viewCheck(); title = 'CHECKLIST'; opts.kicker = '오픈 · 마감 체크리스트'; }
-    else if (tab === 'cert') { body = viewCert(); title = 'MY CERTIFICATE'; opts.kicker = '내 교육 수료'; }
+    else if (tab === 'check') { body = viewCheck(); title = KO() ? '체크리스트' : 'CHECKLIST'; opts.kicker = KO() ? '근무 전 준비 사항' : '오픈 · 마감 체크리스트'; }
+    else if (tab === 'cert') { body = viewCert(); title = KO() ? '내 교육 수료' : 'MY CERTIFICATE'; opts.kicker = KO() ? '이름 · 진도 · 서명' : '내 교육 수료'; }
     else if (tab === 'admin') {
       if (!S.adminOn) { S.adminOn = 1; save(); }
       body = viewAdmin(); title = 'TEAM STATUS'; opts.kicker = '팀 수료 현황 · 관리자';
