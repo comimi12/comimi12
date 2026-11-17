@@ -19,7 +19,7 @@
     WASA: { name: 'IZAKAYA WASA', kr: '이자카야 와사 · 스시 · 로바타',
             mark: 'WASA', tag: '이자카야 · 스시' },
     // 한국 매장 — 화면 문구·본문 모두 한글만 쓴다(ko). 원본 구성이 달라 과정·포지션을 따로 둔다.
-    EONGA: { name: '어온가', kr: '어온가 · 남도 직화 정찬', mark: '어온가', tag: '남도 생선구이',
+    EONGA: { name: '어온가-고양점', kr: '어온가-고양점 · 남도 직화 정찬', mark: '어온가-고양점', tag: '남도 생선구이',
              store: '어온가 스타필드 고양점', ko: true,
              positions: [
                { id: 'hall', label: '홀 서버', group: 'FOH' },
