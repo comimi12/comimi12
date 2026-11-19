@@ -10,7 +10,14 @@
 
 수치는 이 스크립트가, 질적 요약(TOP3 요약·토픽·인사이트)은 Claude가 ai_notes.js 에 작성한다.
 """
-import csv, json, glob, os, re, datetime, collections, statistics, subprocess, tempfile, hashlib
+import csv, json, glob, os, re, datetime, collections, statistics, subprocess, tempfile, hashlib, sys
+
+# 예약 작업(콘솔 cp949)에서 '—' 등 출력 시 UnicodeEncodeError로 build 전체가 죽던 문제 방지
+for _s in (sys.stdout, sys.stderr):
+    try:
+        _s.reconfigure(errors="replace")
+    except Exception:
+        pass
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REVIEW_DIR = os.path.join(HERE, "data", "reviews")
@@ -209,7 +216,7 @@ def neg_signal(text):
 
 # AI 전수 판정 구간 — 이 기간은 출처·기존 라벨과 무관하게 내용 있는 모든 리뷰를 Claude 가 판정한다.
 # 기초 데이터(월별 프로그램 파일)가 확정된 달까지 FULL_AI_UNTIL 을 늘린다. 그 밖의 달은 후보만 판정.
-FULL_AI_FROM, FULL_AI_UNTIL = "2026-01", "2026-10"
+FULL_AI_FROM, FULL_AI_UNTIL = "2026-01", "2026-11"
 
 
 def ai_targets(rows):
