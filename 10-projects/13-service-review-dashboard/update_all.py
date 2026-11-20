@@ -20,21 +20,21 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 HERE = os.path.dirname(os.path.abspath(__file__))
 PY = sys.executable
 LOGDIR = os.path.join(HERE, "_logs"); os.makedirs(LOGDIR, exist_ok=True)
-LOGFILE = os.path.join(LOGDIR, f"update_{datetime.date.today():%Y-%m-%d}.log")
+LOGFILE = os.path.join(LOGDIR, f"update_{datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).date():%Y-%m-%d}.log")
 CATCHTABLE = "--catchtable" in sys.argv
 SHARE = "--no-share" not in sys.argv
-MONTH = datetime.date.today().strftime("%Y-%m")
-MONTH_START = datetime.date.today().strftime("%Y-%m-01")
+MONTH = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).date().strftime("%Y-%m")
+MONTH_START = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).date().strftime("%Y-%m-01")
 # ECK는 전월도 함께 재수집한다. 당월만 받으면 (a) 월말일 점검이 그날 오전 스냅샷에 고정되고
 # (b) PC가 꺼져 스케줄을 건너뛴 날이 영구 구멍으로 남는다. 전월 재수집으로 자동 복구.
-_pm = datetime.date.today().replace(day=1) - datetime.timedelta(days=1)
+_pm = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).date().replace(day=1) - datetime.timedelta(days=1)
 PREV_MONTH = _pm.strftime("%Y-%m")
 # Windows: 자식 프로세스가 콘솔 창을 새로 띄우지 않게 (팝업 갱신 시 창 깜빡임 방지)
 CREATE_NO_WINDOW = 0x08000000 if os.name == "nt" else 0
 
 
 def log(msg):
-    line = f"[{datetime.datetime.now():%H:%M:%S}] {msg}"
+    line = f"[{datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).replace(tzinfo=None):%H:%M:%S}] {msg}"
     print(line)
     with open(LOGFILE, "a", encoding="utf-8") as f:
         f.write(line + "\n")

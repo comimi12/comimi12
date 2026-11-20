@@ -17,7 +17,7 @@ from openpyxl.chart import BarChart, LineChart, Reference
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUTDIR = os.path.join(HERE, "exports"); os.makedirs(OUTDIR, exist_ok=True)
-MONTH = sys.argv[1] if len(sys.argv) > 1 else datetime.date.today().strftime("%Y-%m")
+MONTH = sys.argv[1] if len(sys.argv) > 1 else datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).date().strftime("%Y-%m")
 
 HEAD_FILL = PatternFill("solid", fgColor="14559B")
 HEAD_FONT = Font(bold=True, color="FFFFFF", size=11)

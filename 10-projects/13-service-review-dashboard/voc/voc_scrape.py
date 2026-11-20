@@ -29,7 +29,7 @@ def main():
         raise SystemExit("[ERR] 로그인 실패 (세션 쿠키 없음)")
     print("[OK] 로그인")
     # 최근 N개월 기간 지정
-    today = datetime.date.today()
+    today = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).date()
     y, m = today.year, today.month - (MONTHS_BACK - 1)
     while m <= 0:
         m += 12; y -= 1
@@ -47,7 +47,7 @@ def main():
         except OSError: pass
     er = s.get(f"{BASE}/customer/excel_customer_list.php", params=params, timeout=120)
     er.raise_for_status()
-    dest = os.path.join(OUT, f"customer_list_{datetime.date.today():%Y%m%d}.xls")
+    dest = os.path.join(OUT, f"customer_list_{datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).date():%Y%m%d}.xls")
     with open(dest, "wb") as f:
         f.write(er.content)
     head = er.content[:16]

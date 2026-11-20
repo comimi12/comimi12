@@ -15,7 +15,7 @@
   python auto_refresh_july.py --probe-gap 600 --max-wait-h 12
 """
 import sys, io, os, json, time, base64, subprocess, importlib.util, shutil, tempfile
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 import requests
 
@@ -29,7 +29,7 @@ OUT_CSV = os.path.join(HERE, "data", "reviews", "naver_recollect_202607.csv")
 
 
 def log(msg):
-    line = f"[{datetime.now():%Y-%m-%d %H:%M:%S}] {msg}"
+    line = f"[{datetime.now(timezone(timedelta(hours=9))).replace(tzinfo=None):%Y-%m-%d %H:%M:%S}] {msg}"
     print(line)
     os.makedirs(LOG_DIR, exist_ok=True)
     with open(LOG_PATH, "a", encoding="utf-8") as f:

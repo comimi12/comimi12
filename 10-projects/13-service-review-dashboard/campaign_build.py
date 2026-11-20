@@ -270,7 +270,7 @@ def main():
         rec["posters"], rec["edu"] = posters, edus
         months.append(rec)
 
-    payload = {"generated": datetime.date.today().isoformat(), "months": months}
+    payload = {"generated": datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).date().isoformat(), "months": months}
     with open(OUT_JS, "w", encoding="utf-8") as f:
         f.write("/* 자동 생성: campaign_build.py — 직접 수정 금지 */\n")
         f.write("window.CAMPAIGN=" + json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + ";\n")

@@ -190,7 +190,7 @@ def main():
 
     with open(OUT, "w", encoding="utf-8") as fp:
         fp.write("window.MANUAL_IMAGES = " + json.dumps(
-            {"generated": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), "slots": manifest},
+            {"generated": datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).replace(tzinfo=None).strftime("%Y-%m-%d %H:%M"), "slots": manifest},
             ensure_ascii=False, indent=1) + ";\n")
 
     print(f"\n[OK] manuals_images.js — 사진 {len(manifest)}/{len(SLOTS)} 슬롯")

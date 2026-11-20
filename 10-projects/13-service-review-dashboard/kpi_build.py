@@ -221,7 +221,7 @@ def _finalize_due(mon):
     """mon('2026-06')이 익월 FINALIZE_DAY(5일)을 지나 확정 시점인가."""
     y, m = int(mon[:4]), int(mon[5:7])
     ny, nm = (y + 1, 1) if m == 12 else (y, m + 1)
-    return datetime.date.today() >= datetime.date(ny, nm, FINALIZE_DAY)
+    return datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).date() >= datetime.date(ny, nm, FINALIZE_DAY)
 
 
 def _parse_service_record(org, mgr, cells):
@@ -478,7 +478,7 @@ def main():
         by_month[mon] = {"source": "computed", "provisional": (not due), "rows": rows}
         if due:                                     # 확정: 1회 동결 저장
             entry = dict(by_month[mon])
-            entry["finalized_at"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+            entry["finalized_at"] = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).replace(tzinfo=None).strftime("%Y-%m-%d %H:%M")
             finalized[mon] = entry
             final_changed = True
     if final_changed:
@@ -519,7 +519,7 @@ def main():
         {"grade": "D", "score": "69 이하", "desc": "저조", "quota": QUOTA["D"]},
     ]
     out = {
-        "generated_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "generated_at": datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).replace(tzinfo=None).strftime("%Y-%m-%d %H:%M"),
         "months": months,
         "current_month": months[-1] if months else None,
         "default_month": default_month,

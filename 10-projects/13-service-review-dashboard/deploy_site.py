@@ -36,7 +36,7 @@ def main():
     else:
         git("pull", "--ff-only")
     # index.html 복사 + 빌드토큰 주입(캐시 우회 자동 새로고침용) + ver.txt 기록
-    token = f"{datetime.datetime.now():%Y%m%d-%H%M%S}"
+    token = f"{datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).replace(tzinfo=None):%Y%m%d-%H%M%S}"
     with open(SHARE, "r", encoding="utf-8") as f:
         html = f.read()
     html = html.replace("__BUILD_TOKEN__", token)
@@ -48,7 +48,7 @@ def main():
     st = git("status", "--porcelain")
     if not st.stdout.strip():
         print("[skip] 변경 없음 — 재배포 불필요"); return
-    msg = f"update: {datetime.datetime.now():%Y-%m-%d %H:%M}"
+    msg = f"update: {datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).replace(tzinfo=None):%Y-%m-%d %H:%M}"
     git("commit", "-m", msg)
     pr = git("push", "origin", "main")
     if pr.returncode == 0:

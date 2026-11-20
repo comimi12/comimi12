@@ -21,7 +21,7 @@ collect.py 대비 달라진 점:
 쿠키 자동 로딩은 `pip install browser-cookie3` 필요. Chrome 등에 네이버 로그인 상태여야 한다.
 """
 import sys, io, os, json, csv, time, random, base64, shutil, tempfile, importlib.util
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 import requests
 
@@ -208,17 +208,17 @@ def main():
     # 시간예산에 걸려 중간에 끊겨도 매일 같은 앞쪽 매장만 수집되지 않도록 날짜로 시작점을 돌린다.
     # (차단율이 높던 시기에 Chai 앞 몇 개 매장만 계속 들어오던 문제)
     if rotate and stores:
-        off = datetime.now().toordinal() % len(stores)
+        off = datetime.now(timezone(timedelta(hours=9))).replace(tzinfo=None).toordinal() % len(stores)
         stores = stores[off:] + stores[:off]
         print(f"[순환] 오늘 시작 매장: {stores[0]['name']} (offset {off}/{len(stores)})")
     # ※ 파일명은 반드시 naver_collected 로 시작해야 한다 —
     #   build.py 가 그 외 이름을 '월간 확정 파일'로 보고 그 달 자동수집분을 덮어버린다.
-    out_path = out_path or os.path.join(REVIEW_DIR, f"naver_collected_{datetime.now():%Y%m%d_%H%M%S}_v2.csv")
+    out_path = out_path or os.path.join(REVIEW_DIR, f"naver_collected_{datetime.now(timezone(timedelta(hours=9))).replace(tzinfo=None):%Y%m%d_%H%M%S}_v2.csv")
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
 
     os.makedirs(os.path.dirname(LOCK_FILE), exist_ok=True)
     with open(LOCK_FILE, "w", encoding="utf-8") as lf:
-        lf.write(f"pid={os.getpid()} start={datetime.now():%Y-%m-%d %H:%M:%S}")
+        lf.write(f"pid={os.getpid()} start={datetime.now(timezone(timedelta(hours=9))).replace(tzinfo=None):%Y-%m-%d %H:%M:%S}")
 
     deadline_ts = time.time() + deadline_min * 60
     print(f"[재수집] {len(stores)}개 매장, 기준일 {cutoff_s or '없음'}, 최대 {max_pages}p, "

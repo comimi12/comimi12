@@ -267,7 +267,7 @@ def main():
         }
 
     payload = {
-        "generated_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "generated_at": datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).replace(tzinfo=None).strftime("%Y-%m-%d %H:%M"),
         "months": months, "days_in_month": dim_by,
         "cs": cs_by, "qscs": qscs_by,
     }

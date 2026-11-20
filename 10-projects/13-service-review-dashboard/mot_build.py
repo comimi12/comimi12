@@ -151,7 +151,7 @@ def main():
 
     payload = {
         "source": SRC_LABEL,
-        "generated": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "generated": datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).replace(tzinfo=None).strftime("%Y-%m-%d %H:%M"),
         "brands": brands,
         "creeds": creeds,
     }

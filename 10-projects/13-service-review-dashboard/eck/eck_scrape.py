@@ -42,7 +42,7 @@ if len(_months) >= 2:
 elif len(_months) == 1:
     MONTHS = [_months[0]]
 else:
-    MONTHS = [datetime.date.today().strftime("%Y-%m")]
+    MONTHS = [datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).date().strftime("%Y-%m")]
 ONLY = _reports[0] if _reports else None
 
 

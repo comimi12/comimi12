@@ -521,7 +521,7 @@ DAILY_COLS = ["d", "vd", "si", "s", "src", "cat", "author", "seen", "text"]
 
 
 def build_daily(rows, window=DAILY_WINDOW):
-    today = datetime.date.today()
+    today = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).date()
     end = today.isoformat()
     start = (today - datetime.timedelta(days=window - 1)).isoformat()
 
@@ -1065,7 +1065,7 @@ def build_voc():
 def main():
     reviews, ai_rev = build_reviews()
     voc, ai_voc = build_voc()
-    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+    now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).replace(tzinfo=None).strftime("%Y-%m-%d %H:%M")
     payload = {"generated_at": now, "reviews": reviews, "voc": voc}
 
     with open(os.path.join(HERE, "data.js"), "w", encoding="utf-8") as f:

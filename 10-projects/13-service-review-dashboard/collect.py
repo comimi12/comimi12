@@ -90,7 +90,7 @@ def collect_naver(macro_dir, registry, cutoff, pages):
     if not all_rows:
         print("[네이버] 수집 0건 — 중단"); return None
     fields = ["매장명", "방문일자", "작성일자", "작성자", "방문시간대", "리뷰내용", "리뷰유형", "카테고리", "채널"]
-    out = os.path.join(REVIEW_DIR, f"naver_collected_{datetime.date.today():%Y%m%d}.csv")
+    out = os.path.join(REVIEW_DIR, f"naver_collected_{datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).date():%Y%m%d}.csv")
     os.makedirs(REVIEW_DIR, exist_ok=True)
     with open(out, "w", newline="", encoding="utf-8-sig") as f:
         w = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")
@@ -116,7 +116,7 @@ def collect_catchtable(macro_dir, registry, cutoff, pages):
         print("[캐치테이블] 쿠키 없음 → 건너뜀. catchtable_session.env 갱신 필요.")
         return None
     ct = import_source(macro_dir, "catchtable_collector_v0_7.py", "ct_collector")
-    cutoff = cutoff or f"{datetime.date.today():%Y-%m-01}"
+    cutoff = cutoff or f"{datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).date():%Y-%m-01}"
     from_ts = int(datetime.datetime.strptime(cutoff, "%Y-%m-%d").timestamp() * 1000)
     shops = [(s["code"], s["name"]) for s in registry.get("catchtable", []) if s.get("enabled")]
     print(f"[캐치테이블] {len(shops)}개 매장 수집 (selenium, 기준 {cutoff})")
@@ -130,7 +130,7 @@ def collect_catchtable(macro_dir, registry, cutoff, pages):
     if not rows:
         print("[캐치테이블] 수집 0건"); return None
     # build.py 의 merged 보충 양식(source/store_name/review_date/review_text/rating)으로 저장
-    ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    ts = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).replace(tzinfo=None).strftime("%Y%m%d_%H%M%S")
     out = os.path.join(REVIEW_DIR, f"merged_reviews_{ts}.csv")
     with open(out, "w", newline="", encoding="utf-8-sig") as f:
         w = csv.writer(f)

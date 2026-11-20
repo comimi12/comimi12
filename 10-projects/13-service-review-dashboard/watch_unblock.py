@@ -13,7 +13,7 @@
   python -u watch_unblock.py --gap 3600 --max-days 7
 """
 import sys, io, os, json, time, base64, subprocess, importlib.util, shutil, tempfile
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 import requests
 
@@ -22,14 +22,14 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", write_through
 HERE = os.path.dirname(os.path.abspath(__file__))
 LOG_PATH = os.path.join(HERE, "_logs", "watch_unblock.log")
 CUTOFF = "2026-07-01"
-OUT_CSV = os.path.join(HERE, "data", "reviews", f"naver_collected_{datetime.now():%Y%m%d}c.csv")
+OUT_CSV = os.path.join(HERE, "data", "reviews", f"naver_collected_{datetime.now(timezone(timedelta(hours=9))).replace(tzinfo=None):%Y%m%d}c.csv")
 CONFIRM_N = 3        # 연속 성공 요구 횟수
 CONFIRM_GAP = 90     # 확인 사이 간격(초)
 MIN_ROWS = 2000      # 이만큼도 못 모으면 GUI 수동 추출 필요로 판정
 
 
 def log(msg):
-    line = f"[{datetime.now():%Y-%m-%d %H:%M:%S}] {msg}"
+    line = f"[{datetime.now(timezone(timedelta(hours=9))).replace(tzinfo=None):%Y-%m-%d %H:%M:%S}] {msg}"
     print(line)
     os.makedirs(os.path.dirname(LOG_PATH), exist_ok=True)
     with open(LOG_PATH, "a", encoding="utf-8") as f:

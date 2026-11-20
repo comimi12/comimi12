@@ -15,7 +15,7 @@ import sys, io, os, glob, json, re, datetime
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 import build  # normalize_reviews_file 재사용
 
-CUR_MONTH = datetime.date.today().strftime("%Y-%m")
+CUR_MONTH = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).date().strftime("%Y-%m")
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REVIEW_DIR = os.path.join(HERE, "data", "reviews")

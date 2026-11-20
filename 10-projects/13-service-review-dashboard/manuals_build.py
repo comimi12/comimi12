@@ -358,7 +358,7 @@ def main():
                      "n": sum(len(s["items"]) for s in subs), "subs": subs})
 
     payload = {
-        "generated": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "generated": datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).replace(tzinfo=None).strftime("%Y-%m-%d %H:%M"),
         "root": ROOT,
         "total": sum(c["n"] for c in cats),
         "files": scanned,
