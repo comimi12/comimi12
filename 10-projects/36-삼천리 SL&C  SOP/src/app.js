@@ -42,7 +42,24 @@
                { g: '서비스', t: '대기 Q&A · 상황별 멘트', m: '대기 고객 · 현장 상황별 응대' },
                { g: '서비스', t: '잘못된 응대어 → 올바른 응대어', m: '고객불만 예방 멘트' },
                { g: '서비스', t: '고객이 자주 묻는 10가지', m: '자주 묻는 질문' }
-             ] }
+             ] },
+    // 한국 매장 — 어온가와 같은 한글 전용. 원본(11/19)에 있는 것만 과정으로 둔다(build/sanglim.py).
+    SANGLIM: { name: '상림숯집', kr: '상림숯집 · 참숯 갈비', mark: '상림숯집', tag: '참숯 갈비',
+               store: '상림숯집', ko: true,
+               positions: [
+                 { id: 'hall', label: '홀 직원', group: 'FOH' },
+                 { id: 'kitchen', label: '주방', group: 'BOH' },
+                 { id: 'manager', label: '매니저', group: 'MGMT' },
+                 { id: 'gm', label: '점장 · 실장', group: 'MGMT' }
+               ],
+               course: [
+                 { g: '브랜드 · 매장', t: '상림(桑林) · 핵심 가치 · 무드', m: '브랜드 소개' },
+                 { g: '브랜드 · 매장', t: '점장 · 실장 · 테이블 배치도', m: '우리 매장 정보' },
+                 { g: '기본 기준', t: '점장 · 매니저 · 홀 직원 유니폼', m: '용모 복장 가이드' },
+                 { g: '매장 운영', t: '테이블 · 고기 · 식사 기물', m: '기물 명칭 및 용도' },
+                 { g: '매장 운영', t: '고기 테이블 세팅 7가지', m: '기본 세팅' },
+                 { g: '매장 운영', t: '반찬 13종 · 소스 4종', m: '반찬 · 소스' }
+               ] }
   };
   function isKo(b) { return !!(BRAND_META[b] || {}).ko; }
   function KO() { return isKo(S.brand); }
@@ -444,7 +461,7 @@
     h += '<a class="ic" href="#/search" aria-label="검색">' + ico(I.search) + '</a></div>';
     if (opts.brands !== false) {
       h += '<div class="hd-sub">';
-      h += '<div class="bsw">' + BRANDS.map(function (b) {
+      h += '<div class="bsw' + (BRANDS.length === 4 ? ' n4' : '') + '">' + BRANDS.map(function (b) {
         var m = BRAND_META[b] || {};
         return '<button class="b-' + b + '" data-setbrand="' + b + '"'
           + (b === S.brand ? ' aria-current="true"' : '') + '>'

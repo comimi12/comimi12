@@ -4,7 +4,7 @@ const src = fs.readFileSync(path.join(__dirname, '..', 'src', 'app.js'), 'utf8')
 const data = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'src', 'data.json'), 'utf8'));
 const body = src.slice(src.indexOf('  var SELL_KR'), src.indexOf('  /** 섞되'));
 const HANGUL = /[가-힣]/, shuffle = a => a.slice(), fresh = a => a.slice(), out = {};
-const isKo = b => b === 'EONGA';   // 어온가는 verify_quiz.py(KSC 영문 시험) 대상이 아니다
+const isKo = b => (b === 'EONGA' || b === 'SANGLIM');   // 어온가는 verify_quiz.py(KSC 영문 시험) 대상이 아니다
 for (const d of data.filter(x => x.kind === 'menu' && !isKo(x.brand))) {
   const menuDeck = () => d;
   eval(body);

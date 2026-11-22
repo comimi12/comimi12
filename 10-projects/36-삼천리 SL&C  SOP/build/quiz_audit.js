@@ -14,7 +14,7 @@ const HANGUL = /[가-힣]/;
 function thumb(s) { return s.replace(/^img\/(.+)\.[a-z]+$/, 'img/t/$1.jpg'); }
 function save() {}
 // 한글 전용 브랜드(어온가) 판정 — app.js의 BRAND_META.ko 와 같게 둔다
-function isKo(b) { return b === 'EONGA'; }
+function isKo(b) { return (b === 'EONGA' || b === 'SANGLIM'); }
 let S = { brand: 'KSC', qseen: {} };
 function menuDeck(b) { return data.filter(d => d.kind === 'menu' && d.brand === b)[0]; }
 eval(block);
@@ -84,8 +84,9 @@ for (const b of ['KSC', 'WASA']) {
   if (missingKr.size) console.log('  국문 이름 없는 보기: ' + [...missingKr].join(', '));
 }
 // ── 어온가(한글 전용): 사진 15 + 메뉴 설명 10 + 메뉴 지식 5 ──
-if (menuDeck('EONGA')) {
-  const b = 'EONGA', deck = menuDeck(b), grpOf = {};
+for (const b of ['EONGA', 'SANGLIM']) {
+  if (!menuDeck(b)) continue;
+  const deck = menuDeck(b), grpOf = {};
   deck.items.forEach(it => { grpOf[it.en] = it.grp || []; });
   let prev = null, overlapMax = 0;
   for (let r = 0; r < N; r++) {

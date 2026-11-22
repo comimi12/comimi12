@@ -5,7 +5,7 @@ const src = fs.readFileSync(path.join(__dirname, '..', 'src', 'app.js'), 'utf8')
 const data = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'src', 'data.json'), 'utf8'));
 const body = src.slice(src.indexOf('  var SELL_KR'), src.indexOf('  /** 섞되'));
 const HANGUL = /[가-힣]/, shuffle = a => a.slice(), fresh = a => a.slice();
-const isKo = b => b === 'EONGA';   // 한글 전용 브랜드는 추천 멘트 대신 메뉴 설명 문제(descQs)라 이 점검 대상이 아니다
+const isKo = b => (b === 'EONGA' || b === 'SANGLIM');   // 한글 전용 브랜드는 추천 멘트 대신 메뉴 설명 문제(descQs)라 이 점검 대상이 아니다
 const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 let bad = 0;
 for (const d of data.filter(x => x.kind === 'menu' && !isKo(x.brand))) {
