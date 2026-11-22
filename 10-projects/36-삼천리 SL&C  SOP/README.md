@@ -390,7 +390,7 @@ python build/verify.py https://comimi12.github.io/slnc-sop-dashboard/   # 배포
 
 어온가와 같은 한글 전용 브랜드(`BRAND_META.SANGLIM`, `ko:true`). 브랜드 4개가 되어 브랜드 전환 버튼은 2×2(`.bsw.n4`).
 
-- 원본: `Desktop\교육팀. 신규매장매뉴얼, 교안\오픈매장 매뉴얼\상림숯집\` (11/22 기준 DRM 아님)
+- 원본: `Desktop\교육팀\4. 신규매장매뉴얼, 교안\오픈매장 매뉴얼\상림숯집\` (11/22 기준 DRM 아님)
   - **가격 = `261119_상림숯집_메뉴리스트 (메뉴명,판매가).xlsx`의 `최종판매가_v2` 열** (v1과 다르면 v2). 중량·구성·한정 표시·음료/주류 가격은 `261117_[상림숯집] 메뉴리스트.xlsx`.
   - 브랜드 소개서 PDF(43p, 글꼴 인코딩이 깨져 텍스트 추출 불가 → 문장은 화면을 보고 옮겨 적음) · 테이블 세팅 PDF · 기물리스트 xlsx(셀 이미지) · 유니폼 png · 좌석배치도 pptx(2안 도면 = 플로어플랜) · `메뉴사진\` · 키 비주얼 `상림숯집_01~03.jpg`.
 - 빌드: `python build/sanglim.py` → `sanglim-manual`(6장)·`sanglim-menu`·`quiz.json SANGLIM`·`src/img/sanglim-*` 교체(멱등) → `python build/thumbs.py`. extract.py를 돌린 뒤엔 eonga.py와 함께 다시 돌릴 것. 공용 함수는 eonga.py에서 import.
