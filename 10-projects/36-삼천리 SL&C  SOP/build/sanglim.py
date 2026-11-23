@@ -343,8 +343,6 @@ def build_pages():
         img_entry(floor_plan(), 0, plan=True),
         img_entry(pos_key(), 0, plan=True, cap="POS 테이블 키 배치 — 주문 입력 시 이 번호로 선택 (룸 = R01~R06)"),
         img_entry(floor_cad(), 0, plan=True, cap="원본 도면 (룸 RM.A~F)"),
-        img_entry(pdf_crop(BRAND_PDF, 22, (0, 0, 1920, 1080), P_("overview.jpg"), dpi=75, unit="pt"), 0,
-                  full=True, cap="매장 전체 조감도 (공간 디자인안)"),
     ], badge="숙지 필수"))
 
     # 4. 용모 복장 가이드
