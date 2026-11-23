@@ -630,6 +630,7 @@
   function blockHtml(b) {
     if (b.kind === 'code') return codeHtml(b);
     if (b.kind === 'grid') return gridHtml(b);
+    if (b.kind === 'kv') return kvHtml(b);
     // 제목 없는 긴 도입 문단은 현장에서 쓸 내용이 아니라 간소화 화면에서 뺀다
     if (!b.head && b.lines.join(' ').length > 60) return '';
     var cls = 'blk' + (b.kind && b.kind !== 'normal' ? ' ' + b.kind : '');
@@ -647,6 +648,13 @@
       }).join('') + '</ul>';
     }
     return h + '</section>';
+  }
+  /** 항목 | 내용 2열 표 (우리 매장 정보 등) — rows = [[항목, 내용], ...] */
+  function kvHtml(b) {
+    return '<section class="blk kvt">' + (b.head ? '<h3>' + esc(b.head) + '</h3>' : '')
+      + '<div class="tbl"><table class="kv"><tbody>' + b.rows.map(function (r) {
+        return '<tr><th scope="row">' + esc(r[0]) + '</th><td>' + esc(r[1]) + '</td></tr>';
+      }).join('') + '</tbody></table></div></section>';
   }
   function tableHtml(rows) {
     if (!rows || !rows.length) return '';
@@ -1154,7 +1162,10 @@
       return { t: 'mc', q: q.q, ref: q.ref,
                opts: shuffle(q.o.map(function (o, i) { return { en: o[0], kr: o[1], ok: i === 0 }; })) };
     });
-    QZ = { b: b, qs: shuffle(mc.concat(photoQs(b, QUIZ_N.photo, used), sellQs(b, QUIZ_N.sell, used))),
+    // 사진 문항이 모자라면(사진 있는 메뉴를 지식 문항이 이미 물은 경우) 그만큼 설명 · 멘트 문항으로 채운다
+    var ph = photoQs(b, QUIZ_N.photo, used);
+    var sl = sellQs(b, QUIZ_N.sell + QUIZ_N.photo - ph.length, used);
+    QZ = { b: b, qs: shuffle(mc.concat(ph, sl)),
            i: 0, ans: [], end: false };
     S.qseen = S.qseen || {};
     S.qseen[b] = QZ.qs.map(function (q) { return (q.img ? 'p:' : q.sell ? 's:' : 'm:') + (q.img || q.sell ? q.ref : q.q[0]); });
@@ -1711,6 +1722,7 @@
         var parts = [];
         (p.blocks || []).forEach(function (b) {
           parts.push(b.head, b.lines.join(' '));
+          (b.rows || []).forEach(function (r) { parts.push(r.join(' ')); });
           (b.steps || []).forEach(function (s) { parts.push(s.t.join(' '), s.lines.join(' '), s.say.join(' ')); });
         });
         (p.checklist || []).forEach(function (c) {

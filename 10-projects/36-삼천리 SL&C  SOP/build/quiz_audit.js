@@ -78,7 +78,7 @@ for (const b of ['KSC', 'WASA']) {
       const k = q.ref.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
       if (refs.some(r => k.indexOf(r) === 0)) bad(b, q.img ? 'photo' : 'sell', '메뉴 지식 문항과 같은 메뉴가 정답: ' + q.ref);
     });
-    if (cnt.photo !== 15 || cnt.sell !== 10 || cnt.mc !== 5) bad(b, 'count', '유형 비율 ' + JSON.stringify(cnt));
+    if (cnt.photo > 15 || cnt.photo < 12 || cnt.photo + cnt.sell !== 25 || cnt.mc !== 5) bad(b, 'count', '유형 비율 ' + JSON.stringify(cnt));
   }
   console.log('[' + b + '] 시험 ' + N + '회 생성 · 연속 응시 간 최대 겹침 ' + overlapMax + '문항');
   if (missingKr.size) console.log('  국문 이름 없는 보기: ' + [...missingKr].join(', '));
@@ -122,7 +122,7 @@ for (const b of ['EONGA', 'SANGLIM']) {
         if (quote.replace(/____|\s/g, '').length < 8) bad(b, t, '설명이 거의 다 가려짐: ' + quote);
       }
     });
-    if (cnt.photo !== 15 || cnt.sell !== 10 || cnt.mc !== 5) bad(b, 'count', '유형 비율 ' + JSON.stringify(cnt));
+    if (cnt.photo > 15 || cnt.photo < 12 || cnt.photo + cnt.sell !== 25 || cnt.mc !== 5) bad(b, 'count', '유형 비율 ' + JSON.stringify(cnt));
   }
   console.log('[' + b + '] 시험 ' + N + '회 생성 · 연속 응시 간 최대 겹침 ' + overlapMax + '문항');
 }
