@@ -12,7 +12,7 @@ ARG = sys.argv[1] if len(sys.argv) > 1 else "8765"
 BASE = ARG.rstrip("/") + "/" if ARG.startswith("http") else "http://localhost:%s/" % ARG
 SHOTS = os.path.join(HERE, "shots-sanglim")
 
-VIEWS = [("sop", "#/sop")] + [("p%d" % n, "#/p/sanglim-manual/%d" % n) for n in range(2, 14)] + [
+VIEWS = [("sop", "#/sop")] + [("p%d" % n, "#/p/sanglim-manual/%d" % n) for n in range(2, 13)] + [
     ("menu", "#/menu"), ("menu-all", "#/menu/sanglim-menu/__all"),
     ("test", "#/test"), ("cert", "#/cert"), ("check", "#/check")]
 
