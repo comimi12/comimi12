@@ -30,4 +30,4 @@
 ## 빌드·배포
 - `python build/build.py` → index.html 생성
 - 공유 링크(claude.ai 아티팩트): https://claude.ai/artifact/52xeCL5ATxosUTueUUv2RE — `build/artifact.html`(Leaflet CSS 인라인본)을 게시
-- `build/deploy.py`: GitHub Pages(comimi12/vegas-food-map, public) 배포 스크립트 — 아직 미실행(권한 확인 필요)
+- 공개 배포: https://comimi12.github.io/vegas-food-map/ — `python build/build.py` 후 `python build/deploy.py` (comimi12/vegas-food-map public 저장소에 index.html 푸시, 커밋 작성자는 GitHub noreply)
