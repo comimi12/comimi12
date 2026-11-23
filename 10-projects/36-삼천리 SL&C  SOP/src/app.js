@@ -1812,7 +1812,7 @@
           .catch(function () { QUIZ = {}; render(); });
       }
     }
-    else if (tab === 'check') { body = viewCheck(); title = KO() ? '체크리스트' : 'CHECKLIST'; opts.kicker = KO() ? '근무 전 준비 사항' : '오픈 · 마감 체크리스트'; }
+    else if (tab === 'check') { body = viewCheck(); title = KO() ? '체크리스트' : 'CHECKLIST'; opts.kicker = KO() && S.brand !== 'SANGLIM' ? '근무 전 준비 사항' : (KO() ? '매장 오픈 · 마감 체크리스트' : '오픈 · 마감 체크리스트'); }
     else if (tab === 'cert') { body = viewCert(); title = KO() ? '내 교육 수료' : 'MY CERTIFICATE'; opts.kicker = KO() ? '이름 · 진도 · 서명' : '내 교육 수료'; }
     else if (tab === 'admin') {
       if (!S.adminOn) { S.adminOn = 1; save(); }
