@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>라스베가스 맛집 지도</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+:root{
+  --bg:#f5f6f8; --panel:#ffffff; --ink:#14181f; --muted:#5d6675; --line:#e3e6eb;
+  --accent:#0B63CE; --navy:#0F2F54; --star:#d4351c; --chip:#eef1f5;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1116; --panel:#161b22; --ink:#e8ecf1; --muted:#97a1b0; --line:#2a313b;
+    --accent:#4c9bff; --navy:#9cc3ff; --star:#ff6b55; --chip:#202733;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1116; --panel:#161b22; --ink:#e8ecf1; --muted:#97a1b0; --line:#2a313b;
+  --accent:#4c9bff; --navy:#9cc3ff; --star:#ff6b55; --chip:#202733;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font-family:"Noto Sans KR",system-ui,sans-serif;font-size:14px}
+header{padding:16px 20px 10px;background:var(--panel);border-bottom:1px solid var(--line)}
+h1{margin:0;font-size:20px;font-weight:900;color:var(--navy);letter-spacing:-.3px}
+.sub{color:var(--muted);font-size:12px;margin-top:4px}
+.kpis{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.kpi{background:var(--chip);border-radius:8px;padding:6px 12px;font-size:12px;color:var(--muted)}
+.kpi b{color:var(--ink);font-size:15px;margin-right:3px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:5px 11px;font-size:12px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px}
+.chip .dot{width:9px;height:9px;border-radius:50%}
+.chip.on{background:var(--navy);color:var(--panel);border-color:var(--navy)}
+:root[data-theme="dark"] .chip.on{color:#0e1116}
+select,input[type=search]{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:8px;padding:6px 9px;font-family:inherit;font-size:12px}
+input[type=search]{min-width:160px;flex:1;max-width:260px}
+main{display:grid;grid-template-columns:420px 1fr;height:calc(100vh - var(--hh,190px))}
+#list{overflow-y:auto;border-right:1px solid var(--line);background:var(--bg);padding:10px}
+#map{height:100%;background:var(--chip)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:11px 13px;margin-bottom:8px;cursor:pointer;transition:border-color .15s}
+.card:hover,.card.sel{border-color:var(--accent)}
+.card .top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.card .nm{font-weight:700;font-size:15px}
+.card .num{display:inline-flex;width:22px;height:22px;border-radius:50%;color:#fff;font-size:11px;font-weight:700;align-items:center;justify-content:center;margin-right:6px;flex:none}
+.yelp{color:var(--star);font-weight:700;white-space:nowrap;font-size:13px}
+.meta{display:flex;flex-wrap:wrap;gap:4px 10px;color:var(--muted);font-size:12px;margin-top:6px}
+.meta span b{color:var(--ink);font-weight:500}
+.sig{margin-top:6px;font-size:12.5px}
+.sig::before{content:"시그니처 · ";color:var(--accent);font-weight:700}
+.tags{margin-top:6px;display:flex;gap:4px;flex-wrap:wrap}
+.tag{font-size:10.5px;background:var(--chip);color:var(--muted);padding:2px 7px;border-radius:4px}
+.approx{font-size:10.5px;color:var(--star)}
+.leaflet-popup-content{font-family:"Noto Sans KR",sans-serif;font-size:12.5px;line-height:1.55;margin:12px 14px}
+.pp h3{margin:0 0 4px;font-size:15px}
+.pp a{color:#0B63CE;text-decoration:none;font-weight:700;margin-right:10px}
+.mk{border-radius:50%;color:#fff;font:700 10px/22px "Noto Sans KR",sans-serif;text-align:center;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35)}
+.zone-label{background:none;border:none;box-shadow:none;color:#0F2F54;font:900 12px "Noto Sans KR",sans-serif;text-shadow:0 0 3px #fff,0 0 3px #fff;white-space:nowrap}
+.basetiles{filter:saturate(.55) brightness(1.03)}
+.darkmap .basetiles{filter:invert(1) hue-rotate(180deg) brightness(.85) saturate(.5)}
+footer{font-size:11px;color:var(--muted);padding:8px 20px;background:var(--panel);border-top:1px solid var(--line)}
+footer a{color:var(--accent)}
+#themeBtn{margin-left:auto}
+@media (max-width:860px){
+  main{grid-template-columns:1fr;grid-template-rows:55vh auto;height:auto}
+  #map{order:-1;height:55vh}
+  #list{border-right:none;overflow:visible}
+  header{padding:14px 16px 10px}
+  #list{padding:10px 16px}
+}
+</style>
+</head>
+<body>
+<header id="hdr">
+  <h1>라스베가스 맛집 지도</h1>
+  <div class="sub">인스타그램 추천 게시물 8건에서 뽑은 식당 69곳 · 카테고리 · 1인 객단가 · 영업시간 · 시그니처 메뉴 · Yelp 평점</div>
+  <div class="kpis" id="kpis"></div>
+  <div class="controls">
+    <div class="chips" id="cats"></div>
+  </div>
+  <div class="controls">
+    <select id="area"></select>
+    <select id="price">
+      <option value="">객단가 전체</option>
+      <option value="1">$ (~$25)</option>
+      <option value="2">$$ ($25–60)</option>
+      <option value="3">$$$ ($60–130)</option>
+      <option value="4">$$$$ ($130~)</option>
+    </select>
+    <select id="sort">
+      <option value="yelp">Yelp 평점순</option>
+      <option value="p-asc">객단가 낮은순</option>
+      <option value="p-desc">객단가 높은순</option>
+      <option value="name">이름순</option>
+    </select>
+    <input type="search" id="q" placeholder="식당·메뉴 검색">
+    <button class="chip" id="themeBtn" type="button">◐ 테마</button>
+  </div>
+</header>
+<main>
+  <div id="list"></div>
+  <div id="map"></div>
+</main>
+<footer>
+  ⚠️ 객단가·영업시간·Yelp 평점은 2026-11 기준 <b>참고용 추정치</b>입니다(시즌·요일마다 달라짐). 방문 전 카드 안의 Yelp·구글맵 링크로 꼭 확인하세요. <span class="approx">◆ 좌표 근사</span> 표시는 대략적인 위치예요.
+  · 출처: <span id="srcs"></span>
+</footer>
+
+<script>
+const CATS = {
+  cn:{n:"중식", c:"#d4351c"},
+  jp:{n:"일식", c:"#7a3fb8"},
+  kr:{n:"한식", c:"#0B63CE"},
+  sea:{n:"태국·베트남", c:"#1a9e5c"},
+  eu:{n:"유럽·지중해·인도", c:"#b8860b"},
+  us:{n:"스테이크·아메리칸", c:"#0F2F54"},
+  bbq:{n:"BBQ", c:"#8b4513"},
+  mx:{n:"멕시칸·라틴", c:"#e0791a"},
+  br:{n:"브런치·카페·뷔페", c:"#d6478f"}
+};
+const SRC = {
+  S1:{n:"차이나타운 20", u:"https://www.instagram.com/p/DbmdKchpY56/"},
+  S2:{n:"오프스트립 가성비 20", u:"https://www.instagram.com/p/DbQaUq3xMFx/"},
+  S3:{n:"미쉐린 셀렉티드 17", u:"https://www.instagram.com/p/DckpRAbhoIF/"},
+  S4:{n:"오프스트립 5", u:"https://www.instagram.com/p/DecVP_6Ehzn/"},
+  S5:{n:"한국인 추천 13", u:"https://www.instagram.com/p/DdJVMZbj31I/"},
+  S6:{n:"브런치 5", u:"https://www.instagram.com/p/DaiiX0ggpp4/"},
+  S7:{n:"호수뷰 브런치 릴스", u:"https://www.instagram.com/reel/DcsT_vUqftN/"},
+  S8:{n:"Lamaii 릴스", u:"https://www.instagram.com/reel/Deu-UQvj-Ys/"}
+};
+// n 이름, c 카테고리, a 지역, l 위치/주소, p 가격대(1-4), pp 1인 객단가, h 영업시간, s 시그니처, y Yelp, ll 좌표, src 출처, ap 좌표근사
+const R = [
+ // ── 차이나타운 20 (S1)
+ {n:"888 Japanese BBQ",c:"jp",a:"차이나타운",l:"3550 S Decatur Blvd",p:2,pp:"$35–50",h:"매일 11:30–익일 01:00",s:"Premium Beef Combo (야키니쿠)",y:4.5,ll:[36.1268,-115.2093],src:["S1"]},
+ {n:"Pho Kim Long",c:"sea",a:"차이나타운",l:"4029 Spring Mountain Rd",p:1,pp:"$15–20",h:"24시간",s:"Rare Steak Pho",y:4.0,ll:[36.1262,-115.1958],src:["S1","S2"]},
+ {n:"Raku",c:"jp",a:"차이나타운",l:"5030 Spring Mountain Rd #2",p:3,pp:"$60–100",h:"월–토 17:00–24:00 (일 휴무)",s:"Grilled Chicken Thigh (숯불 로바타)",y:4.6,ll:[36.1258,-115.2117],src:["S1","S2"]},
+ {n:"China Mama",c:"cn",a:"차이나타운",l:"3420 S Jones Blvd",p:1,pp:"$20–30",h:"매일 11:00–22:00",s:"Juicy Pork Buns (샤오롱바오)",y:4.1,ll:[36.1302,-115.2245],src:["S1","S2"]},
+ {n:"Shang Artisan Noodle",c:"cn",a:"차이나타운",l:"4983 W Flamingo Rd",p:1,pp:"$15–25",h:"매일 10:30–22:00",s:"Hand-Pulled Beef Noodle Soup (수타 우육면)",y:4.5,ll:[36.1153,-115.2098],src:["S1","S2"]},
+ {n:"Big Dan Shanxi Taste",c:"cn",a:"차이나타운",l:"Spring Mountain Rd 일대",p:1,pp:"$15–25",h:"매일 11:00–22:00",s:"Biang Biang Noodles",y:4.4,ll:[36.1262,-115.2050],ap:1,src:["S1","S2"]},
+ {n:"Monta Ramen",c:"jp",a:"차이나타운",l:"5030 Spring Mountain Rd #6",p:1,pp:"$15–20",h:"매일 11:00–22:00",s:"Tonkotsu Ramen",y:4.3,ll:[36.1255,-115.2111],src:["S1"]},
+ {n:"Ichiza",c:"jp",a:"차이나타운",l:"4355 Spring Mountain Rd #205",p:2,pp:"$30–50",h:"매일 17:00–익일 02:00",s:"Robata Skewers (이자카야 꼬치)",y:4.2,ll:[36.1265,-115.1993],src:["S1"]},
+ {n:"Kabuto Edomae Sushi",c:"jp",a:"차이나타운",l:"5040 Spring Mountain Rd #4",p:4,pp:"$150–250",h:"월–토 디너 예약제 (일 휴무)",s:"Omakase (에도마에 스시)",y:4.7,ll:[36.1254,-115.2123],src:["S1","S3"]},
+ {n:"Sushi Neko",c:"jp",a:"차이나타운",l:"5115 Spring Mountain Rd",p:3,pp:"$50–90",h:"화–일 17:00–22:00",s:"Premium Nigiri",y:4.6,ll:[36.1262,-115.2142],src:["S1"]},
+ {n:"Sparrow + Wolf",c:"us",a:"차이나타운",l:"4480 Spring Mountain Rd #100",p:3,pp:"$70–120",h:"월–토 17:00–22:00",s:"Bone Marrow Dumplings",y:4.5,ll:[36.1264,-115.2018],src:["S1","S3","S4"]},
+ {n:"Weera Thai (Chinatown)",c:"sea",a:"차이나타운",l:"Spring Mountain Rd 일대",p:1,pp:"$20–35",h:"매일 11:00–22:00",s:"Crispy Pork Belly",y:4.5,ll:[36.1262,-115.1975],ap:1,src:["S1","S2"]},
+ {n:"Ramen Boys",c:"jp",a:"차이나타운",l:"Spring Mountain Rd 일대",p:1,pp:"$15–20",h:"매일 11:00–22:00",s:"Tonkotsu Ramen",y:4.4,ll:[36.1259,-115.2072],ap:1,src:["S1"]},
+ {n:"Xiao Long Dumplings",c:"cn",a:"차이나타운",l:"Spring Mountain Rd 일대",p:1,pp:"$15–25",h:"매일 11:00–21:30",s:"Xiao Long Bao",y:4.3,ll:[36.1267,-115.2000],ap:1,src:["S1"]},
+ {n:"Magic Noodle",c:"cn",a:"차이나타운",l:"Spring Mountain Rd 서쪽",p:1,pp:"$15–20",h:"매일 11:00–22:00",s:"Spicy Beef Noodle Soup (란저우 라미엔)",y:4.5,ll:[36.1263,-115.2208],ap:1,src:["S1"]},
+ {n:"Palette Tea Lounge",c:"cn",a:"차이나타운",l:"Spring Mountain Rd 일대",p:2,pp:"$25–40",h:"매일 10:00–21:00",s:"Soup Dumplings (딤섬)",y:4.4,ll:[36.1259,-115.2148],ap:1,src:["S1"]},
+ {n:"Yui Edomae Sushi",c:"jp",a:"차이나타운",l:"3460 Arville St",p:4,pp:"$200–300",h:"화–토 디너 예약제",s:"Omakase",y:4.8,ll:[36.1293,-115.1990],src:["S1"]},
+ {n:"Chubby Cattle",c:"cn",a:"차이나타운",l:"3400 S Jones Blvd #15",p:2,pp:"$40–60",h:"매일 11:30–익일 01:00",s:"Wagyu Hot Pot (컨베이어 훠궈)",y:4.2,ll:[36.1298,-115.2252],src:["S1"]},
+ {n:"Chengdu Taste",c:"cn",a:"차이나타운",l:"3950 Spring Mountain Rd",p:1,pp:"$20–35",h:"매일 11:00–22:00",s:"Water-Boiled Fish (수자위)",y:4.3,ll:[36.1260,-115.1949],src:["S1"]},
+ {n:"Shanghai Taste",c:"cn",a:"차이나타운",l:"4266 Spring Mountain Rd",p:1,pp:"$15–30",h:"목–화 11:00–21:00 (수 휴무)",s:"Xiao Long Bao",y:4.5,ll:[36.1266,-115.1985],src:["S1"]},
+ // ── 오프스트립 가성비 20 (S2)
+ {n:"Esther's Kitchen",c:"eu",a:"다운타운·아트디스트릭트",l:"1131 S Main St",p:2,pp:"$40–60",h:"매일 11:00–22:00 (주말 브런치)",s:"Cacio e Pepe · 사워도우",y:4.4,ll:[36.1578,-115.1530],src:["S2","S4"]},
+ {n:"Tacos El Gordo",c:"mx",a:"스트립",l:"3041 Las Vegas Blvd S",p:1,pp:"$10–20",h:"일–목 10:00–익일 02:00, 금·토 ~04:00",s:"Adobada Taco",y:4.5,ll:[36.1352,-115.1622],src:["S2"]},
+ {n:"Juan's Flaming Fajitas",c:"mx",a:"남서부",l:"9640 W Tropicana Ave",p:2,pp:"$25–40",h:"매일 11:00–21:00",s:"Steak Fajitas",y:4.6,ll:[36.0995,-115.2985],src:["S2"]},
+ {n:"Ellis Island BBQ",c:"bbq",a:"스트립 인근",l:"4178 Koval Ln",p:1,pp:"$20–30",h:"매일 11:00–23:00",s:"BBQ Ribs · 자체 양조 맥주",y:3.9,ll:[36.1163,-115.1618],src:["S2"]},
+ {n:"Rollin Smoke BBQ",c:"bbq",a:"스트립 인근",l:"3185 S Highland Dr",p:1,pp:"$20–35",h:"매일 11:00–21:00",s:"Brisket",y:4.4,ll:[36.1365,-115.1695],src:["S2"]},
+ {n:"John Mull's Meats & Road Kill Grill",c:"bbq",a:"북부",l:"3730 Thom Blvd",p:1,pp:"$15–30",h:"화–토 11:00–19:00",s:"Famous BBQ Combo",y:4.6,ll:[36.2180,-115.1727],src:["S2"]},
+ {n:"Lindo Michoacan",c:"mx",a:"동부",l:"2655 E Desert Inn Rd",p:2,pp:"$25–40",h:"매일 11:00–22:00",s:"Carnitas · Molcajete",y:4.2,ll:[36.1300,-115.1155],src:["S2"]},
+ {n:"Le Thai",c:"sea",a:"다운타운·아트디스트릭트",l:"523 E Fremont St",p:1,pp:"$20–30",h:"매일 11:00–22:00 (주말 늦게까지)",s:"Waterfall Beef",y:4.4,ll:[36.1695,-115.1403],src:["S2"]},
+ {n:"Komex",c:"mx",a:"서부",l:"633 N Decatur Blvd",p:1,pp:"$12–20",h:"월–토 10:00–21:00",s:"Korean BBQ Burrito (코리안-멕시칸)",y:4.6,ll:[36.1830,-115.2073],src:["S2"]},
+ {n:"Vickie's Diner",c:"us",a:"다운타운·아트디스트릭트",l:"1700 S Las Vegas Blvd",p:1,pp:"$15–25",h:"매일 07:00–15:00",s:"Chicken Fried Steak",y:4.3,ll:[36.1517,-115.1527],src:["S2"]},
+ {n:"Blueberry Hill",c:"br",a:"동부",l:"1280 E Flamingo Rd (여러 지점)",p:1,pp:"$15–25",h:"매일 06:00–15:00 (지점별 상이)",s:"Pancakes · Chicken Fried Steak",y:4.0,ll:[36.1148,-115.1365],src:["S2"]},
+ {n:"Nora's Italian Cuisine",c:"eu",a:"서부",l:"5780 W Flamingo Rd",p:2,pp:"$30–50",h:"매일 11:00–22:00",s:"Chicken Parmigiana",y:4.3,ll:[36.1149,-115.2235],src:["S2"]},
+ {n:"Bob Taylor's Ranch House",c:"us",a:"북서부",l:"6250 Rio Vista St",p:3,pp:"$50–80",h:"화–일 16:30–21:00",s:"Prime Rib (참나무 직화)",y:4.3,ll:[36.2635,-115.2340],src:["S2"]},
+ {n:"Viva Las Arepas",c:"mx",a:"다운타운·아트디스트릭트",l:"1616 S Las Vegas Blvd",p:1,pp:"$12–20",h:"매일 10:00–22:00",s:"Reina Pepiada (아레파)",y:4.5,ll:[36.1530,-115.1533],src:["S2"]},
+ // ── 미쉐린 셀렉티드 2026 (S3)
+ {n:"Anima by EDO",c:"eu",a:"남서부",l:"Southwest Las Vegas",p:3,pp:"$80–130",h:"화–토 17:00–22:00",s:"스페인·지중해 타파스 테이스팅",y:4.7,ll:[36.0870,-115.2430],ap:1,src:["S3"]},
+ {n:"Bouchon",c:"eu",a:"스트립",l:"The Venetian 10F",p:3,pp:"$40–70",h:"매일 브런치 08:00–14:00 · 디너 17:00–22:00",s:"Chicken & Waffles · Croque Madame",y:4.3,ll:[36.1213,-115.1698],src:["S3","S6"]},
+ {n:"COTE Las Vegas",c:"kr",a:"스트립",l:"The Venetian · Restaurant Row",p:4,pp:"$120–200",h:"매일 17:00–22:00 (금·토 ~23:00)",s:"Butcher's Feast (미쉐린 K-스테이크하우스)",y:4.6,ll:[36.1226,-115.1690],src:["S3","S5"]},
+ {n:"Estiatorio Milos",c:"eu",a:"스트립",l:"The Venetian",p:3,pp:"$70–150",h:"매일 12:00–23:00",s:"런치 프리픽스 · 그릴 생선",y:4.5,ll:[36.1218,-115.1686],src:["S3"]},
+ {n:"Gymkhana Las Vegas",c:"eu",a:"스트립",l:"ARIA",p:3,pp:"$80–130",h:"매일 17:00–22:00",s:"Wild Muntjac Biryani · 버터치킨 (인도)",y:4.6,ll:[36.1070,-115.1768],src:["S3"]},
+ {n:"Kame Omakase",c:"jp",a:"차이나타운",l:"Spring Mountain Rd 일대",p:4,pp:"$200+",h:"화–토 디너 예약제",s:"Omakase",y:4.8,ll:[36.1256,-115.1925],ap:1,src:["S3"]},
+ {n:"Lamaii",c:"sea",a:"차이나타운",l:"3965 Spring Mountain Rd",p:2,pp:"$35–55",h:"매일 17:00–23:00",s:"태국 요리 — 한국인 입맛엔 '아주 매운맛'으로 주문",y:4.5,ll:[36.1257,-115.1953],src:["S3","S8"]},
+ {n:"Michael Mina",c:"eu",a:"스트립",l:"Bellagio",p:4,pp:"$150–250",h:"수–일 17:00–22:00",s:"Lobster Pot Pie · 테이스팅 메뉴",y:4.4,ll:[36.1123,-115.1765],src:["S3"]},
+ {n:"Mott 32",c:"cn",a:"스트립",l:"The Palazzo",p:3,pp:"$80–150",h:"매일 17:00–23:00",s:"Apple Wood Roasted Peking Duck",y:4.4,ll:[36.1240,-115.1680],src:["S3"]},
+ {n:"Partage",c:"eu",a:"차이나타운",l:"3839 Spring Mountain Rd",p:4,pp:"$120–200",h:"화–토 17:00–22:00",s:"프렌치 테이스팅 메뉴",y:4.8,ll:[36.1258,-115.1940],src:["S3"]},
+ {n:"Pho Ga Bac Bac",c:"sea",a:"차이나타운",l:"Spring Mountain Rd 일대",p:1,pp:"$15–20",h:"매일 10:00–21:00",s:"Pho Ga (닭 쌀국수)",y:4.4,ll:[36.1271,-115.2030],ap:1,src:["S3"]},
+ {n:"Ping Pang Pong",c:"cn",a:"스트립 인근",l:"Gold Coast Hotel",p:2,pp:"$25–45",h:"매일 10:00–15:00 · 17:00–23:00",s:"딤섬",y:4.2,ll:[36.1167,-115.1923],src:["S3"]},
+ {n:"SoulBelly BBQ",c:"bbq",a:"다운타운·아트디스트릭트",l:"1327 S Main St",p:1,pp:"$20–35",h:"수–일 11:00–21:00",s:"Brisket · Pork Belly Burnt Ends",y:4.6,ll:[36.1557,-115.1527],src:["S3"]},
+ {n:"Stubborn Seed",c:"us",a:"스트립",l:"Resorts World",p:4,pp:"$150–250",h:"수–일 17:00–22:00",s:"셰프 테이스팅 메뉴",y:4.6,ll:[36.1350,-115.1650],src:["S3"]},
+ {n:"Wing Lei",c:"cn",a:"스트립",l:"Wynn",p:4,pp:"$120–200",h:"목–월 17:30–22:00",s:"Imperial Peking Duck",y:4.5,ll:[36.1265,-115.1663],src:["S3"]},
+ // ── 오프스트립 5 (S4)
+ {n:"Nicco's Prime Cuts & Fresh Fish",c:"us",a:"남서부",l:"Durango Casino & Resort",p:4,pp:"$90–150",h:"매일 17:00–22:00",s:"드라이에이징 스테이크 · 생선",y:4.6,ll:[36.0645,-115.2793],src:["S4"]},
+ {n:"Harlo",c:"us",a:"서머린",l:"Summerlin (Downtown Summerlin 인근)",p:3,pp:"$70–120",h:"매일 16:00–22:00",s:"스테이크 · 시푸드",y:4.5,ll:[36.1555,-115.3330],ap:1,src:["S4"]},
+ {n:"Echo & Rig",c:"us",a:"서머린",l:"Tivoli Village, 440 S Rampart Blvd",p:3,pp:"$60–100",h:"매일 11:00–22:00",s:"Butcher's Cut 스테이크",y:4.4,ll:[36.1707,-115.2888],src:["S4"]},
+ // ── 한국인 추천 13 (S5)
+ {n:"Spago",c:"eu",a:"스트립",l:"Bellagio · Via Bellagio",p:3,pp:"$80–130",h:"매일 11:30–22:00",s:"벨라지오 분수뷰 파티오 · Wolfgang Puck",y:4.4,ll:[36.1128,-115.1747],src:["S5"]},
+ {n:"é by José Andrés",c:"eu",a:"스트립",l:"The Cosmopolitan · Level 3",p:4,pp:"$300+",h:"수–일 디너 2회 (예약제, 9석)",s:"아방가르드 스페인 테이스팅",y:4.8,ll:[36.1099,-115.1740],src:["S5"]},
+ {n:"Morimoto Las Vegas",c:"jp",a:"스트립",l:"MGM Grand · Casino Level",p:4,pp:"$100–180",h:"매일 17:00–22:00",s:"테판야키 · 오마카세",y:4.4,ll:[36.1023,-115.1698],src:["S5"]},
+ {n:"Red Plate",c:"cn",a:"스트립",l:"The Cosmopolitan · Level 3",p:3,pp:"$50–90",h:"매일 17:00–23:00",s:"베이징덕 · 딤섬",y:4.3,ll:[36.1101,-115.1743],src:["S5"]},
+ {n:"Hakkasan",c:"cn",a:"스트립",l:"MGM Grand · 1F",p:3,pp:"$60–100",h:"목–월 17:00–22:00 · 주말 딤섬 브런치",s:"Endless Dim Sum Brunch",y:4.2,ll:[36.1019,-115.1708],src:["S5"]},
+ {n:"The Henry",c:"us",a:"스트립",l:"The Cosmopolitan · Level 1",p:2,pp:"$30–50",h:"24시간",s:"브런치~심야 아메리칸 컴포트푸드",y:4.2,ll:[36.1096,-115.1737],src:["S5"]},
+ {n:"Salt & Ivy",c:"br",a:"스트립",l:"ARIA · Level 2",p:2,pp:"$30–50",h:"매일 07:00–15:00",s:"풀사이드 브런치",y:4.3,ll:[36.1074,-115.1772],src:["S5"]},
+ {n:"Lago",c:"eu",a:"스트립",l:"Bellagio · Casino Level",p:3,pp:"$60–100",h:"매일 11:30–22:00",s:"분수 정면 이탈리안 스몰플레이트",y:4.3,ll:[36.1131,-115.1752],src:["S5"]},
+ {n:"Wicked Spoon",c:"br",a:"스트립",l:"The Cosmopolitan · Level 2",p:2,pp:"$50–70",h:"매일 08:00–21:00 (브런치·디너)",s:"개별 접시 스타일 뷔페",y:3.9,ll:[36.1098,-115.1746],src:["S5"]},
+ {n:"In-N-Out Burger",c:"us",a:"스트립",l:"The LINQ Promenade · Level 1",p:1,pp:"$10–15",h:"매일 10:30–익일 01:30",s:"Double-Double (Animal Style)",y:4.5,ll:[36.1177,-115.1703],src:["S5"]},
+ {n:"Black Tap",c:"us",a:"스트립",l:"The Venetian · Casino Level",p:2,pp:"$30–50",h:"매일 11:00–23:00",s:"크래프트 버거 · CrazyShake",y:4.4,ll:[36.1222,-115.1700],src:["S5"]},
+ {n:"Hello Kitty Cafe",c:"br",a:"스트립",l:"Fashion Show Las Vegas · Level 1",p:1,pp:"$10–20",h:"매일 10:00–21:00",s:"마카롱 · 한정 굿즈",y:4.0,ll:[36.1275,-115.1707],src:["S5"]},
+ // ── 브런치 5 (S6)
+ {n:"Toasted Gastrobrunch",c:"br",a:"남서부",l:"Southwest Las Vegas",p:2,pp:"$20–35",h:"매일 07:00–15:00",s:"French Toast · 창작 브런치",y:4.6,ll:[36.0590,-115.2440],ap:1,src:["S6"]},
+ {n:"Mr. Mamas Breakfast & Lunch",c:"br",a:"서부",l:"5835 W Sahara Ave",p:1,pp:"$15–25",h:"매일 07:00–14:00",s:"홈메이드 컴포트 브런치 (대용량)",y:4.6,ll:[36.1440,-115.2228],src:["S6"]},
+ {n:"Terrace Pointe Café",c:"br",a:"스트립",l:"Wynn",p:2,pp:"$35–55",h:"매일 07:00–15:00",s:"풀사이드 뷰 브런치",y:4.2,ll:[36.1270,-115.1655],src:["S6"]},
+ {n:"Hash House A Go Go",c:"br",a:"스트립",l:"The LINQ",p:2,pp:"$25–40",h:"매일 07:00–21:00",s:"Sage Fried Chicken & Waffles",y:4.2,ll:[36.1180,-115.1709],src:["S6"]},
+ // ── 릴스 (S7)
+ {n:"Marché Bacchus",c:"eu",a:"북서부",l:"Desert Shores, 2620 Regatta Dr",p:2,pp:"$40–70",h:"매일 11:00–21:00 (주말 브런치)",s:"호수뷰 테라스 · 에그 베네딕트 (프렌치)",y:4.5,ll:[36.2133,-115.2475],src:["S7"]}
+];
+
+const st = {cats:new Set(), area:"", price:"", sort:"yelp", q:"", sel:null};
+const $ = s=>document.querySelector(s);
+R.forEach((r,i)=>r.id=i);
+
+// KPIs
+const avg = (R.reduce((a,r)=>a+r.y,0)/R.length).toFixed(2);
+$("#kpis").innerHTML = `<div class="kpi"><b>${R.length}</b>곳</div><div class="kpi"><b>${Object.keys(CATS).length}</b>개 카테고리</div><div class="kpi">평균 Yelp <b>★${avg}</b></div><div class="kpi">미쉐린 셀렉티드 <b>${R.filter(r=>r.src.includes("S3")).length}</b>곳</div>`;
+$("#srcs").innerHTML = Object.values(SRC).map(s=>`<a href="${s.u}" target="_blank" rel="noopener">${s.n}</a>`).join(" · ");
+
+// category chips
+const catBox = $("#cats");
+function chipHTML(){
+  catBox.innerHTML = `<button class="chip ${st.cats.size?"":"on"}" data-c="">전체</button>` +
+    Object.entries(CATS).map(([k,v])=>`<button class="chip ${st.cats.has(k)?"on":""}" data-c="${k}"><span class="dot" style="background:${v.c}"></span>${v.n} ${R.filter(r=>r.c===k).length}</button>`).join("");
+}
+catBox.addEventListener("click",e=>{
+  const b=e.target.closest(".chip"); if(!b) return;
+  const c=b.dataset.c;
+  if(!c) st.cats.clear(); else st.cats.has(c)?st.cats.delete(c):st.cats.add(c);
+  chipHTML(); render();
+});
+chipHTML();
+
+const areas=[...new Set(R.map(r=>r.a))].sort();
+$("#area").innerHTML = `<option value="">지역 전체</option>`+areas.map(a=>`<option>${a}</option>`).join("");
+$("#area").onchange=e=>{st.area=e.target.value;render()};
+$("#price").onchange=e=>{st.price=e.target.value;render()};
+$("#sort").onchange=e=>{st.sort=e.target.value;render()};
+$("#q").oninput=e=>{st.q=e.target.value.trim().toLowerCase();render()};
+
+// Map
+const map = L.map("map",{zoomControl:true}).setView([36.135,-115.20],12);
+const tiles = {
+  light: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+  dark: "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+};
+let tl;
+function isDark(){
+  const t=document.documentElement.dataset.theme;
+  if(t) return t==="dark";
+  return matchMedia("(prefers-color-scheme: dark)").matches;
+}
+function setTiles(){
+  if(tl) map.removeLayer(tl);
+  document.getElementById("map").classList.toggle("darkmap",isDark());
+  tl=L.tileLayer(isDark()?tiles.dark:tiles.light,{maxZoom:19,className:"basetiles",attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
+}
+setTiles();
+$("#themeBtn").onclick=()=>{
+  document.documentElement.dataset.theme = isDark()?"light":"dark";
+  try{localStorage.setItem("lvmap-theme",document.documentElement.dataset.theme)}catch(e){}
+  setTiles();
+};
+try{const t=localStorage.getItem("lvmap-theme"); if(t){document.documentElement.dataset.theme=t;setTiles();}}catch(e){}
+
+// Strip line + zone labels
+L.polyline([[36.0905,-115.1745],[36.1020,-115.1727],[36.1150,-115.1725],[36.1260,-115.1680],[36.1365,-115.1625],[36.1475,-115.1560]],{color:"#0B63CE",weight:6,opacity:.25}).addTo(map);
+const zones=[["더 스트립",36.1150,-115.1650],["차이나타운 (Spring Mtn Rd)",36.1345,-115.2080],["다운타운 · 아트디스트릭트",36.1640,-115.1460],["서머린",36.1650,-115.3150],["남서부",36.0700,-115.2650],["북서부 · Desert Shores",36.2250,-115.2550]];
+zones.forEach(([t,a,b])=>L.marker([a,b],{icon:L.divIcon({className:"zone-label",html:t,iconSize:null}),interactive:false}).addTo(map));
+
+const layer=L.layerGroup().addTo(map);
+const markers={};
+const priceTxt=p=>"$".repeat(p);
+const yelpUrl=r=>"https://www.yelp.com/search?find_desc="+encodeURIComponent(r.n)+"&find_loc="+encodeURIComponent("Las Vegas, NV");
+const gmapUrl=r=>"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(r.n+" Las Vegas");
+function stars(y){return "★"+y.toFixed(1)}
+
+function filtered(){
+  let a=R.filter(r=>
+    (!st.cats.size||st.cats.has(r.c)) &&
+    (!st.area||r.a===st.area) &&
+    (!st.price||r.p==st.price) &&
+    (!st.q||(r.n+" "+r.s+" "+r.l+" "+CATS[r.c].n).toLowerCase().includes(st.q)));
+  const s=st.sort;
+  a.sort((x,y)=> s==="yelp"?y.y-x.y||x.p-y.p : s==="p-asc"?x.p-y.p||y.y-x.y : s==="p-desc"?y.p-x.p||y.y-x.y : x.n.localeCompare(y.n));
+  return a;
+}
+
+function popup(r){
+  return `<div class="pp"><h3>${r.n}</h3>
+  <div><span style="color:${CATS[r.c].c};font-weight:700">${CATS[r.c].n}</span> · ${r.a}</div>
+  <div>📍 ${r.l}${r.ap?' <span class="approx">◆좌표 근사</span>':''}</div>
+  <div>💵 1인 ${r.pp} (${priceTxt(r.p)})</div>
+  <div>🕒 ${r.h}</div>
+  <div>⭐ Yelp <b style="color:#d4351c">${stars(r.y)}</b></div>
+  <div>🍽 ${r.s}</div>
+  <div style="margin-top:6px"><a href="${yelpUrl(r)}" target="_blank" rel="noopener">Yelp</a><a href="${gmapUrl(r)}" target="_blank" rel="noopener">구글맵</a></div></div>`;
+}
+
+function render(){
+  const a=filtered();
+  layer.clearLayers();
+  const list=$("#list");
+  list.innerHTML = a.length?"":`<div class="card">조건에 맞는 식당이 없어요.</div>`;
+  a.forEach((r,i)=>{
+    const col=CATS[r.c].c;
+    const m=L.marker(r.ll,{icon:L.divIcon({className:"",html:`<div class="mk" style="background:${col};width:24px;height:24px">${i+1}</div>`,iconSize:[24,24],iconAnchor:[12,12],popupAnchor:[0,-10]})}).bindPopup(popup(r));
+    m.on("click",()=>selectCard(r.id,false));
+    m.addTo(layer); markers[r.id]=m;
+    const d=document.createElement("div");
+    d.className="card"; d.dataset.id=r.id;
+    d.innerHTML=`<div class="top"><div style="display:flex;align-items:flex-start"><span class="num" style="background:${col}">${i+1}</span><span class="nm">${r.n}</span></div><span class="yelp">Yelp ${stars(r.y)}</span></div>
+      <div class="meta"><span style="color:${col};font-weight:700">${CATS[r.c].n}</span><span>💵 <b>${r.pp}</b> ${priceTxt(r.p)}</span><span>📍 ${r.a}</span></div>
+      <div class="meta"><span>🕒 ${r.h}</span></div>
+      <div class="sig">${r.s}</div>
+      <div class="tags">${r.src.map(s=>`<span class="tag">${SRC[s].n}</span>`).join("")}${r.ap?'<span class="approx">◆좌표 근사</span>':''}</div>`;
+    d.onclick=()=>selectCard(r.id,true);
+    list.appendChild(d);
+  });
+}
+function selectCard(id,fly){
+  document.querySelectorAll(".card.sel").forEach(c=>c.classList.remove("sel"));
+  const c=document.querySelector(`.card[data-id="${id}"]`);
+  if(c){c.classList.add("sel"); if(!fly) c.scrollIntoView({behavior:"smooth",block:"nearest"});}
+  const m=markers[id]; if(!m) return;
+  if(fly){ map.flyTo(m.getLatLng(),15,{duration:.6}); setTimeout(()=>m.openPopup(),650); if(innerWidth<=860) document.getElementById("map").scrollIntoView({behavior:"smooth"}); }
+}
+function fitHeader(){document.documentElement.style.setProperty("--hh",(document.getElementById("hdr").offsetHeight+40)+"px");map.invalidateSize();}
+addEventListener("resize",fitHeader);
+render(); fitHeader();
+</script>
+</body>
+</html>

@@ -1,0 +1,640 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>라스베가스 맛집 지도</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+/* 캐치테이블 벤치마킹: 흰 배경 + 오렌지 포인트, 검색바·카테고리 아이콘 레일·컬렉션 캐러셀·매장 상세 시트·하단 탭바 */
+:root{
+  --bg:#ffffff; --soft:#f5f5f7; --panel:#ffffff; --ink:#111318; --sub:#4b5058; --muted:#8b9098; --line:#eeeff2;
+  --accent:#ff5b1f; --accent-soft:#fff1eb; --star:#ff7a1a; --mich:#c8102e; --shadow:0 6px 24px rgba(17,19,24,.10);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1114; --soft:#1b1e23; --panel:#16181c; --ink:#eef0f3; --sub:#c0c5cc; --muted:#8d939c; --line:#262a30;
+    --accent:#ff7440; --accent-soft:#3a2219; --star:#ff9a4d; --mich:#ff5a6e; --shadow:0 6px 24px rgba(0,0,0,.45);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1114; --soft:#1b1e23; --panel:#16181c; --ink:#eef0f3; --sub:#c0c5cc; --muted:#8d939c; --line:#262a30;
+  --accent:#ff7440; --accent-soft:#3a2219; --star:#ff9a4d; --mich:#ff5a6e; --shadow:0 6px 24px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font-family:"Noto Sans KR",system-ui,sans-serif;font-size:14px;letter-spacing:-.2px}
+button,select,input{font-family:inherit;color:inherit}
+button{cursor:pointer}
+::-webkit-scrollbar{width:8px;height:0}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}
+
+/* ── 레이아웃 */
+.wrap{display:grid;grid-template-columns:480px 1fr;height:100vh}
+.side{overflow-y:auto;border-right:1px solid var(--line);background:var(--bg);position:relative}
+#map{height:100vh;background:var(--soft)}
+
+/* ── 상단 앱바 + 검색 */
+.top{position:sticky;top:0;z-index:20;background:var(--bg);padding:14px 16px 10px}
+.bar{display:flex;align-items:center;gap:10px}
+.brand{display:flex;align-items:center;gap:9px;margin-right:auto}
+.logo{width:34px;height:34px;border-radius:10px;background:var(--accent);color:#fff;font:900 13px/34px "Noto Sans KR";text-align:center;letter-spacing:-.5px}
+.brand b{display:block;font-size:17px;font-weight:900;letter-spacing:-.5px}
+.brand small{display:block;font-size:11px;color:var(--muted);margin-top:1px}
+.seg{display:flex;background:var(--soft);border-radius:999px;padding:3px}
+.seg button{border:0;background:none;padding:6px 13px;border-radius:999px;font-size:12.5px;font-weight:700;color:var(--muted)}
+.seg button.on{background:var(--panel);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.cnt{color:var(--accent)}
+.icon-btn{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--panel);font-size:15px}
+.search{display:flex;align-items:center;gap:8px;margin-top:12px;background:var(--soft);border-radius:12px;padding:0 12px;height:44px}
+.search svg{flex:none;color:var(--muted)}
+.search input{flex:1;border:0;background:none;outline:none;font-size:14px;min-width:0}
+.search input::-webkit-search-cancel-button{display:none}
+#qClear{border:0;background:var(--muted);color:var(--bg);width:18px;height:18px;border-radius:50%;font-size:11px;line-height:18px;padding:0;display:none}
+
+/* ── 카테고리 아이콘 레일 */
+.rail{display:flex;gap:4px;overflow-x:auto;padding:6px 12px 4px;scrollbar-width:none}
+.cat{flex:none;width:64px;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:6px;padding:4px 0}
+.cat .ic{width:52px;height:52px;border-radius:18px;background:var(--soft);display:flex;align-items:center;justify-content:center;font-size:25px;border:2px solid transparent;transition:.15s}
+.cat span{font-size:11.5px;color:var(--sub);white-space:nowrap;max-width:64px;overflow:hidden;text-overflow:ellipsis}
+.cat.on .ic{border-color:var(--accent);background:var(--accent-soft)}
+.cat.on span{color:var(--accent);font-weight:700}
+
+/* ── 필터 칩 */
+.filters{display:flex;gap:6px;overflow-x:auto;padding:8px 16px 12px;scrollbar-width:none;border-bottom:8px solid var(--soft)}
+.pill{flex:none;height:32px;border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:0 12px;font-size:12.5px;font-weight:500;white-space:nowrap}
+select.pill{appearance:none;-webkit-appearance:none;padding-right:26px;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 14px) 14px,calc(100% - 10px) 14px;background-size:4px 4px;background-repeat:no-repeat}
+.pill.on{border-color:var(--ink);background:var(--ink);color:var(--bg)}
+select.pill.on{background-image:linear-gradient(45deg,transparent 50%,var(--bg) 50%),linear-gradient(135deg,var(--bg) 50%,transparent 50%)}
+
+/* ── 배너 */
+.banner{margin:16px 16px 4px;border-radius:16px;padding:16px 18px;background:linear-gradient(120deg,#ff5b1f,#ff8a3d);color:#fff;position:relative;overflow:hidden}
+.banner h2{margin:0;font-size:18px;font-weight:900;letter-spacing:-.5px}
+.banner p{margin:4px 0 12px;font-size:12px;opacity:.9}
+.banner .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.banner .stats div{background:rgba(255,255,255,.18);border-radius:10px;padding:7px 4px;text-align:center;font-size:10.5px}
+.banner .stats b{display:block;font-size:16px;font-weight:900}
+.banner::after{content:"🎰";position:absolute;right:-6px;top:-10px;font-size:64px;opacity:.18}
+
+/* ── 섹션 / 컬렉션 캐러셀 */
+.sec{padding:20px 0 4px}
+.sec-h{display:flex;align-items:flex-end;justify-content:space-between;padding:0 16px 10px;gap:8px}
+.sec-h h3{margin:0;font-size:17px;font-weight:900;letter-spacing:-.5px}
+.sec-h p{margin:3px 0 0;font-size:12px;color:var(--muted)}
+.more{border:0;background:none;font-size:12px;color:var(--muted);white-space:nowrap;padding:0}
+.car{display:flex;gap:10px;overflow-x:auto;padding:0 16px 6px;scroll-snap-type:x mandatory;scroll-padding-inline:16px;scrollbar-width:none}
+.cc{flex:none;width:148px;scroll-snap-align:start;cursor:pointer}
+.th{position:relative;border-radius:12px;display:flex;align-items:center;justify-content:center;overflow:hidden;color:#fff}
+.th .em{filter:drop-shadow(0 2px 4px rgba(0,0,0,.2))}
+.th img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:var(--soft)}
+.rk{z-index:2}
+.credit{position:absolute;right:8px;bottom:8px;z-index:2;font-size:10px;color:#fff;background:rgba(0,0,0,.45);padding:2px 6px;border-radius:4px}
+.cc .th{height:110px;font-size:42px}
+.rk{position:absolute;left:0;top:0;background:rgba(0,0,0,.55);color:#fff;font:900 13px/1 "Noto Sans KR";padding:6px 8px;border-bottom-right-radius:10px}
+.cc .nm{font-weight:700;font-size:14px;margin-top:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rt{font-size:12.5px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:3px;margin-top:3px}
+.rt i{font-style:normal;color:var(--star)}
+.rt em{font-style:normal;color:var(--muted);font-weight:400;font-size:11.5px}
+.ln{font-size:12px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ── 리스트 */
+.list-h{display:flex;align-items:center;justify-content:space-between;padding:20px 16px 6px;position:sticky;top:118px;background:var(--bg);z-index:5}
+.list-h h3{margin:0;font-size:17px;font-weight:900;letter-spacing:-.5px}
+.list-h h3 b{color:var(--accent)}
+.sort{border:0;background:none;font-size:12.5px;color:var(--sub);font-weight:500;appearance:none;-webkit-appearance:none;padding-right:14px;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 6px) 8px,calc(100% - 2px) 8px;background-size:4px 4px;background-repeat:no-repeat}
+.reset{border:0;background:none;color:var(--accent);font-size:12.5px;font-weight:700;padding:0;margin-right:12px}
+.item{display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line);cursor:pointer;position:relative}
+.item:hover{background:var(--soft)}
+.item.sel{background:var(--accent-soft)}
+.item .th{width:92px;height:92px;flex:none;font-size:36px}
+.item .body{flex:1;min-width:0;padding-right:26px}
+.item .cl{font-size:11.5px;color:var(--muted)}
+.item .nm{font-size:16px;font-weight:700;margin-top:2px;line-height:1.3}
+.item .pr{font-size:12.5px;color:var(--sub);margin-top:3px}
+.item .pr b{color:var(--ink)}
+.item .sg{font-size:12px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badges{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+.bd{font-size:10.5px;font-weight:700;padding:3px 6px;border-radius:4px;background:var(--soft);color:var(--sub)}
+.bd.m{background:rgba(200,16,46,.09);color:var(--mich)}
+.bd.k{background:var(--accent-soft);color:var(--accent)}
+.bd.ap{background:none;color:var(--muted);font-weight:500;padding-left:0}
+.heart{position:absolute;right:12px;top:12px;border:0;background:none;font-size:19px;line-height:1;padding:4px;color:var(--muted)}
+.heart.on{color:var(--accent)}
+.empty{padding:48px 24px;text-align:center;color:var(--muted);line-height:1.7}
+.empty b{display:block;font-size:32px;margin-bottom:6px}
+footer{font-size:11px;color:var(--muted);padding:18px 16px 28px;line-height:1.7;background:var(--soft);margin-top:20px}
+footer a{color:var(--sub)}
+
+/* ── 지도 핀 */
+.pin{display:flex;align-items:center;gap:4px;background:var(--panel);border:2px solid var(--c);border-radius:999px;padding:2px;box-shadow:0 2px 6px rgba(0,0,0,.25);width:max-content;transform:translate(-50%,-50%);transition:transform .15s}
+.pin .e{width:22px;height:22px;border-radius:50%;background:var(--c);display:flex;align-items:center;justify-content:center;font-size:12px}
+.pin b{display:none;font-size:12px;font-weight:700;padding-right:8px;white-space:nowrap;color:var(--ink)}
+.pin.sel{background:var(--accent);border-color:var(--accent);z-index:999;transform:translate(-50%,-50%) scale(1.12)}
+.pin.sel b{display:block;color:#fff}
+.pin.sel .e{background:#fff}
+.zone-label{background:none;border:none;color:#3b3f47;font:900 12px "Noto Sans KR",sans-serif;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff;white-space:nowrap}
+.basetiles{filter:saturate(.35) brightness(1.04)}
+.darkmap .basetiles{filter:invert(1) hue-rotate(180deg) brightness(.85) saturate(.4)}
+.darkmap .zone-label{color:#e6e8eb;text-shadow:0 0 3px #000,0 0 3px #000}
+
+/* ── 상세 시트 (캐치테이블 매장 상세) */
+.sheet{position:fixed;left:0;top:0;bottom:0;width:480px;background:var(--bg);z-index:2000;transform:translateX(-102%);transition:transform .25s ease;display:flex;flex-direction:column;box-shadow:var(--shadow)}
+.sheet.open{transform:none}
+.sh-top{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;padding:12px;z-index:2}
+.sh-top button{width:36px;height:36px;border-radius:50%;border:0;background:rgba(0,0,0,.35);color:#fff;font-size:17px;backdrop-filter:blur(4px)}
+.sh-top button.on{color:#ffb38f}
+.sh-scroll{overflow-y:auto;flex:1}
+.hero{height:210px;font-size:84px;border-radius:0}
+.sh-body{padding:18px 18px 8px}
+.sh-body .cl{font-size:12.5px;color:var(--muted)}
+.sh-body h2{margin:4px 0 6px;font-size:23px;font-weight:900;letter-spacing:-.6px;line-height:1.25}
+.sh-rt{display:flex;align-items:center;gap:6px;font-size:15px;font-weight:900}
+.sh-rt i{font-style:normal;color:var(--star);letter-spacing:-1px}
+.sh-rt em{font-style:normal;font-size:12px;color:var(--muted);font-weight:400}
+.pricebox{display:flex;gap:8px;margin:16px 0 4px}
+.pricebox div{flex:1;background:var(--soft);border-radius:12px;padding:11px 12px}
+.pricebox small{display:block;font-size:11px;color:var(--muted)}
+.pricebox b{font-size:16px;font-weight:900}
+.sh-sec{border-top:8px solid var(--soft);padding:16px 18px}
+.sh-sec h4{margin:0 0 10px;font-size:15px;font-weight:900}
+.row{display:flex;gap:10px;padding:6px 0;font-size:13.5px;line-height:1.5}
+.row .k{flex:none;width:68px;color:var(--muted)}
+.sig{background:var(--accent-soft);border-radius:12px;padding:13px 14px;font-size:14px;font-weight:700;line-height:1.5}
+.sig small{display:block;font-size:11px;color:var(--accent);font-weight:700;margin-bottom:3px}
+.srcs a{display:inline-block;font-size:12px;background:var(--soft);color:var(--sub);text-decoration:none;padding:5px 9px;border-radius:999px;margin:0 4px 6px 0}
+.cta{display:flex;gap:8px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--bg)}
+.cta a{flex:1;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;text-decoration:none}
+.cta .o{border:1px solid var(--line);color:var(--ink)}
+.cta .f{background:var(--accent);color:#fff;flex:1.4}
+.dim{display:none}
+
+/* ── 모바일 지도 캐러셀 · 탭바 */
+.mcar,.tabbar{display:none}
+
+@media (max-width:900px){
+  .wrap{display:block;height:auto}
+  .side{overflow:visible;border-right:0;padding-bottom:64px}
+  #map{display:none}
+  .list-h{top:118px}
+  .wrap[data-view="map"] .side{display:none}
+  .wrap[data-view="map"] #map{display:block;position:fixed!important;left:0;right:0;top:0;bottom:calc(60px + env(safe-area-inset-bottom));height:auto;z-index:1}
+  .wrap[data-view="map"] .mcar{display:flex}
+  .seg{display:none}
+  .mcar{position:fixed;left:0;right:0;bottom:calc(72px + env(safe-area-inset-bottom));z-index:900;gap:10px;overflow-x:auto;padding:0 16px;scroll-snap-type:x mandatory;scrollbar-width:none}
+  .mc{flex:none;width:calc(100vw - 56px);max-width:360px;scroll-snap-align:center;background:var(--panel);border-radius:14px;box-shadow:var(--shadow);display:flex;gap:10px;padding:10px;cursor:pointer;border:2px solid transparent}
+  .mc.sel{border-color:var(--accent)}
+  .mc .th{width:72px;height:72px;flex:none;font-size:30px}
+  .mc .nm{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mc>div:last-child{min-width:0;flex:1}
+  .tabbar{display:flex;position:fixed;left:0;right:0;bottom:0;height:calc(60px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);background:var(--bg);border-top:1px solid var(--line);z-index:1500}
+  .tabbar button{flex:1;border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11px;color:var(--muted)}
+  .tabbar button span{font-size:20px;line-height:1}
+  .tabbar button.on{color:var(--ink);font-weight:700}
+  .sheet{width:100%;top:auto;height:92vh;border-radius:20px 20px 0 0;transform:translateY(102%);overflow:hidden}
+  .sheet.open{transform:none}
+  .dim{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1900;opacity:0;pointer-events:none;transition:opacity .2s}
+  .dim.open{opacity:1;pointer-events:auto}
+}
+</style>
+</head>
+<body>
+<div class="wrap" id="wrap" data-view="home">
+  <section class="side" id="side">
+    <header class="top" id="top">
+      <div class="bar">
+        <div class="brand"><span class="logo">LV</span><div><b>베가스 맛집지도</b><small>인스타 추천 게시물 8건에서 뽑은 식당 모음</small></div></div>
+        <div class="seg" id="seg"><button data-v="home" class="on" type="button">홈</button><button data-v="saved" type="button">저장 <span class="cnt"></span></button></div>
+        <button class="icon-btn" id="themeBtn" type="button" aria-label="테마 전환">◐</button>
+      </div>
+      <label class="search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q" type="search" placeholder="식당, 메뉴, 지역을 검색해 보세요" autocomplete="off">
+        <button id="qClear" type="button" aria-label="검색어 지우기">✕</button>
+      </label>
+    </header>
+    <nav class="rail" id="rail"></nav>
+    <div class="filters" id="filters">
+      <select id="area" class="pill" aria-label="지역"></select>
+      <select id="price" class="pill" aria-label="객단가">
+        <option value="">가격대</option>
+        <option value="1">$ (~$25)</option>
+        <option value="2">$$ ($25–60)</option>
+        <option value="3">$$$ ($60–130)</option>
+        <option value="4">$$$$ ($130~)</option>
+      </select>
+      <button class="pill tg" data-f="mich" type="button">🏅 미쉐린</button>
+      <button class="pill tg" data-f="kor" type="button">🇰🇷 한국인 추천</button>
+      <button class="pill tg" data-f="late" type="button">🌙 심야·24시간</button>
+      <button class="pill tg" data-f="cheap" type="button">💸 가성비 $</button>
+      <button class="pill tg" data-f="top" type="button">⭐ 4.5 이상</button>
+    </div>
+    <div id="content"></div>
+    <footer>
+      ⚠️ 객단가·영업시간·Yelp 평점은 2026-11 기준 <b>참고용 추정치</b>입니다(시즌·요일마다 달라짐). 방문 전 매장 상세의 Yelp·구글맵 버튼으로 꼭 확인하세요. ◆ 좌표 근사 표시는 대략적인 위치예요.<br>
+      출처: <span id="srcs"></span><br>
+      레이아웃: 캐치테이블 앱 UI 벤치마킹
+    </footer>
+  </section>
+  <div id="map"></div>
+  <div class="mcar" id="mcar"></div>
+</div>
+<div class="dim" id="dim"></div>
+<aside class="sheet" id="sheet" aria-hidden="true"></aside>
+<nav class="tabbar" id="tabbar">
+  <button data-v="home" class="on" type="button"><span>🏠</span>홈</button>
+  <button data-v="map" type="button"><span>🗺️</span>지도</button>
+  <button data-v="saved" type="button"><span>♡</span>저장 <b class="cnt"></b></button>
+</nav>
+
+<script>
+const CATS = {
+  cn:{n:"중식", c:"#d4351c"},
+  jp:{n:"일식", c:"#7a3fb8"},
+  kr:{n:"한식", c:"#0B63CE"},
+  sea:{n:"태국·베트남", c:"#1a9e5c"},
+  eu:{n:"유럽·지중해·인도", c:"#b8860b"},
+  us:{n:"스테이크·아메리칸", c:"#0F2F54"},
+  bbq:{n:"BBQ", c:"#8b4513"},
+  mx:{n:"멕시칸·라틴", c:"#e0791a"},
+  br:{n:"브런치·카페·뷔페", c:"#d6478f"}
+};
+const SRC = {
+  S1:{n:"차이나타운 20", u:"https://www.instagram.com/p/DbmdKchpY56/"},
+  S2:{n:"오프스트립 가성비 20", u:"https://www.instagram.com/p/DbQaUq3xMFx/"},
+  S3:{n:"미쉐린 셀렉티드 17", u:"https://www.instagram.com/p/DckpRAbhoIF/"},
+  S4:{n:"오프스트립 5", u:"https://www.instagram.com/p/DecVP_6Ehzn/"},
+  S5:{n:"한국인 추천 13", u:"https://www.instagram.com/p/DdJVMZbj31I/"},
+  S6:{n:"브런치 5", u:"https://www.instagram.com/p/DaiiX0ggpp4/"},
+  S7:{n:"호수뷰 브런치 릴스", u:"https://www.instagram.com/reel/DcsT_vUqftN/"},
+  S8:{n:"Lamaii 릴스", u:"https://www.instagram.com/reel/Deu-UQvj-Ys/"}
+};
+// n 이름, c 카테고리, a 지역, l 위치/주소, p 가격대(1-4), pp 1인 객단가, h 영업시간, s 시그니처, y Yelp, ll 좌표, src 출처, ap 좌표근사
+const R = [
+ // ── 차이나타운 20 (S1)
+ {n:"888 Japanese BBQ",c:"jp",a:"차이나타운",l:"3550 S Decatur Blvd",p:2,pp:"$35–50",h:"매일 11:30–익일 01:00",s:"Premium Beef Combo (야키니쿠)",y:4.5,ll:[36.1268,-115.2093],src:["S1"]},
+ {n:"Pho Kim Long",c:"sea",a:"차이나타운",l:"4029 Spring Mountain Rd",p:1,pp:"$15–20",h:"24시간",s:"Rare Steak Pho",y:4.0,ll:[36.1262,-115.1958],src:["S1","S2"]},
+ {n:"Raku",c:"jp",a:"차이나타운",l:"5030 Spring Mountain Rd #2",p:3,pp:"$60–100",h:"월–토 17:00–24:00 (일 휴무)",s:"Grilled Chicken Thigh (숯불 로바타)",y:4.6,ll:[36.1258,-115.2117],src:["S1","S2"]},
+ {n:"China Mama",c:"cn",a:"차이나타운",l:"3420 S Jones Blvd",p:1,pp:"$20–30",h:"매일 11:00–22:00",s:"Juicy Pork Buns (샤오롱바오)",y:4.1,ll:[36.1302,-115.2245],src:["S1","S2"]},
+ {n:"Shang Artisan Noodle",c:"cn",a:"차이나타운",l:"4983 W Flamingo Rd",p:1,pp:"$15–25",h:"매일 10:30–22:00",s:"Hand-Pulled Beef Noodle Soup (수타 우육면)",y:4.5,ll:[36.1153,-115.2098],src:["S1","S2"]},
+ {n:"Big Dan Shanxi Taste",c:"cn",a:"차이나타운",l:"Spring Mountain Rd 일대",p:1,pp:"$15–25",h:"매일 11:00–22:00",s:"Biang Biang Noodles",y:4.4,ll:[36.1262,-115.2050],ap:1,src:["S1","S2"]},
+ {n:"Monta Ramen",c:"jp",a:"차이나타운",l:"5030 Spring Mountain Rd #6",p:1,pp:"$15–20",h:"매일 11:00–22:00",s:"Tonkotsu Ramen",y:4.3,ll:[36.1255,-115.2111],src:["S1"]},
+ {n:"Ichiza",c:"jp",a:"차이나타운",l:"4355 Spring Mountain Rd #205",p:2,pp:"$30–50",h:"매일 17:00–익일 02:00",s:"Robata Skewers (이자카야 꼬치)",y:4.2,ll:[36.1265,-115.1993],src:["S1"]},
+ {n:"Kabuto Edomae Sushi",c:"jp",a:"차이나타운",l:"5040 Spring Mountain Rd #4",p:4,pp:"$150–250",h:"월–토 디너 예약제 (일 휴무)",s:"Omakase (에도마에 스시)",y:4.7,ll:[36.1254,-115.2123],src:["S1","S3"]},
+ {n:"Sushi Neko",c:"jp",a:"차이나타운",l:"5115 Spring Mountain Rd",p:3,pp:"$50–90",h:"화–일 17:00–22:00",s:"Premium Nigiri",y:4.6,ll:[36.1262,-115.2142],src:["S1"]},
+ {n:"Sparrow + Wolf",c:"us",a:"차이나타운",l:"4480 Spring Mountain Rd #100",p:3,pp:"$70–120",h:"월–토 17:00–22:00",s:"Bone Marrow Dumplings",y:4.5,ll:[36.1264,-115.2018],src:["S1","S3","S4"]},
+ {n:"Weera Thai (Chinatown)",c:"sea",a:"차이나타운",l:"Spring Mountain Rd 일대",p:1,pp:"$20–35",h:"매일 11:00–22:00",s:"Crispy Pork Belly",y:4.5,ll:[36.1262,-115.1975],ap:1,src:["S1","S2"]},
+ {n:"Ramen Boys",c:"jp",a:"차이나타운",l:"Spring Mountain Rd 일대",p:1,pp:"$15–20",h:"매일 11:00–22:00",s:"Tonkotsu Ramen",y:4.4,ll:[36.1259,-115.2072],ap:1,src:["S1"]},
+ {n:"Xiao Long Dumplings",c:"cn",a:"차이나타운",l:"Spring Mountain Rd 일대",p:1,pp:"$15–25",h:"매일 11:00–21:30",s:"Xiao Long Bao",y:4.3,ll:[36.1267,-115.2000],ap:1,src:["S1"]},
+ {n:"Magic Noodle",c:"cn",a:"차이나타운",l:"Spring Mountain Rd 서쪽",p:1,pp:"$15–20",h:"매일 11:00–22:00",s:"Spicy Beef Noodle Soup (란저우 라미엔)",y:4.5,ll:[36.1263,-115.2208],ap:1,src:["S1"]},
+ {n:"Palette Tea Lounge",c:"cn",a:"차이나타운",l:"Spring Mountain Rd 일대",p:2,pp:"$25–40",h:"매일 10:00–21:00",s:"Soup Dumplings (딤섬)",y:4.4,ll:[36.1259,-115.2148],ap:1,src:["S1"]},
+ {n:"Yui Edomae Sushi",c:"jp",a:"차이나타운",l:"3460 Arville St",p:4,pp:"$200–300",h:"화–토 디너 예약제",s:"Omakase",y:4.8,ll:[36.1293,-115.1990],src:["S1"]},
+ {n:"Chubby Cattle",c:"cn",a:"차이나타운",l:"3400 S Jones Blvd #15",p:2,pp:"$40–60",h:"매일 11:30–익일 01:00",s:"Wagyu Hot Pot (컨베이어 훠궈)",y:4.2,ll:[36.1298,-115.2252],src:["S1"]},
+ {n:"Chengdu Taste",c:"cn",a:"차이나타운",l:"3950 Spring Mountain Rd",p:1,pp:"$20–35",h:"매일 11:00–22:00",s:"Water-Boiled Fish (수자위)",y:4.3,ll:[36.1260,-115.1949],src:["S1"]},
+ {n:"Shanghai Taste",c:"cn",a:"차이나타운",l:"4266 Spring Mountain Rd",p:1,pp:"$15–30",h:"목–화 11:00–21:00 (수 휴무)",s:"Xiao Long Bao",y:4.5,ll:[36.1266,-115.1985],src:["S1"]},
+ // ── 오프스트립 가성비 20 (S2)
+ {n:"Esther's Kitchen",c:"eu",a:"다운타운·아트디스트릭트",l:"1131 S Main St",p:2,pp:"$40–60",h:"매일 11:00–22:00 (주말 브런치)",s:"Cacio e Pepe · 사워도우",y:4.4,ll:[36.1578,-115.1530],src:["S2","S4"]},
+ {n:"Tacos El Gordo",c:"mx",a:"스트립",l:"3041 Las Vegas Blvd S",p:1,pp:"$10–20",h:"일–목 10:00–익일 02:00, 금·토 ~04:00",s:"Adobada Taco",y:4.5,ll:[36.1352,-115.1622],src:["S2"]},
+ {n:"Juan's Flaming Fajitas",c:"mx",a:"남서부",l:"9640 W Tropicana Ave",p:2,pp:"$25–40",h:"매일 11:00–21:00",s:"Steak Fajitas",y:4.6,ll:[36.0995,-115.2985],src:["S2"]},
+ {n:"Ellis Island BBQ",c:"bbq",a:"스트립 인근",l:"4178 Koval Ln",p:1,pp:"$20–30",h:"매일 11:00–23:00",s:"BBQ Ribs · 자체 양조 맥주",y:3.9,ll:[36.1163,-115.1618],src:["S2"]},
+ {n:"Rollin Smoke BBQ",c:"bbq",a:"스트립 인근",l:"3185 S Highland Dr",p:1,pp:"$20–35",h:"매일 11:00–21:00",s:"Brisket",y:4.4,ll:[36.1365,-115.1695],src:["S2"]},
+ {n:"John Mull's Meats & Road Kill Grill",c:"bbq",a:"북부",l:"3730 Thom Blvd",p:1,pp:"$15–30",h:"화–토 11:00–19:00",s:"Famous BBQ Combo",y:4.6,ll:[36.2180,-115.1727],src:["S2"]},
+ {n:"Lindo Michoacan",c:"mx",a:"동부",l:"2655 E Desert Inn Rd",p:2,pp:"$25–40",h:"매일 11:00–22:00",s:"Carnitas · Molcajete",y:4.2,ll:[36.1300,-115.1155],src:["S2"]},
+ {n:"Le Thai",c:"sea",a:"다운타운·아트디스트릭트",l:"523 E Fremont St",p:1,pp:"$20–30",h:"매일 11:00–22:00 (주말 늦게까지)",s:"Waterfall Beef",y:4.4,ll:[36.1695,-115.1403],src:["S2"]},
+ {n:"Komex",c:"mx",a:"서부",l:"633 N Decatur Blvd",p:1,pp:"$12–20",h:"월–토 10:00–21:00",s:"Korean BBQ Burrito (코리안-멕시칸)",y:4.6,ll:[36.1830,-115.2073],src:["S2"]},
+ {n:"Vickie's Diner",c:"us",a:"다운타운·아트디스트릭트",l:"1700 S Las Vegas Blvd",p:1,pp:"$15–25",h:"매일 07:00–15:00",s:"Chicken Fried Steak",y:4.3,ll:[36.1517,-115.1527],src:["S2"]},
+ {n:"Blueberry Hill",c:"br",a:"동부",l:"1280 E Flamingo Rd (여러 지점)",p:1,pp:"$15–25",h:"매일 06:00–15:00 (지점별 상이)",s:"Pancakes · Chicken Fried Steak",y:4.0,ll:[36.1148,-115.1365],src:["S2"]},
+ {n:"Nora's Italian Cuisine",c:"eu",a:"서부",l:"5780 W Flamingo Rd",p:2,pp:"$30–50",h:"매일 11:00–22:00",s:"Chicken Parmigiana",y:4.3,ll:[36.1149,-115.2235],src:["S2"]},
+ {n:"Bob Taylor's Ranch House",c:"us",a:"북서부",l:"6250 Rio Vista St",p:3,pp:"$50–80",h:"화–일 16:30–21:00",s:"Prime Rib (참나무 직화)",y:4.3,ll:[36.2635,-115.2340],src:["S2"]},
+ {n:"Viva Las Arepas",c:"mx",a:"다운타운·아트디스트릭트",l:"1616 S Las Vegas Blvd",p:1,pp:"$12–20",h:"매일 10:00–22:00",s:"Reina Pepiada (아레파)",y:4.5,ll:[36.1530,-115.1533],src:["S2"]},
+ // ── 미쉐린 셀렉티드 2026 (S3)
+ {n:"Anima by EDO",c:"eu",a:"남서부",l:"Southwest Las Vegas",p:3,pp:"$80–130",h:"화–토 17:00–22:00",s:"스페인·지중해 타파스 테이스팅",y:4.7,ll:[36.0870,-115.2430],ap:1,src:["S3"]},
+ {n:"Bouchon",c:"eu",a:"스트립",l:"The Venetian 10F",p:3,pp:"$40–70",h:"매일 브런치 08:00–14:00 · 디너 17:00–22:00",s:"Chicken & Waffles · Croque Madame",y:4.3,ll:[36.1213,-115.1698],src:["S3","S6"]},
+ {n:"COTE Las Vegas",c:"kr",a:"스트립",l:"The Venetian · Restaurant Row",p:4,pp:"$120–200",h:"매일 17:00–22:00 (금·토 ~23:00)",s:"Butcher's Feast (미쉐린 K-스테이크하우스)",y:4.6,ll:[36.1226,-115.1690],src:["S3","S5"]},
+ {n:"Estiatorio Milos",c:"eu",a:"스트립",l:"The Venetian",p:3,pp:"$70–150",h:"매일 12:00–23:00",s:"런치 프리픽스 · 그릴 생선",y:4.5,ll:[36.1218,-115.1686],src:["S3"]},
+ {n:"Gymkhana Las Vegas",c:"eu",a:"스트립",l:"ARIA",p:3,pp:"$80–130",h:"매일 17:00–22:00",s:"Wild Muntjac Biryani · 버터치킨 (인도)",y:4.6,ll:[36.1070,-115.1768],src:["S3"]},
+ {n:"Kame Omakase",c:"jp",a:"차이나타운",l:"Spring Mountain Rd 일대",p:4,pp:"$200+",h:"화–토 디너 예약제",s:"Omakase",y:4.8,ll:[36.1256,-115.1925],ap:1,src:["S3"]},
+ {n:"Lamaii",c:"sea",a:"차이나타운",l:"3965 Spring Mountain Rd",p:2,pp:"$35–55",h:"매일 17:00–23:00",s:"태국 요리 — 한국인 입맛엔 '아주 매운맛'으로 주문",y:4.5,ll:[36.1257,-115.1953],src:["S3","S8"]},
+ {n:"Michael Mina",c:"eu",a:"스트립",l:"Bellagio",p:4,pp:"$150–250",h:"수–일 17:00–22:00",s:"Lobster Pot Pie · 테이스팅 메뉴",y:4.4,ll:[36.1123,-115.1765],src:["S3"]},
+ {n:"Mott 32",c:"cn",a:"스트립",l:"The Palazzo",p:3,pp:"$80–150",h:"매일 17:00–23:00",s:"Apple Wood Roasted Peking Duck",y:4.4,ll:[36.1240,-115.1680],src:["S3"]},
+ {n:"Partage",c:"eu",a:"차이나타운",l:"3839 Spring Mountain Rd",p:4,pp:"$120–200",h:"화–토 17:00–22:00",s:"프렌치 테이스팅 메뉴",y:4.8,ll:[36.1258,-115.1940],src:["S3"]},
+ {n:"Pho Ga Bac Bac",c:"sea",a:"차이나타운",l:"Spring Mountain Rd 일대",p:1,pp:"$15–20",h:"매일 10:00–21:00",s:"Pho Ga (닭 쌀국수)",y:4.4,ll:[36.1271,-115.2030],ap:1,src:["S3"]},
+ {n:"Ping Pang Pong",c:"cn",a:"스트립 인근",l:"Gold Coast Hotel",p:2,pp:"$25–45",h:"매일 10:00–15:00 · 17:00–23:00",s:"딤섬",y:4.2,ll:[36.1167,-115.1923],src:["S3"]},
+ {n:"SoulBelly BBQ",c:"bbq",a:"다운타운·아트디스트릭트",l:"1327 S Main St",p:1,pp:"$20–35",h:"수–일 11:00–21:00",s:"Brisket · Pork Belly Burnt Ends",y:4.6,ll:[36.1557,-115.1527],src:["S3"]},
+ {n:"Stubborn Seed",c:"us",a:"스트립",l:"Resorts World",p:4,pp:"$150–250",h:"수–일 17:00–22:00",s:"셰프 테이스팅 메뉴",y:4.6,ll:[36.1350,-115.1650],src:["S3"]},
+ {n:"Wing Lei",c:"cn",a:"스트립",l:"Wynn",p:4,pp:"$120–200",h:"목–월 17:30–22:00",s:"Imperial Peking Duck",y:4.5,ll:[36.1265,-115.1663],src:["S3"]},
+ // ── 오프스트립 5 (S4)
+ {n:"Nicco's Prime Cuts & Fresh Fish",c:"us",a:"남서부",l:"Durango Casino & Resort",p:4,pp:"$90–150",h:"매일 17:00–22:00",s:"드라이에이징 스테이크 · 생선",y:4.6,ll:[36.0645,-115.2793],src:["S4"]},
+ {n:"Harlo",c:"us",a:"서머린",l:"Summerlin (Downtown Summerlin 인근)",p:3,pp:"$70–120",h:"매일 16:00–22:00",s:"스테이크 · 시푸드",y:4.5,ll:[36.1555,-115.3330],ap:1,src:["S4"]},
+ {n:"Echo & Rig",c:"us",a:"서머린",l:"Tivoli Village, 440 S Rampart Blvd",p:3,pp:"$60–100",h:"매일 11:00–22:00",s:"Butcher's Cut 스테이크",y:4.4,ll:[36.1707,-115.2888],src:["S4"]},
+ // ── 한국인 추천 13 (S5)
+ {n:"Spago",c:"eu",a:"스트립",l:"Bellagio · Via Bellagio",p:3,pp:"$80–130",h:"매일 11:30–22:00",s:"벨라지오 분수뷰 파티오 · Wolfgang Puck",y:4.4,ll:[36.1128,-115.1747],src:["S5"]},
+ {n:"é by José Andrés",c:"eu",a:"스트립",l:"The Cosmopolitan · Level 3",p:4,pp:"$300+",h:"수–일 디너 2회 (예약제, 9석)",s:"아방가르드 스페인 테이스팅",y:4.8,ll:[36.1099,-115.1740],src:["S5"]},
+ {n:"Morimoto Las Vegas",c:"jp",a:"스트립",l:"MGM Grand · Casino Level",p:4,pp:"$100–180",h:"매일 17:00–22:00",s:"테판야키 · 오마카세",y:4.4,ll:[36.1023,-115.1698],src:["S5"]},
+ {n:"Red Plate",c:"cn",a:"스트립",l:"The Cosmopolitan · Level 3",p:3,pp:"$50–90",h:"매일 17:00–23:00",s:"베이징덕 · 딤섬",y:4.3,ll:[36.1101,-115.1743],src:["S5"]},
+ {n:"Hakkasan",c:"cn",a:"스트립",l:"MGM Grand · 1F",p:3,pp:"$60–100",h:"목–월 17:00–22:00 · 주말 딤섬 브런치",s:"Endless Dim Sum Brunch",y:4.2,ll:[36.1019,-115.1708],src:["S5"]},
+ {n:"The Henry",c:"us",a:"스트립",l:"The Cosmopolitan · Level 1",p:2,pp:"$30–50",h:"24시간",s:"브런치~심야 아메리칸 컴포트푸드",y:4.2,ll:[36.1096,-115.1737],src:["S5"]},
+ {n:"Salt & Ivy",c:"br",a:"스트립",l:"ARIA · Level 2",p:2,pp:"$30–50",h:"매일 07:00–15:00",s:"풀사이드 브런치",y:4.3,ll:[36.1074,-115.1772],src:["S5"]},
+ {n:"Lago",c:"eu",a:"스트립",l:"Bellagio · Casino Level",p:3,pp:"$60–100",h:"매일 11:30–22:00",s:"분수 정면 이탈리안 스몰플레이트",y:4.3,ll:[36.1131,-115.1752],src:["S5"]},
+ {n:"Wicked Spoon",c:"br",a:"스트립",l:"The Cosmopolitan · Level 2",p:2,pp:"$50–70",h:"매일 08:00–21:00 (브런치·디너)",s:"개별 접시 스타일 뷔페",y:3.9,ll:[36.1098,-115.1746],src:["S5"]},
+ {n:"In-N-Out Burger",c:"us",a:"스트립",l:"The LINQ Promenade · Level 1",p:1,pp:"$10–15",h:"매일 10:30–익일 01:30",s:"Double-Double (Animal Style)",y:4.5,ll:[36.1177,-115.1703],src:["S5"]},
+ {n:"Black Tap",c:"us",a:"스트립",l:"The Venetian · Casino Level",p:2,pp:"$30–50",h:"매일 11:00–23:00",s:"크래프트 버거 · CrazyShake",y:4.4,ll:[36.1222,-115.1700],src:["S5"]},
+ {n:"Hello Kitty Cafe",c:"br",a:"스트립",l:"Fashion Show Las Vegas · Level 1",p:1,pp:"$10–20",h:"매일 10:00–21:00",s:"마카롱 · 한정 굿즈",y:4.0,ll:[36.1275,-115.1707],src:["S5"]},
+ // ── 브런치 5 (S6)
+ {n:"Toasted Gastrobrunch",c:"br",a:"남서부",l:"Southwest Las Vegas",p:2,pp:"$20–35",h:"매일 07:00–15:00",s:"French Toast · 창작 브런치",y:4.6,ll:[36.0590,-115.2440],ap:1,src:["S6"]},
+ {n:"Mr. Mamas Breakfast & Lunch",c:"br",a:"서부",l:"5835 W Sahara Ave",p:1,pp:"$15–25",h:"매일 07:00–14:00",s:"홈메이드 컴포트 브런치 (대용량)",y:4.6,ll:[36.1440,-115.2228],src:["S6"]},
+ {n:"Terrace Pointe Café",c:"br",a:"스트립",l:"Wynn",p:2,pp:"$35–55",h:"매일 07:00–15:00",s:"풀사이드 뷰 브런치",y:4.2,ll:[36.1270,-115.1655],src:["S6"]},
+ {n:"Hash House A Go Go",c:"br",a:"스트립",l:"The LINQ",p:2,pp:"$25–40",h:"매일 07:00–21:00",s:"Sage Fried Chicken & Waffles",y:4.2,ll:[36.1180,-115.1709],src:["S6"]},
+ // ── 릴스 (S7)
+ {n:"Marché Bacchus",c:"eu",a:"북서부",l:"Desert Shores, 2620 Regatta Dr",p:2,pp:"$40–70",h:"매일 11:00–21:00 (주말 브런치)",s:"호수뷰 테라스 · 에그 베네딕트 (프렌치)",y:4.5,ll:[36.2133,-115.2475],src:["S7"]}
+];
+const META = {"888 Japanese BBQ": {"home": "https://888japanesebbq.com/", "img": null}, "Pho Kim Long": {"home": null, "img": null}, "Raku": {"home": null, "img": null}, "China Mama": {"home": null, "img": null}, "Shang Artisan Noodle": {"home": "https://www.shangartisannoodle.com/", "img": null}, "Big Dan Shanxi Taste": {"home": null, "img": null}, "Monta Ramen": {"home": "https://www.monrestaurantgroup.com/", "img": null}, "Ichiza": {"home": "https://www.ichizalv.com/", "img": "https://static.wixstatic.com/media/7b0710_52fde1b2769e4c4488ff6a98ae90bf60f000.jpg"}, "Kabuto Edomae Sushi": {"home": "https://mon-kabuto.squarespace.com/", "img": "https://static1.squarespace.com/static/5fc150e8239b072291342943/t/647974c011ed4c14b46dbf11/1685681344910/kabuto-lv.jpg?format=1500w"}, "Sushi Neko": {"home": null, "img": null}, "Sparrow + Wolf": {"home": "https://sparrowandwolflv.com/", "img": null}, "Weera Thai (Chinatown)": {"home": "https://weerathai.com/", "img": "https://weerathai.com/images/banner/banner_1793606495.webp"}, "Ramen Boys": {"home": null, "img": null}, "Xiao Long Dumplings": {"home": "https://www.xiaolongdumplings.com/", "img": null}, "Magic Noodle": {"home": null, "img": null}, "Palette Tea Lounge": {"home": "https://palettelv.com/", "img": "https://static.spotapps.co/website_images/ab_websites/185437_website_v2/shared_image.jpg"}, "Yui Edomae Sushi": {"home": "https://www.yuisushi.com/", "img": null}, "Chubby Cattle": {"home": "https://www.chubbycattle.com/project/chubby-cattle-hotpot-las-vegas/", "img": "https://www.chubbycattle.com/wp-content/uploads/2023/07/Chubby-Cattle-Vegas-1024x683.jpg"}, "Chengdu Taste": {"home": null, "img": null}, "Shanghai Taste": {"home": null, "img": null}, "Esther's Kitchen": {"home": "https://www.estherslv.com/", "img": "https://images.getbento.com/accounts/d77efcef5d5855a0d736f3e5f66c77b3/media/images/SWJ_8713.jpg?w=1200&fit=max&auto=compress,format"}, "Tacos El Gordo": {"home": "https://tacoselgordobc.com/", "img": "https://tacoselgordobc.com/wp-content/uploads/2016/04/slider2.jpg"}, "Juan's Flaming Fajitas": {"home": "https://juansflamingfajitas.com/", "img": "https://juansflamingfajitas.com/wp-content/uploads/2022/01/juans-flaming-fajitas-and-cantina-las-vegas-food-5.jpeg"}, "Ellis Island BBQ": {"home": "https://www.ellisislandcasino.com/ellis-island-bbq", "img": "https://cdn.prod.website-files.com/6092d6f09a3178ca121f21b7/66705b84842cd8279a2e19d9_img9822.jpg"}, "Rollin Smoke BBQ": {"home": "https://www.rollinsmokebarbeque.com/", "img": "https://images.getbento.com/accounts/f0bef66a2efada71ac801a92a7231519/media/images/54179WHOLE_SPARE_RIB_4.JPG?w=1200"}, "John Mull's Meats & Road Kill Grill": {"home": null, "img": null}, "Lindo Michoacan": {"home": "https://lindomichoacan.com/", "img": "https://lindomichoacan.com/wp-content/uploads/2022/11/ima-lindomi004.jpg"}, "Le Thai": {"home": "https://lethaivegas.com/", "img": "https://lethaivegas.com/wp-content/uploads/2020/06/le_thai_awesome_noodles_15_1310x1287.jpg"}, "Komex": {"home": "https://www.komexfusion.com/", "img": "https://images.squarespace-cdn.com/content/v1/69b1d8eb5b344b2dcf730097/def64f29-651b-426b-8472-92575e653a57/TOSTADA-2.JPG"}, "Vickie's Diner": {"home": "https://www.vickiesdiner.com/", "img": "https://static1.squarespace.com/static/609e98b8d24f7b7f19439091/t/621e8c09c3ab5b1ea23506f0/1646169097695/050321-101.jpg?format=1500w"}, "Blueberry Hill": {"home": "https://www.blueberryhillrestaurants.com/", "img": "https://www.blueberryhillrestaurants.com/wp-content/uploads/2017/06/breakfast1.jpg"}, "Nora's Italian Cuisine": {"home": "https://norascuisine.com/", "img": "https://norascuisine.com/wp-content/uploads/2025/08/front-ribeye-1.jpg"}, "Bob Taylor's Ranch House": {"home": null, "img": null}, "Viva Las Arepas": {"home": "https://vivalasarepas.com/", "img": "https://static-content.owner.com/funnel/images/f3f41b2f-cb9a-4b43-9c49-73b3ec849873?v=9704305325"}, "Anima by EDO": {"home": "https://animabyedo.com/", "img": "https://animabyedo.com/og-anima.jpg"}, "Bouchon": {"home": "https://www.venetianlasvegas.com/dining/restaurants/bouchon.html", "img": "https://www.venetianlasvegas.com/content/dam/vlvweb/restaurants/bouchon/brunch-assortment-1_1200x800.jpg"}, "COTE Las Vegas": {"home": "https://www.venetianlasvegas.com/dining/restaurants/cote.html", "img": "https://www.venetianlasvegas.com/content/dam/vlvweb/restaurants/cote/cote-1_1200x800.jpg"}, "Estiatorio Milos": {"home": "https://www.venetianlasvegas.com/dining/restaurants/estiatorio-milos.html", "img": "https://www.venetianlasvegas.com/content/dam/vlvweb/restaurants/estiatorio-milos/thumb-1_1200x800.jpg"}, "Gymkhana Las Vegas": {"home": "https://www.gymkhanarestaurants.com/lasvegas", "img": null}, "Kame Omakase": {"home": "https://sushikame.com/", "img": "https://sushikame.com/wp-content/uploads/2024/11/0W7A1019-2-1.jpg"}, "Lamaii": {"home": "https://www.lamaiilv.com/", "img": "https://www.lamaiilv.com/assets/hero-exterior.webp"}, "Michael Mina": {"home": "https://theminagroup.com/restaurants/michael-mina/", "img": "https://theminagroup.com/wp-content/uploads/2024/02/restaurant-mmlv-thumb.jpg"}, "Mott 32": {"home": "https://mott32.com/las-vegas/", "img": "https://mott32.com/fileadmin/_processed_/a/3/csm_Mott-32-Las-Vegas-location_20144c4be1.jpg"}, "Partage": {"home": "https://partage.vegas/", "img": "https://partage.vegas/img/main_area.jpg"}, "Pho Ga Bac Bac": {"home": "https://phogabacbac.com/", "img": "https://phogabacbac.com/assets/hero-photo.jpg"}, "Ping Pang Pong": {"home": "https://goldcoast.boydgaming.com/dining/ping-pang-pong", "img": null}, "SoulBelly BBQ": {"home": "https://soulbellybbq.com/", "img": "https://soulbellybbq.com/og.png"}, "Stubborn Seed": {"home": "https://www.rwlasvegas.com/dining/stubborn-seed/", "img": "https://www.rwlasvegas.com/wp-content/uploads/2021/01/FNB-01817-Stubborn-Seed_ModAmCuisine_1000x1000.jpg"}, "Wing Lei": {"home": "https://www.wynnlasvegas.com/dining/fine-dining/wing-lei", "img": "https://cdn.wynnresorts.com/image/upload/f_auto/q_auto/v1611606669/Wynn%20Las%20Vegas/Dining/Special%20Events/Valentines%20Day/Valentines%20Day-Wing_Lei-828x466.png"}, "Nicco's Prime Cuts & Fresh Fish": {"home": "https://durangoresort.com/eat-and-drink/niccos/", "img": "https://durangoresort.com/wp-content/uploads/2023/12/Niccos-Exterior.jpg"}, "Harlo": {"home": "https://www.harlosteak.com/", "img": "https://images.getbento.com/accounts/7e2948b60e68736c9495d2fed58c0350/media/images/11992harlo.interior.final.jpg?w=1200&fit=crop&auto=compress,format&cs=origin&crop=focalpoint&fp-x=0.5&fp-y=0.5"}, "Echo & Rig": {"home": "https://www.echoandrig.com/", "img": null}, "Spago": {"home": "https://wolfgangpuck.com/restaurants/spago-las-vegas/", "img": "https://wolfgangpuck.com/wp-content/uploads/2026/07/SpagoLV2949.jpg"}, "é by José Andrés": {"home": "https://www.ebyjoseandres.com/", "img": "https://www.ebyjoseandres.com/images/e-by-jose-andres-01.jpg"}, "Morimoto Las Vegas": {"home": null, "img": null}, "Red Plate": {"home": "https://cosmopolitanlasvegas.mgmresorts.com/en/restaurants/red-plate.html", "img": null}, "Hakkasan": {"home": "https://taogroup.com/venues/hakkasan-las-vegas/", "img": "https://taogroup.com/wp-content/uploads/2024/09/210700_JoeJanet_HKLV_2S3A0052_MainDining-LowRes.jpg"}, "The Henry": {"home": "https://cosmopolitanlasvegas.mgmresorts.com/en/restaurants/the-henry.html", "img": null}, "Salt & Ivy": {"home": null, "img": null}, "Lago": {"home": null, "img": null}, "Wicked Spoon": {"home": "https://cosmopolitanlasvegas.mgmresorts.com/en/restaurants/wicked-spoon.html", "img": null}, "In-N-Out Burger": {"home": "https://www.in-n-out.com/", "img": null}, "Black Tap": {"home": "https://blacktap.com/", "img": "https://blacktap.com/wp-content/uploads/2019/06/Black-Tap-All-American-Burger-w-Beer-e1560782990580-1400x700.jpg"}, "Hello Kitty Cafe": {"home": "https://www.sanrio.com/blogs/hellokittycafe", "img": "https://www.sanrio.com/cdn/shop/articles/HKC-Vegas-Flat_3aa43c98-8575-4207-86bf-9037f158dd90_600x.jpg?v=1790033223"}, "Toasted Gastrobrunch": {"home": "https://toastedgastrobrunch.com/", "img": null}, "Mr. Mamas Breakfast & Lunch": {"home": "https://mrmamaslv.com/", "img": null}, "Terrace Pointe Café": {"home": "https://www.wynnlasvegas.com/dining/casual-dining/terrace-pointe-cafe", "img": "https://cdn.wynnresorts.com/image/upload/f_auto/q_auto/v1603732589/Wynn%20Las%20Vegas/Dining/Casual%20Dining/Terrace%20Pointe%20Cafe/Terrace_Point_Cafe-Outdoor_Dining-828x466.jpg"}, "Hash House A Go Go": {"home": "https://www.hashhouseagogo.com/", "img": "https://www.hashhouseagogo.com/app/uploads/2018/03/hh-home-brunch-800x528.jpg"}, "Marché Bacchus": {"home": "https://marchebacchus.com/", "img": "https://cdn.durable.co/blocks/cyJTgqMmbgdnoDWBe5S6KaIcxSCLeGVgFLlp8FDbsWoYiaqf87YQa4JW9AfGhoQ5.jpg"}};
+R.forEach(r=>{const m=META[r.n]; if(m){r.home=m.home||null; r.img=m.img||null;}});
+
+const EMO = {cn:"🥟",jp:"🍣",kr:"🥩",sea:"🍜",eu:"🍝",us:"🍔",bbq:"🍖",mx:"🌮",br:"🥞"};
+const CAT_SHORT = {cn:"중식",jp:"일식",kr:"한식",sea:"태국·베트남",eu:"유럽·인도",us:"아메리칸",bbq:"BBQ",mx:"멕시칸",br:"브런치"};
+const $ = s=>document.querySelector(s);
+R.forEach((r,i)=>r.id=i);
+
+// 파생 속성
+const isMich = r=>r.src.includes("S3");
+const isKor  = r=>r.src.includes("S5");
+const isLate = r=>/24시간|익일/.test(r.h);
+const FLAG = {mich:isMich, kor:isKor, late:isLate, cheap:r=>r.p===1, top:r=>r.y>=4.5};
+
+// 저장(찜)
+let saved = new Set();
+try{ saved = new Set(JSON.parse(localStorage.getItem("lvmap-saved")||"[]")); }catch(e){}
+function persist(){ try{ localStorage.setItem("lvmap-saved",JSON.stringify([...saved])); }catch(e){} }
+const isSaved = r=>saved.has(r.n);
+
+const st = {cat:"", area:"", price:"", sort:"yelp", q:"", flags:new Set(), view:"home", sel:null};
+const mobile = ()=>matchMedia("(max-width:900px)").matches;
+
+// ── 공통 조각
+const priceTxt = p=>"$".repeat(p);
+const thumb = (r,cls="",extra="")=>{
+  const c=CATS[r.c].c;
+  return `<div class="th ${cls}" style="background:linear-gradient(140deg,${c} 0%,${c}b3 60%,${c}80 100%)">${extra}<span class="em">${EMO[r.c]}</span>${r.img?`<img src="${r.img}" alt="${r.n}" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`:""}</div>`;
+};
+const rating = r=>`<div class="rt"><i>★</i>${r.y.toFixed(1)}<em>Yelp</em></div>`;
+const badges = r=>{
+  let b="";
+  if(isMich(r)) b+=`<span class="bd m">미쉐린 셀렉티드</span>`;
+  if(isKor(r))  b+=`<span class="bd k">한국인 추천</span>`;
+  if(isLate(r)) b+=`<span class="bd">${/24시간/.test(r.h)?"24시간":"심야영업"}</span>`;
+  if(r.ap)      b+=`<span class="bd ap">◆ 좌표 근사</span>`;
+  return b?`<div class="badges">${b}</div>`:"";
+};
+const yelpUrl = r=>"https://www.yelp.com/search?find_desc="+encodeURIComponent(r.n)+"&find_loc="+encodeURIComponent("Las Vegas, NV");
+const gmapUrl = r=>"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(r.n+" Las Vegas");
+
+// ── 필터
+function active(){ return !!(st.cat||st.area||st.price||st.q||st.flags.size); }
+function sortFn(s){
+  return (x,y)=> s==="yelp"?y.y-x.y||x.p-y.p : s==="p-asc"?x.p-y.p||y.y-x.y : s==="p-desc"?y.p-x.p||y.y-x.y : x.n.localeCompare(y.n);
+}
+function filtered(){
+  let a = R.filter(r=>
+    (st.view!=="saved"||isSaved(r)) &&
+    (!st.cat||r.c===st.cat) &&
+    (!st.area||r.a===st.area) &&
+    (!st.price||r.p==st.price) &&
+    [...st.flags].every(f=>FLAG[f](r)) &&
+    (!st.q||(r.n+" "+r.s+" "+r.l+" "+r.a+" "+CATS[r.c].n).toLowerCase().includes(st.q)));
+  return a.sort(sortFn(st.sort));
+}
+
+// ── 카테고리 레일
+function renderRail(){
+  const items=[["","🍽️","전체"],...Object.keys(CATS).map(k=>[k,EMO[k],CAT_SHORT[k]])];
+  $("#rail").innerHTML = items.map(([k,e,n])=>`<button class="cat ${st.cat===k?"on":""}" data-c="${k}" type="button"><div class="ic">${e}</div><span>${n}</span></button>`).join("");
+}
+$("#rail").addEventListener("click",e=>{
+  const b=e.target.closest(".cat"); if(!b) return;
+  st.cat = st.cat===b.dataset.c ? "" : b.dataset.c;
+  render(true);
+});
+
+const areas=[...new Set(R.map(r=>r.a))].sort();
+$("#area").innerHTML = `<option value="">지역</option>`+areas.map(a=>`<option>${a}</option>`).join("");
+$("#area").onchange=e=>{st.area=e.target.value;render(true)};
+$("#price").onchange=e=>{st.price=e.target.value;render(true)};
+$("#filters").addEventListener("click",e=>{
+  const b=e.target.closest(".tg"); if(!b) return;
+  const f=b.dataset.f; st.flags.has(f)?st.flags.delete(f):st.flags.add(f);
+  render(true);
+});
+$("#q").oninput=e=>{st.q=e.target.value.trim().toLowerCase();render(true)};
+$("#qClear").onclick=()=>{$("#q").value="";st.q="";render(true)};
+function resetAll(){
+  st.cat="";st.area="";st.price="";st.q="";st.flags.clear();
+  $("#q").value="";$("#area").value="";$("#price").value="";
+  render(true);
+}
+
+// ── 컬렉션 (캐치테이블 홈 큐레이션)
+const COLS = [
+  {t:"🏅 미쉐린 가이드 셀렉티드", d:"2026 미쉐린이 고른 베가스 레스토랑", f:isMich},
+  {t:"🇰🇷 한국인이 추천하는 스트립 맛집", d:"호텔 안에서 실패 없는 선택", f:isKor},
+  {t:"💸 1인 $25 이하 가성비 맛집", d:"Yelp 평점 높은 순", f:r=>r.p===1},
+  {t:"🥞 브런치 · 카페", d:"늦은 아침, 호수뷰·풀사이드 브런치", f:r=>r.c==="br"||r.src.includes("S6")||r.src.includes("S7")},
+  {t:"🌙 심야 · 24시간", d:"쇼 끝나고 가기 좋은 곳", f:isLate},
+];
+function colHTML(c,i){
+  const a=R.filter(c.f).sort(sortFn("yelp"));
+  return `<section class="sec"><div class="sec-h"><div><h3>${c.t}</h3><p>${c.d}</p></div><button class="more" data-col="${i}" type="button">전체 ${a.length} ›</button></div>
+  <div class="car">${a.slice(0,10).map((r,k)=>`<div class="cc" data-id="${r.id}">${thumb(r,"",`<span class="rk">${k+1}</span>`)}<div class="nm">${r.n}</div>${rating(r)}<div class="ln">${CAT_SHORT[r.c]} · ${r.a}</div><div class="ln">1인 ${r.pp}</div></div>`).join("")}</div></section>`;
+}
+function bannerHTML(){
+  const avg=(R.reduce((a,r)=>a+r.y,0)/R.length).toFixed(2);
+  return `<div class="banner"><h2>라스베가스, 오늘 어디서 먹지?</h2><p>카테고리 · 1인 객단가 · 영업시간 · 시그니처 메뉴 · Yelp 평점</p>
+  <div class="stats"><div><b>${R.length}</b>곳</div><div><b>★${avg}</b>평균 Yelp</div><div><b>${R.filter(isMich).length}</b>미쉐린</div><div><b>${R.filter(r=>r.p===1).length}</b>가성비 $</div></div></div>`;
+}
+
+// ── 리스트
+function itemHTML(r){
+  return `<div class="item ${st.sel===r.id?"sel":""}" data-id="${r.id}">${thumb(r)}
+    <div class="body"><div class="cl">${CATS[r.c].n} · ${r.a}</div><div class="nm">${r.n}</div>${rating(r)}
+    <div class="pr">1인 <b>${r.pp}</b> · ${priceTxt(r.p)}</div><div class="sg">🍽 ${r.s}</div><div class="sg">🕒 ${r.h}</div>${badges(r)}</div>
+    <button class="heart ${isSaved(r)?"on":""}" data-heart="${r.id}" type="button" aria-label="저장">${isSaved(r)?"♥":"♡"}</button></div>`;
+}
+function sortSel(){
+  return `<select class="sort" id="sort" aria-label="정렬">${[["yelp","평점 높은순"],["p-asc","가격 낮은순"],["p-desc","가격 높은순"],["name","이름순"]].map(([v,n])=>`<option value="${v}" ${st.sort===v?"selected":""}>${n}</option>`).join("")}</select>`;
+}
+
+let lastKey="";
+function render(refit){
+  renderRail();
+  document.querySelectorAll(".tg").forEach(b=>b.classList.toggle("on",st.flags.has(b.dataset.f)));
+  $("#area").classList.toggle("on",!!st.area); $("#price").classList.toggle("on",!!st.price);
+  $("#qClear").style.display = st.q?"block":"none";
+  document.querySelectorAll(".cnt").forEach(e=>e.textContent=saved.size||"");
+  document.querySelectorAll("[data-v]").forEach(b=>b.classList.toggle("on",b.dataset.v===st.view));
+  $("#wrap").dataset.view=st.view;
+
+  const a=filtered();
+  let h="";
+  if(st.view==="saved"){
+    h += `<div class="list-h"><h3>저장한 맛집 <b>${a.length}</b></h3><div>${active()?`<button class="reset" type="button">필터 초기화</button>`:""}${sortSel()}</div></div>`;
+    h += a.length? a.map(itemHTML).join("") : `<div class="empty"><b>♡</b>${saved.size?"조건에 맞는 저장 맛집이 없어요.":"가고 싶은 식당의 ♡를 눌러 저장해 보세요.<br>이 브라우저에만 저장돼요."}</div>`;
+  }else if(!active()){
+    h += bannerHTML() + COLS.map(colHTML).join("");
+    h += `<div class="list-h"><h3>전체 맛집 <b>${a.length}</b></h3>${sortSel()}</div>` + a.map(itemHTML).join("");
+  }else{
+    h += `<div class="list-h"><h3>검색 결과 <b>${a.length}</b>곳</h3><div><button class="reset" type="button">초기화</button>${sortSel()}</div></div>`;
+    h += a.length? a.map(itemHTML).join("") : `<div class="empty"><b>🔍</b>조건에 맞는 식당이 없어요.<br>필터를 줄여 보세요.</div>`;
+  }
+  $("#content").innerHTML=h;
+  const so=$("#sort"); if(so) so.onchange=e=>{st.sort=e.target.value;render()};
+
+  drawMarkers(a);
+  drawCarousel(a);
+  const key=a.map(r=>r.id).join(",");
+  if(refit && key!==lastKey && a.length) map.fitBounds(L.latLngBounds(a.map(r=>r.ll)),{padding:[50,50],maxZoom:14});
+  lastKey=key;
+}
+
+$("#content").addEventListener("click",e=>{
+  const hb=e.target.closest("[data-heart]");
+  if(hb){ e.stopPropagation(); toggleSave(R[+hb.dataset.heart]); return; }
+  if(e.target.closest(".reset")){ resetAll(); return; }
+  const mo=e.target.closest(".more");
+  if(mo){ applyCollection(+mo.dataset.col); return; }
+  const c=e.target.closest("[data-id]");
+  if(c) openDetail(+c.dataset.id);
+});
+function applyCollection(i){
+  // 컬렉션 '전체' → 대응 필터로 전환
+  const map_={0:()=>st.flags.add("mich"),1:()=>st.flags.add("kor"),2:()=>st.flags.add("cheap"),3:()=>{st.cat="br"},4:()=>st.flags.add("late")};
+  map_[i](); render(true); $("#side").scrollTo({top:0}); scrollTo({top:0});
+}
+function toggleSave(r){
+  saved.has(r.n)?saved.delete(r.n):saved.add(r.n); persist();
+  render(); if(st.sel===r.id) openDetail(r.id,true);
+}
+
+// ── 뷰 전환 (데스크톱 세그먼트 / 모바일 탭바)
+document.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{
+  st.view=b.dataset.v; closeDetail(); render(true);
+  if(st.view==="map") setTimeout(()=>{map.invalidateSize({pan:false}); const f=filtered(); if(f.length) map.fitBounds(L.latLngBounds(f.map(r=>r.ll)),{padding:[40,40],maxZoom:14}); else map.setView([36.135,-115.20],11);},120);
+  else scrollTo({top:0});
+});
+
+// ── 지도
+const map = L.map("map",{zoomControl:false}).setView([36.135,-115.20],12);
+L.control.zoom({position:"topright"}).addTo(map);
+let tl;
+function isDark(){
+  const t=document.documentElement.dataset.theme;
+  if(t) return t==="dark";
+  return matchMedia("(prefers-color-scheme: dark)").matches;
+}
+function setTiles(){
+  if(tl) map.removeLayer(tl);
+  $("#map").classList.toggle("darkmap",isDark());
+  tl=L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,className:"basetiles",attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
+}
+try{const t=localStorage.getItem("lvmap-theme"); if(t) document.documentElement.dataset.theme=t;}catch(e){}
+setTiles();
+$("#themeBtn").onclick=()=>{
+  document.documentElement.dataset.theme = isDark()?"light":"dark";
+  try{localStorage.setItem("lvmap-theme",document.documentElement.dataset.theme)}catch(e){}
+  setTiles();
+};
+L.polyline([[36.0905,-115.1745],[36.1020,-115.1727],[36.1150,-115.1725],[36.1260,-115.1680],[36.1365,-115.1625],[36.1475,-115.1560]],{color:"#ff5b1f",weight:6,opacity:.25}).addTo(map);
+[["더 스트립",36.1150,-115.1650],["차이나타운 (Spring Mtn Rd)",36.1345,-115.2080],["다운타운 · 아트디스트릭트",36.1640,-115.1460],["서머린",36.1650,-115.3150],["남서부",36.0700,-115.2650],["북서부 · Desert Shores",36.2250,-115.2550]]
+  .forEach(([t,a,b])=>L.marker([a,b],{icon:L.divIcon({className:"zone-label",html:t,iconSize:null}),interactive:false}).addTo(map));
+
+const layer=L.layerGroup().addTo(map);
+const markers={};
+const pinIcon=(r,sel)=>L.divIcon({className:"",iconSize:[0,0],html:`<div class="pin ${sel?"sel":""}" style="--c:${CATS[r.c].c}"><span class="e">${EMO[r.c]}</span><b>${r.n}</b></div>`});
+function drawMarkers(a){
+  layer.clearLayers();
+  for(const k in markers) delete markers[k];
+  a.forEach(r=>{
+    const m=L.marker(r.ll,{icon:pinIcon(r,st.sel===r.id),zIndexOffset:st.sel===r.id?1000:0});
+    m.on("click",()=>onPin(r.id));
+    m.addTo(layer); markers[r.id]=m;
+  });
+}
+function highlight(id){
+  const prev=st.sel; st.sel=id;
+  [prev,id].forEach(k=>{ if(k!=null&&markers[k]){ markers[k].setIcon(pinIcon(R[k],k===id)); markers[k].setZIndexOffset(k===id?1000:0);} });
+  document.querySelectorAll(".item.sel,.mc.sel").forEach(e=>e.classList.remove("sel"));
+  document.querySelectorAll(`.item[data-id="${id}"],.mc[data-id="${id}"]`).forEach(e=>e.classList.add("sel"));
+}
+function onPin(id){
+  if(mobile()){
+    highlight(id);
+    const c=document.querySelector(`.mc[data-id="${id}"]`); if(c) c.scrollIntoView({behavior:"smooth",inline:"center",block:"nearest"});
+  }else openDetail(id);
+}
+
+// 모바일 지도 하단 카드 캐러셀
+function drawCarousel(a){
+  $("#mcar").innerHTML = a.map(r=>`<div class="mc ${st.sel===r.id?"sel":""}" data-id="${r.id}">${thumb(r)}<div><div class="ln" style="margin:0">${CAT_SHORT[r.c]} · ${r.a}</div><div class="nm">${r.n}</div>${rating(r)}<div class="ln">1인 ${r.pp} · ${priceTxt(r.p)}</div><div class="ln">🕒 ${r.h}</div></div></div>`).join("");
+}
+$("#mcar").addEventListener("click",e=>{const c=e.target.closest(".mc"); if(c) openDetail(+c.dataset.id);});
+let carT;
+$("#mcar").addEventListener("scroll",()=>{
+  clearTimeout(carT);
+  carT=setTimeout(()=>{
+    const box=$("#mcar").getBoundingClientRect(), mid=box.left+box.width/2;
+    let best=null,bd=1e9;
+    document.querySelectorAll(".mc").forEach(c=>{const b=c.getBoundingClientRect(),d=Math.abs(b.left+b.width/2-mid); if(d<bd){bd=d;best=c;}});
+    if(best){const id=+best.dataset.id; if(id!==st.sel){highlight(id); map.panTo(R[id].ll,{animate:true});}}
+  },120);
+});
+
+// ── 매장 상세 시트
+function openDetail(id,keep){
+  const r=R[id]; highlight(id);
+  const c=CATS[r.c].c;
+  $("#sheet").innerHTML = `
+  <div class="sh-top"><button type="button" id="shClose" aria-label="닫기">←</button><button type="button" id="shSave" class="${isSaved(r)?"on":""}" aria-label="저장">${isSaved(r)?"♥":"♡"}</button></div>
+  <div class="sh-scroll">
+    ${thumb(r,"hero",r.img?`<span class="credit">사진: 매장 공식 홈페이지</span>`:"")}
+    <div class="sh-body">
+      <div class="cl" style="color:${c};font-weight:700">${CATS[r.c].n} <span style="color:var(--muted);font-weight:400">· ${r.a}</span></div>
+      <h2>${r.n}</h2>
+      <div class="sh-rt"><i>${"★".repeat(Math.round(r.y))}${"☆".repeat(5-Math.round(r.y))}</i>${r.y.toFixed(1)}<em>Yelp 평점</em></div>
+      ${badges(r)}
+      <div class="pricebox"><div><small>1인 객단가</small><b>${r.pp}</b></div><div><small>가격대</small><b>${priceTxt(r.p)}<span style="color:var(--line)">${"$".repeat(4-r.p)}</span></b></div></div>
+    </div>
+    <div class="sh-sec"><h4>대표 메뉴</h4><div class="sig"><small>SIGNATURE</small>${r.s}</div></div>
+    <div class="sh-sec"><h4>매장 정보</h4>
+      <div class="row"><span class="k">주소</span><span>${r.l}${r.ap?' <span class="bd ap">◆ 좌표 근사</span>':''}</span></div>
+      <div class="row"><span class="k">영업시간</span><span>${r.h}</span></div>
+      <div class="row"><span class="k">지역</span><span>${r.a}</span></div>
+      ${r.home?`<div class="row"><span class="k">홈페이지</span><a href="${r.home}" target="_blank" rel="noopener" style="color:var(--accent);word-break:break-all">${r.home.replace(/^https?:\/\/(www\.)?/,"").replace(/\/$/,"")}</a></div>`:""}
+    </div>
+    <div class="sh-sec srcs"><h4>추천 출처</h4>${r.src.map(s=>`<a href="${SRC[s].u}" target="_blank" rel="noopener">📷 ${SRC[s].n}</a>`).join("")}
+      <div style="font-size:11px;color:var(--muted);margin-top:6px">객단가·영업시간·평점은 2026-11 기준 추정치 — 방문 전 확인하세요.</div></div>
+  </div>
+  <div class="cta"><a class="o" href="${gmapUrl(r)}" target="_blank" rel="noopener">구글맵 길찾기</a><a class="f" href="${yelpUrl(r)}" target="_blank" rel="noopener">Yelp에서 보기</a></div>`;
+  $("#sheet").classList.add("open"); $("#sheet").setAttribute("aria-hidden","false");
+  $("#dim").classList.add("open");
+  $("#shClose").onclick=closeDetail;
+  $("#shSave").onclick=()=>toggleSave(r);
+  if(!keep){
+    $(".sh-scroll").scrollTop=0;
+    if(!mobile()) map.flyTo(r.ll,Math.max(map.getZoom(),15),{duration:.6});
+    else if(st.view==="map") map.panTo(r.ll);
+  }
+}
+function closeDetail(){
+  $("#sheet").classList.remove("open"); $("#sheet").setAttribute("aria-hidden","true");
+  $("#dim").classList.remove("open");
+}
+$("#dim").onclick=closeDetail;
+addEventListener("keydown",e=>{ if(e.key==="Escape") closeDetail(); });
+
+$("#srcs").innerHTML = Object.values(SRC).map(s=>`<a href="${s.u}" target="_blank" rel="noopener">${s.n}</a>`).join(" · ");
+addEventListener("resize",()=>map.invalidateSize());
+render(false);
+</script>
+</body>
+</html>

@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>라스베가스 맛집 지도</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+/* 캐치테이블 벤치마킹: 흰 배경 + 오렌지 포인트, 검색바·카테고리 아이콘 레일·컬렉션 캐러셀·매장 상세 시트·하단 탭바 */
+:root{
+  --bg:#ffffff; --soft:#f5f5f7; --panel:#ffffff; --ink:#111318; --sub:#4b5058; --muted:#8b9098; --line:#eeeff2;
+  --accent:#ff5b1f; --accent-soft:#fff1eb; --star:#ff7a1a; --mich:#c8102e; --shadow:0 6px 24px rgba(17,19,24,.10);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1114; --soft:#1b1e23; --panel:#16181c; --ink:#eef0f3; --sub:#c0c5cc; --muted:#8d939c; --line:#262a30;
+    --accent:#ff7440; --accent-soft:#3a2219; --star:#ff9a4d; --mich:#ff5a6e; --shadow:0 6px 24px rgba(0,0,0,.45);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1114; --soft:#1b1e23; --panel:#16181c; --ink:#eef0f3; --sub:#c0c5cc; --muted:#8d939c; --line:#262a30;
+  --accent:#ff7440; --accent-soft:#3a2219; --star:#ff9a4d; --mich:#ff5a6e; --shadow:0 6px 24px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font-family:"Noto Sans KR",system-ui,sans-serif;font-size:14px;letter-spacing:-.2px}
+button,select,input{font-family:inherit;color:inherit}
+button{cursor:pointer}
+::-webkit-scrollbar{width:8px;height:0}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}
+
+/* ── 레이아웃 */
+.wrap{display:grid;grid-template-columns:480px 1fr;height:100vh}
+.side{overflow-y:auto;border-right:1px solid var(--line);background:var(--bg);position:relative}
+#map{height:100vh;background:var(--soft)}
+
+/* ── 상단 앱바 + 검색 */
+.top{position:sticky;top:0;z-index:20;background:var(--bg);padding:14px 16px 10px}
+.bar{display:flex;align-items:center;gap:10px}
+.brand{display:flex;align-items:center;gap:9px;margin-right:auto}
+.logo{width:34px;height:34px;border-radius:10px;background:var(--accent);color:#fff;font:900 13px/34px "Noto Sans KR";text-align:center;letter-spacing:-.5px}
+.brand b{display:block;font-size:17px;font-weight:900;letter-spacing:-.5px}
+.brand small{display:block;font-size:11px;color:var(--muted);margin-top:1px}
+.seg{display:flex;background:var(--soft);border-radius:999px;padding:3px}
+.seg button{border:0;background:none;padding:6px 13px;border-radius:999px;font-size:12.5px;font-weight:700;color:var(--muted)}
+.seg button.on{background:var(--panel);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.cnt{color:var(--accent)}
+.icon-btn{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--panel);font-size:15px}
+.search{display:flex;align-items:center;gap:8px;margin-top:12px;background:var(--soft);border-radius:12px;padding:0 12px;height:44px}
+.search svg{flex:none;color:var(--muted)}
+.search input{flex:1;border:0;background:none;outline:none;font-size:14px;min-width:0}
+.search input::-webkit-search-cancel-button{display:none}
+#qClear{border:0;background:var(--muted);color:var(--bg);width:18px;height:18px;border-radius:50%;font-size:11px;line-height:18px;padding:0;display:none}
+
+/* ── 카테고리 아이콘 레일 */
+.rail{display:flex;gap:4px;overflow-x:auto;padding:6px 12px 4px;scrollbar-width:none}
+.cat{flex:none;width:64px;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:6px;padding:4px 0}
+.cat .ic{width:52px;height:52px;border-radius:18px;background:var(--soft);display:flex;align-items:center;justify-content:center;font-size:25px;border:2px solid transparent;transition:.15s}
+.cat span{font-size:11.5px;color:var(--sub);white-space:nowrap;max-width:64px;overflow:hidden;text-overflow:ellipsis}
+.cat.on .ic{border-color:var(--accent);background:var(--accent-soft)}
+.cat.on span{color:var(--accent);font-weight:700}
+
+/* ── 필터 칩 */
+.filters{display:flex;gap:6px;overflow-x:auto;padding:8px 16px 12px;scrollbar-width:none;border-bottom:8px solid var(--soft)}
+.pill{flex:none;height:32px;border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:0 12px;font-size:12.5px;font-weight:500;white-space:nowrap}
+select.pill{appearance:none;-webkit-appearance:none;padding-right:26px;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 14px) 14px,calc(100% - 10px) 14px;background-size:4px 4px;background-repeat:no-repeat}
+.pill.on{border-color:var(--ink);background:var(--ink);color:var(--bg)}
+select.pill.on{background-image:linear-gradient(45deg,transparent 50%,var(--bg) 50%),linear-gradient(135deg,var(--bg) 50%,transparent 50%)}
+
+/* ── 배너 */
+.banner{margin:16px 16px 4px;border-radius:16px;padding:16px 18px;background:linear-gradient(120deg,#ff5b1f,#ff8a3d);color:#fff;position:relative;overflow:hidden}
+.banner h2{margin:0;font-size:18px;font-weight:900;letter-spacing:-.5px}
+.banner p{margin:4px 0 12px;font-size:12px;opacity:.9}
+.banner .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.banner .stats div{background:rgba(255,255,255,.18);border-radius:10px;padding:7px 4px;text-align:center;font-size:10.5px}
+.banner .stats b{display:block;font-size:16px;font-weight:900}
+.banner::after{content:"🎰";position:absolute;right:-6px;top:-10px;font-size:64px;opacity:.18}
+
+/* ── 섹션 / 컬렉션 캐러셀 */
+.sec{padding:20px 0 4px}
+.sec-h{display:flex;align-items:flex-end;justify-content:space-between;padding:0 16px 10px;gap:8px}
+.sec-h h3{margin:0;font-size:17px;font-weight:900;letter-spacing:-.5px}
+.sec-h p{margin:3px 0 0;font-size:12px;color:var(--muted)}
+.more{border:0;background:none;font-size:12px;color:var(--muted);white-space:nowrap;padding:0}
+.car{display:flex;gap:10px;overflow-x:auto;padding:0 16px 6px;scroll-snap-type:x mandatory;scroll-padding-inline:16px;scrollbar-width:none}
+.cc{flex:none;width:148px;scroll-snap-align:start;cursor:pointer}
+.th{position:relative;border-radius:12px;display:flex;align-items:center;justify-content:center;overflow:hidden;color:#fff}
+.th .em{filter:drop-shadow(0 2px 4px rgba(0,0,0,.2))}
+.th img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:var(--soft)}
+.rk{z-index:2}
+.credit{position:absolute;right:8px;bottom:8px;z-index:2;font-size:10px;color:#fff;background:rgba(0,0,0,.45);padding:2px 6px;border-radius:4px}
+.cc .th{height:110px;font-size:42px}
+.rk{position:absolute;left:0;top:0;background:rgba(0,0,0,.55);color:#fff;font:900 13px/1 "Noto Sans KR";padding:6px 8px;border-bottom-right-radius:10px}
+.cc .nm{font-weight:700;font-size:14px;margin-top:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rt{font-size:12.5px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:3px;margin-top:3px}
+.rt i{font-style:normal;color:var(--star)}
+.rt em{font-style:normal;color:var(--muted);font-weight:400;font-size:11.5px}
+.ln{font-size:12px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ── 리스트 */
+.list-h{display:flex;align-items:center;justify-content:space-between;padding:20px 16px 6px;position:sticky;top:118px;background:var(--bg);z-index:5}
+.list-h h3{margin:0;font-size:17px;font-weight:900;letter-spacing:-.5px}
+.list-h h3 b{color:var(--accent)}
+.sort{border:0;background:none;font-size:12.5px;color:var(--sub);font-weight:500;appearance:none;-webkit-appearance:none;padding-right:14px;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 6px) 8px,calc(100% - 2px) 8px;background-size:4px 4px;background-repeat:no-repeat}
+.reset{border:0;background:none;color:var(--accent);font-size:12.5px;font-weight:700;padding:0;margin-right:12px}
+.item{display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line);cursor:pointer;position:relative}
+.item:hover{background:var(--soft)}
+.item.sel{background:var(--accent-soft)}
+.item .th{width:92px;height:92px;flex:none;font-size:36px}
+.item .body{flex:1;min-width:0;padding-right:26px}
+.item .cl{font-size:11.5px;color:var(--muted)}
+.item .nm{font-size:16px;font-weight:700;margin-top:2px;line-height:1.3}
+.item .pr{font-size:12.5px;color:var(--sub);margin-top:3px}
+.item .pr b{color:var(--ink)}
+.item .sg{font-size:12px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badges{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+.bd{font-size:10.5px;font-weight:700;padding:3px 6px;border-radius:4px;background:var(--soft);color:var(--sub)}
+.bd.m{background:rgba(200,16,46,.09);color:var(--mich)}
+.bd.k{background:var(--accent-soft);color:var(--accent)}
+.bd.ap{background:none;color:var(--muted);font-weight:500;padding-left:0}
+.heart{position:absolute;right:12px;top:12px;border:0;background:none;font-size:19px;line-height:1;padding:4px;color:var(--muted)}
+.heart.on{color:var(--accent)}
+.empty{padding:48px 24px;text-align:center;color:var(--muted);line-height:1.7}
+.empty b{display:block;font-size:32px;margin-bottom:6px}
+footer{font-size:11px;color:var(--muted);padding:18px 16px 28px;line-height:1.7;background:var(--soft);margin-top:20px}
+footer a{color:var(--sub)}
+
+/* ── 지도 핀 */
+.pin{display:flex;align-items:center;gap:4px;background:var(--panel);border:2px solid var(--c);border-radius:999px;padding:2px;box-shadow:0 2px 6px rgba(0,0,0,.25);width:max-content;transform:translate(-50%,-50%);transition:transform .15s}
+.pin .e{width:22px;height:22px;border-radius:50%;background:var(--c);display:flex;align-items:center;justify-content:center;font-size:12px}
+.pin b{display:none;font-size:12px;font-weight:700;padding-right:8px;white-space:nowrap;color:var(--ink)}
+.pin.sel{background:var(--accent);border-color:var(--accent);z-index:999;transform:translate(-50%,-50%) scale(1.12)}
+.pin.sel b{display:block;color:#fff}
+.pin.sel .e{background:#fff}
+.zone-label{background:none;border:none;color:#3b3f47;font:900 12px "Noto Sans KR",sans-serif;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff;white-space:nowrap}
+.basetiles{filter:saturate(.35) brightness(1.04)}
+.darkmap .basetiles{filter:invert(1) hue-rotate(180deg) brightness(.85) saturate(.4)}
+.darkmap .zone-label{color:#e6e8eb;text-shadow:0 0 3px #000,0 0 3px #000}
+
+/* ── 상세 시트 (캐치테이블 매장 상세) */
+.sheet{position:fixed;left:0;top:0;bottom:0;width:480px;background:var(--bg);z-index:2000;transform:translateX(-102%);transition:transform .25s ease;display:flex;flex-direction:column;box-shadow:var(--shadow)}
+.sheet.open{transform:none}
+.sh-top{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;padding:12px;z-index:2}
+.sh-top button{width:36px;height:36px;border-radius:50%;border:0;background:rgba(0,0,0,.35);color:#fff;font-size:17px;backdrop-filter:blur(4px)}
+.sh-top button.on{color:#ffb38f}
+.sh-scroll{overflow-y:auto;flex:1}
+.hero{height:210px;font-size:84px;border-radius:0}
+.sh-body{padding:18px 18px 8px}
+.sh-body .cl{font-size:12.5px;color:var(--muted)}
+.sh-body h2{margin:4px 0 6px;font-size:23px;font-weight:900;letter-spacing:-.6px;line-height:1.25}
+.sh-rt{display:flex;align-items:center;gap:6px;font-size:15px;font-weight:900}
+.sh-rt i{font-style:normal;color:var(--star);letter-spacing:-1px}
+.sh-rt em{font-style:normal;font-size:12px;color:var(--muted);font-weight:400}
+.pricebox{display:flex;gap:8px;margin:16px 0 4px}
+.pricebox div{flex:1;background:var(--soft);border-radius:12px;padding:11px 12px}
+.pricebox small{display:block;font-size:11px;color:var(--muted)}
+.pricebox b{font-size:16px;font-weight:900}
+.sh-sec{border-top:8px solid var(--soft);padding:16px 18px}
+.sh-sec h4{margin:0 0 10px;font-size:15px;font-weight:900}
+.row{display:flex;gap:10px;padding:6px 0;font-size:13.5px;line-height:1.5}
+.row .k{flex:none;width:68px;color:var(--muted)}
+.sig{background:var(--accent-soft);border-radius:12px;padding:13px 14px;font-size:14px;font-weight:700;line-height:1.5}
+.sig small{display:block;font-size:11px;color:var(--accent);font-weight:700;margin-bottom:3px}
+.srcs a{display:inline-block;font-size:12px;background:var(--soft);color:var(--sub);text-decoration:none;padding:5px 9px;border-radius:999px;margin:0 4px 6px 0}
+.cta{display:flex;gap:8px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--bg)}
+.cta a{flex:1;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;text-decoration:none}
+.cta .o{border:1px solid var(--line);color:var(--ink)}
+.cta .f{background:var(--accent);color:#fff;flex:1.4}
+.dim{display:none}
+
+/* ── 모바일 지도 캐러셀 · 탭바 */
+.mcar,.tabbar{display:none}
+
+@media (max-width:900px){
+  .wrap{display:block;height:auto}
+  .side{overflow:visible;border-right:0;padding-bottom:64px}
+  #map{display:none}
+  .list-h{top:118px}
+  .wrap[data-view="map"] .side{display:none}
+  .wrap[data-view="map"] #map{display:block;position:fixed!important;left:0;right:0;top:0;bottom:calc(60px + env(safe-area-inset-bottom));height:auto;z-index:1}
+  .wrap[data-view="map"] .mcar{display:flex}
+  .seg{display:none}
+  .mcar{position:fixed;left:0;right:0;bottom:calc(72px + env(safe-area-inset-bottom));z-index:900;gap:10px;overflow-x:auto;padding:0 16px;scroll-snap-type:x mandatory;scrollbar-width:none}
+  .mc{flex:none;width:calc(100vw - 56px);max-width:360px;scroll-snap-align:center;background:var(--panel);border-radius:14px;box-shadow:var(--shadow);display:flex;gap:10px;padding:10px;cursor:pointer;border:2px solid transparent}
+  .mc.sel{border-color:var(--accent)}
+  .mc .th{width:72px;height:72px;flex:none;font-size:30px}
+  .mc .nm{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mc>div:last-child{min-width:0;flex:1}
+  .tabbar{display:flex;position:fixed;left:0;right:0;bottom:0;height:calc(60px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);background:var(--bg);border-top:1px solid var(--line);z-index:1500}
+  .tabbar button{flex:1;border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11px;color:var(--muted)}
+  .tabbar button span{font-size:20px;line-height:1}
+  .tabbar button.on{color:var(--ink);font-weight:700}
+  .sheet{width:100%;top:auto;height:92vh;border-radius:20px 20px 0 0;transform:translateY(102%);overflow:hidden}
+  .sheet.open{transform:none}
+  .dim{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1900;opacity:0;pointer-events:none;transition:opacity .2s}
+  .dim.open{opacity:1;pointer-events:auto}
+}
+</style>
+</head>
+<body>
+<div class="wrap" id="wrap" data-view="home">
+  <section class="side" id="side">
+    <header class="top" id="top">
+      <div class="bar">
+        <div class="brand"><span class="logo">LV</span><div><b>베가스 맛집지도</b><small>인스타 추천 게시물 8건에서 뽑은 식당 모음</small></div></div>
+        <div class="seg" id="seg"><button data-v="home" class="on" type="button">홈</button><button data-v="saved" type="button">저장 <span class="cnt"></span></button></div>
+        <button class="icon-btn" id="themeBtn" type="button" aria-label="테마 전환">◐</button>
+      </div>
+      <label class="search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q" type="search" placeholder="식당, 메뉴, 지역을 검색해 보세요" autocomplete="off">
+        <button id="qClear" type="button" aria-label="검색어 지우기">✕</button>
+      </label>
+    </header>
+    <nav class="rail" id="rail"></nav>
+    <div class="filters" id="filters">
+      <select id="area" class="pill" aria-label="지역"></select>
+      <select id="price" class="pill" aria-label="객단가">
+        <option value="">가격대</option>
+        <option value="1">$ (~$25)</option>
+        <option value="2">$$ ($25–60)</option>
+        <option value="3">$$$ ($60–130)</option>
+        <option value="4">$$$$ ($130~)</option>
+      </select>
+      <button class="pill tg" data-f="mich" type="button">🏅 미쉐린</button>
+      <button class="pill tg" data-f="kor" type="button">🇰🇷 한국인 추천</button>
+      <button class="pill tg" data-f="late" type="button">🌙 심야·24시간</button>
+      <button class="pill tg" data-f="cheap" type="button">💸 가성비 $</button>
+      <button class="pill tg" data-f="top" type="button">⭐ 4.5 이상</button>
+    </div>
+    <div id="content"></div>
+    <footer>
+      ⚠️ 객단가·영업시간·Yelp 평점은 2026-11 기준 <b>참고용 추정치</b>입니다(시즌·요일마다 달라짐). 방문 전 매장 상세의 Yelp·구글맵 버튼으로 꼭 확인하세요. ◆ 좌표 근사 표시는 대략적인 위치예요.<br>
+      출처: <span id="srcs"></span><br>
+      레이아웃: 캐치테이블 앱 UI 벤치마킹
+    </footer>
+  </section>
+  <div id="map"></div>
+  <div class="mcar" id="mcar"></div>
+</div>
+<div class="dim" id="dim"></div>
+<aside class="sheet" id="sheet" aria-hidden="true"></aside>
+<nav class="tabbar" id="tabbar">
+  <button data-v="home" class="on" type="button"><span>🏠</span>홈</button>
+  <button data-v="map" type="button"><span>🗺️</span>지도</button>
+  <button data-v="saved" type="button"><span>♡</span>저장 <b class="cnt"></b></button>
+</nav>
+
+<script>
+/*__DATA__*/
+/*__META__*/
+R.forEach(r=>{const m=META[r.n]; if(m){r.home=m.home||null; r.img=m.img||null;}});
+
+const EMO = {cn:"🥟",jp:"🍣",kr:"🥩",sea:"🍜",eu:"🍝",us:"🍔",bbq:"🍖",mx:"🌮",br:"🥞"};
+const CAT_SHORT = {cn:"중식",jp:"일식",kr:"한식",sea:"태국·베트남",eu:"유럽·인도",us:"아메리칸",bbq:"BBQ",mx:"멕시칸",br:"브런치"};
+const $ = s=>document.querySelector(s);
+R.forEach((r,i)=>r.id=i);
+
+// 파생 속성
+const isMich = r=>r.src.includes("S3");
+const isKor  = r=>r.src.includes("S5");
+const isLate = r=>/24시간|익일/.test(r.h);
+const FLAG = {mich:isMich, kor:isKor, late:isLate, cheap:r=>r.p===1, top:r=>r.y>=4.5};
+
+// 저장(찜)
+let saved = new Set();
+try{ saved = new Set(JSON.parse(localStorage.getItem("lvmap-saved")||"[]")); }catch(e){}
+function persist(){ try{ localStorage.setItem("lvmap-saved",JSON.stringify([...saved])); }catch(e){} }
+const isSaved = r=>saved.has(r.n);
+
+const st = {cat:"", area:"", price:"", sort:"yelp", q:"", flags:new Set(), view:"home", sel:null};
+const mobile = ()=>matchMedia("(max-width:900px)").matches;
+
+// ── 공통 조각
+const priceTxt = p=>"$".repeat(p);
+const thumb = (r,cls="",extra="")=>{
+  const c=CATS[r.c].c;
+  return `<div class="th ${cls}" style="background:linear-gradient(140deg,${c} 0%,${c}b3 60%,${c}80 100%)">${extra}<span class="em">${EMO[r.c]}</span>${r.img?`<img src="${r.img}" alt="${r.n}" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`:""}</div>`;
+};
+const rating = r=>`<div class="rt"><i>★</i>${r.y.toFixed(1)}<em>Yelp</em></div>`;
+const badges = r=>{
+  let b="";
+  if(isMich(r)) b+=`<span class="bd m">미쉐린 셀렉티드</span>`;
+  if(isKor(r))  b+=`<span class="bd k">한국인 추천</span>`;
+  if(isLate(r)) b+=`<span class="bd">${/24시간/.test(r.h)?"24시간":"심야영업"}</span>`;
+  if(r.ap)      b+=`<span class="bd ap">◆ 좌표 근사</span>`;
+  return b?`<div class="badges">${b}</div>`:"";
+};
+const yelpUrl = r=>"https://www.yelp.com/search?find_desc="+encodeURIComponent(r.n)+"&find_loc="+encodeURIComponent("Las Vegas, NV");
+const gmapUrl = r=>"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(r.n+" Las Vegas");
+
+// ── 필터
+function active(){ return !!(st.cat||st.area||st.price||st.q||st.flags.size); }
+function sortFn(s){
+  return (x,y)=> s==="yelp"?y.y-x.y||x.p-y.p : s==="p-asc"?x.p-y.p||y.y-x.y : s==="p-desc"?y.p-x.p||y.y-x.y : x.n.localeCompare(y.n);
+}
+function filtered(){
+  let a = R.filter(r=>
+    (st.view!=="saved"||isSaved(r)) &&
+    (!st.cat||r.c===st.cat) &&
+    (!st.area||r.a===st.area) &&
+    (!st.price||r.p==st.price) &&
+    [...st.flags].every(f=>FLAG[f](r)) &&
+    (!st.q||(r.n+" "+r.s+" "+r.l+" "+r.a+" "+CATS[r.c].n).toLowerCase().includes(st.q)));
+  return a.sort(sortFn(st.sort));
+}
+
+// ── 카테고리 레일
+function renderRail(){
+  const items=[["","🍽️","전체"],...Object.keys(CATS).map(k=>[k,EMO[k],CAT_SHORT[k]])];
+  $("#rail").innerHTML = items.map(([k,e,n])=>`<button class="cat ${st.cat===k?"on":""}" data-c="${k}" type="button"><div class="ic">${e}</div><span>${n}</span></button>`).join("");
+}
+$("#rail").addEventListener("click",e=>{
+  const b=e.target.closest(".cat"); if(!b) return;
+  st.cat = st.cat===b.dataset.c ? "" : b.dataset.c;
+  render(true);
+});
+
+const areas=[...new Set(R.map(r=>r.a))].sort();
+$("#area").innerHTML = `<option value="">지역</option>`+areas.map(a=>`<option>${a}</option>`).join("");
+$("#area").onchange=e=>{st.area=e.target.value;render(true)};
+$("#price").onchange=e=>{st.price=e.target.value;render(true)};
+$("#filters").addEventListener("click",e=>{
+  const b=e.target.closest(".tg"); if(!b) return;
+  const f=b.dataset.f; st.flags.has(f)?st.flags.delete(f):st.flags.add(f);
+  render(true);
+});
+$("#q").oninput=e=>{st.q=e.target.value.trim().toLowerCase();render(true)};
+$("#qClear").onclick=()=>{$("#q").value="";st.q="";render(true)};
+function resetAll(){
+  st.cat="";st.area="";st.price="";st.q="";st.flags.clear();
+  $("#q").value="";$("#area").value="";$("#price").value="";
+  render(true);
+}
+
+// ── 컬렉션 (캐치테이블 홈 큐레이션)
+const COLS = [
+  {t:"🏅 미쉐린 가이드 셀렉티드", d:"2026 미쉐린이 고른 베가스 레스토랑", f:isMich},
+  {t:"🇰🇷 한국인이 추천하는 스트립 맛집", d:"호텔 안에서 실패 없는 선택", f:isKor},
+  {t:"💸 1인 $25 이하 가성비 맛집", d:"Yelp 평점 높은 순", f:r=>r.p===1},
+  {t:"🥞 브런치 · 카페", d:"늦은 아침, 호수뷰·풀사이드 브런치", f:r=>r.c==="br"||r.src.includes("S6")||r.src.includes("S7")},
+  {t:"🌙 심야 · 24시간", d:"쇼 끝나고 가기 좋은 곳", f:isLate},
+];
+function colHTML(c,i){
+  const a=R.filter(c.f).sort(sortFn("yelp"));
+  return `<section class="sec"><div class="sec-h"><div><h3>${c.t}</h3><p>${c.d}</p></div><button class="more" data-col="${i}" type="button">전체 ${a.length} ›</button></div>
+  <div class="car">${a.slice(0,10).map((r,k)=>`<div class="cc" data-id="${r.id}">${thumb(r,"",`<span class="rk">${k+1}</span>`)}<div class="nm">${r.n}</div>${rating(r)}<div class="ln">${CAT_SHORT[r.c]} · ${r.a}</div><div class="ln">1인 ${r.pp}</div></div>`).join("")}</div></section>`;
+}
+function bannerHTML(){
+  const avg=(R.reduce((a,r)=>a+r.y,0)/R.length).toFixed(2);
+  return `<div class="banner"><h2>라스베가스, 오늘 어디서 먹지?</h2><p>카테고리 · 1인 객단가 · 영업시간 · 시그니처 메뉴 · Yelp 평점</p>
+  <div class="stats"><div><b>${R.length}</b>곳</div><div><b>★${avg}</b>평균 Yelp</div><div><b>${R.filter(isMich).length}</b>미쉐린</div><div><b>${R.filter(r=>r.p===1).length}</b>가성비 $</div></div></div>`;
+}
+
+// ── 리스트
+function itemHTML(r){
+  return `<div class="item ${st.sel===r.id?"sel":""}" data-id="${r.id}">${thumb(r)}
+    <div class="body"><div class="cl">${CATS[r.c].n} · ${r.a}</div><div class="nm">${r.n}</div>${rating(r)}
+    <div class="pr">1인 <b>${r.pp}</b> · ${priceTxt(r.p)}</div><div class="sg">🍽 ${r.s}</div>${badges(r)}</div>
+    <button class="heart ${isSaved(r)?"on":""}" data-heart="${r.id}" type="button" aria-label="저장">${isSaved(r)?"♥":"♡"}</button></div>`;
+}
+function sortSel(){
+  return `<select class="sort" id="sort" aria-label="정렬">${[["yelp","평점 높은순"],["p-asc","가격 낮은순"],["p-desc","가격 높은순"],["name","이름순"]].map(([v,n])=>`<option value="${v}" ${st.sort===v?"selected":""}>${n}</option>`).join("")}</select>`;
+}
+
+let lastKey="";
+function render(refit){
+  renderRail();
+  document.querySelectorAll(".tg").forEach(b=>b.classList.toggle("on",st.flags.has(b.dataset.f)));
+  $("#area").classList.toggle("on",!!st.area); $("#price").classList.toggle("on",!!st.price);
+  $("#qClear").style.display = st.q?"block":"none";
+  document.querySelectorAll(".cnt").forEach(e=>e.textContent=saved.size||"");
+  document.querySelectorAll("[data-v]").forEach(b=>b.classList.toggle("on",b.dataset.v===st.view));
+  $("#wrap").dataset.view=st.view;
+
+  const a=filtered();
+  let h="";
+  if(st.view==="saved"){
+    h += `<div class="list-h"><h3>저장한 맛집 <b>${a.length}</b></h3><div>${active()?`<button class="reset" type="button">필터 초기화</button>`:""}${sortSel()}</div></div>`;
+    h += a.length? a.map(itemHTML).join("") : `<div class="empty"><b>♡</b>${saved.size?"조건에 맞는 저장 맛집이 없어요.":"가고 싶은 식당의 ♡를 눌러 저장해 보세요.<br>이 브라우저에만 저장돼요."}</div>`;
+  }else if(!active()){
+    h += bannerHTML() + COLS.map(colHTML).join("");
+    h += `<div class="list-h"><h3>전체 맛집 <b>${a.length}</b></h3>${sortSel()}</div>` + a.map(itemHTML).join("");
+  }else{
+    h += `<div class="list-h"><h3>검색 결과 <b>${a.length}</b>곳</h3><div><button class="reset" type="button">초기화</button>${sortSel()}</div></div>`;
+    h += a.length? a.map(itemHTML).join("") : `<div class="empty"><b>🔍</b>조건에 맞는 식당이 없어요.<br>필터를 줄여 보세요.</div>`;
+  }
+  $("#content").innerHTML=h;
+  const so=$("#sort"); if(so) so.onchange=e=>{st.sort=e.target.value;render()};
+
+  drawMarkers(a);
+  drawCarousel(a);
+  const key=a.map(r=>r.id).join(",");
+  if(refit && key!==lastKey && a.length) map.fitBounds(L.latLngBounds(a.map(r=>r.ll)),{padding:[50,50],maxZoom:14});
+  lastKey=key;
+}
+
+$("#content").addEventListener("click",e=>{
+  const hb=e.target.closest("[data-heart]");
+  if(hb){ e.stopPropagation(); toggleSave(R[+hb.dataset.heart]); return; }
+  if(e.target.closest(".reset")){ resetAll(); return; }
+  const mo=e.target.closest(".more");
+  if(mo){ applyCollection(+mo.dataset.col); return; }
+  const c=e.target.closest("[data-id]");
+  if(c) openDetail(+c.dataset.id);
+});
+function applyCollection(i){
+  // 컬렉션 '전체' → 대응 필터로 전환
+  const map_={0:()=>st.flags.add("mich"),1:()=>st.flags.add("kor"),2:()=>st.flags.add("cheap"),3:()=>{st.cat="br"},4:()=>st.flags.add("late")};
+  map_[i](); render(true); $("#side").scrollTo({top:0}); scrollTo({top:0});
+}
+function toggleSave(r){
+  saved.has(r.n)?saved.delete(r.n):saved.add(r.n); persist();
+  render(); if(st.sel===r.id) openDetail(r.id,true);
+}
+
+// ── 뷰 전환 (데스크톱 세그먼트 / 모바일 탭바)
+document.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{
+  st.view=b.dataset.v; closeDetail(); render(true);
+  if(st.view==="map") setTimeout(()=>{map.invalidateSize({pan:false}); const f=filtered(); if(f.length) map.fitBounds(L.latLngBounds(f.map(r=>r.ll)),{padding:[40,40],maxZoom:14}); else map.setView([36.135,-115.20],11);},120);
+  else scrollTo({top:0});
+});
+
+// ── 지도
+const map = L.map("map",{zoomControl:false}).setView([36.135,-115.20],12);
+L.control.zoom({position:"topright"}).addTo(map);
+let tl;
+function isDark(){
+  const t=document.documentElement.dataset.theme;
+  if(t) return t==="dark";
+  return matchMedia("(prefers-color-scheme: dark)").matches;
+}
+function setTiles(){
+  if(tl) map.removeLayer(tl);
+  $("#map").classList.toggle("darkmap",isDark());
+  tl=L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,className:"basetiles",attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
+}
+try{const t=localStorage.getItem("lvmap-theme"); if(t) document.documentElement.dataset.theme=t;}catch(e){}
+setTiles();
+$("#themeBtn").onclick=()=>{
+  document.documentElement.dataset.theme = isDark()?"light":"dark";
+  try{localStorage.setItem("lvmap-theme",document.documentElement.dataset.theme)}catch(e){}
+  setTiles();
+};
+L.polyline([[36.0905,-115.1745],[36.1020,-115.1727],[36.1150,-115.1725],[36.1260,-115.1680],[36.1365,-115.1625],[36.1475,-115.1560]],{color:"#ff5b1f",weight:6,opacity:.25}).addTo(map);
+[["더 스트립",36.1150,-115.1650],["차이나타운 (Spring Mtn Rd)",36.1345,-115.2080],["다운타운 · 아트디스트릭트",36.1640,-115.1460],["서머린",36.1650,-115.3150],["남서부",36.0700,-115.2650],["북서부 · Desert Shores",36.2250,-115.2550]]
+  .forEach(([t,a,b])=>L.marker([a,b],{icon:L.divIcon({className:"zone-label",html:t,iconSize:null}),interactive:false}).addTo(map));
+
+const layer=L.layerGroup().addTo(map);
+const markers={};
+const pinIcon=(r,sel)=>L.divIcon({className:"",iconSize:[0,0],html:`<div class="pin ${sel?"sel":""}" style="--c:${CATS[r.c].c}"><span class="e">${EMO[r.c]}</span><b>${r.n}</b></div>`});
+function drawMarkers(a){
+  layer.clearLayers();
+  for(const k in markers) delete markers[k];
+  a.forEach(r=>{
+    const m=L.marker(r.ll,{icon:pinIcon(r,st.sel===r.id),zIndexOffset:st.sel===r.id?1000:0});
+    m.on("click",()=>onPin(r.id));
+    m.addTo(layer); markers[r.id]=m;
+  });
+}
+function highlight(id){
+  const prev=st.sel; st.sel=id;
+  [prev,id].forEach(k=>{ if(k!=null&&markers[k]){ markers[k].setIcon(pinIcon(R[k],k===id)); markers[k].setZIndexOffset(k===id?1000:0);} });
+  document.querySelectorAll(".item.sel,.mc.sel").forEach(e=>e.classList.remove("sel"));
+  document.querySelectorAll(`.item[data-id="${id}"],.mc[data-id="${id}"]`).forEach(e=>e.classList.add("sel"));
+}
+function onPin(id){
+  if(mobile()){
+    highlight(id);
+    const c=document.querySelector(`.mc[data-id="${id}"]`); if(c) c.scrollIntoView({behavior:"smooth",inline:"center",block:"nearest"});
+  }else openDetail(id);
+}
+
+// 모바일 지도 하단 카드 캐러셀
+function drawCarousel(a){
+  $("#mcar").innerHTML = a.map(r=>`<div class="mc ${st.sel===r.id?"sel":""}" data-id="${r.id}">${thumb(r)}<div><div class="ln" style="margin:0">${CAT_SHORT[r.c]} · ${r.a}</div><div class="nm">${r.n}</div>${rating(r)}<div class="ln">1인 ${r.pp} · ${priceTxt(r.p)}</div></div></div>`).join("");
+}
+$("#mcar").addEventListener("click",e=>{const c=e.target.closest(".mc"); if(c) openDetail(+c.dataset.id);});
+let carT;
+$("#mcar").addEventListener("scroll",()=>{
+  clearTimeout(carT);
+  carT=setTimeout(()=>{
+    const box=$("#mcar").getBoundingClientRect(), mid=box.left+box.width/2;
+    let best=null,bd=1e9;
+    document.querySelectorAll(".mc").forEach(c=>{const b=c.getBoundingClientRect(),d=Math.abs(b.left+b.width/2-mid); if(d<bd){bd=d;best=c;}});
+    if(best){const id=+best.dataset.id; if(id!==st.sel){highlight(id); map.panTo(R[id].ll,{animate:true});}}
+  },120);
+});
+
+// ── 매장 상세 시트
+function openDetail(id,keep){
+  const r=R[id]; highlight(id);
+  const c=CATS[r.c].c;
+  $("#sheet").innerHTML = `
+  <div class="sh-top"><button type="button" id="shClose" aria-label="닫기">←</button><button type="button" id="shSave" class="${isSaved(r)?"on":""}" aria-label="저장">${isSaved(r)?"♥":"♡"}</button></div>
+  <div class="sh-scroll">
+    ${thumb(r,"hero",r.img?`<span class="credit">사진: 매장 공식 홈페이지</span>`:"")}
+    <div class="sh-body">
+      <div class="cl" style="color:${c};font-weight:700">${CATS[r.c].n} <span style="color:var(--muted);font-weight:400">· ${r.a}</span></div>
+      <h2>${r.n}</h2>
+      <div class="sh-rt"><i>${"★".repeat(Math.round(r.y))}${"☆".repeat(5-Math.round(r.y))}</i>${r.y.toFixed(1)}<em>Yelp 평점</em></div>
+      ${badges(r)}
+      <div class="pricebox"><div><small>1인 객단가</small><b>${r.pp}</b></div><div><small>가격대</small><b>${priceTxt(r.p)}<span style="color:var(--line)">${"$".repeat(4-r.p)}</span></b></div></div>
+    </div>
+    <div class="sh-sec"><h4>대표 메뉴</h4><div class="sig"><small>SIGNATURE</small>${r.s}</div></div>
+    <div class="sh-sec"><h4>매장 정보</h4>
+      <div class="row"><span class="k">주소</span><span>${r.l}${r.ap?' <span class="bd ap">◆ 좌표 근사</span>':''}</span></div>
+      <div class="row"><span class="k">영업시간</span><span>${r.h}</span></div>
+      <div class="row"><span class="k">지역</span><span>${r.a}</span></div>
+      ${r.home?`<div class="row"><span class="k">홈페이지</span><a href="${r.home}" target="_blank" rel="noopener" style="color:var(--accent);word-break:break-all">${r.home.replace(/^https?:\/\/(www\.)?/,"").replace(/\/$/,"")}</a></div>`:""}
+    </div>
+    <div class="sh-sec srcs"><h4>추천 출처</h4>${r.src.map(s=>`<a href="${SRC[s].u}" target="_blank" rel="noopener">📷 ${SRC[s].n}</a>`).join("")}
+      <div style="font-size:11px;color:var(--muted);margin-top:6px">객단가·영업시간·평점은 2026-11 기준 추정치 — 방문 전 확인하세요.</div></div>
+  </div>
+  <div class="cta"><a class="o" href="${gmapUrl(r)}" target="_blank" rel="noopener">구글맵 길찾기</a><a class="f" href="${yelpUrl(r)}" target="_blank" rel="noopener">Yelp에서 보기</a></div>`;
+  $("#sheet").classList.add("open"); $("#sheet").setAttribute("aria-hidden","false");
+  $("#dim").classList.add("open");
+  $("#shClose").onclick=closeDetail;
+  $("#shSave").onclick=()=>toggleSave(r);
+  if(!keep){
+    $(".sh-scroll").scrollTop=0;
+    if(!mobile()) map.flyTo(r.ll,Math.max(map.getZoom(),15),{duration:.6});
+    else if(st.view==="map") map.panTo(r.ll);
+  }
+}
+function closeDetail(){
+  $("#sheet").classList.remove("open"); $("#sheet").setAttribute("aria-hidden","true");
+  $("#dim").classList.remove("open");
+}
+$("#dim").onclick=closeDetail;
+addEventListener("keydown",e=>{ if(e.key==="Escape") closeDetail(); });
+
+$("#srcs").innerHTML = Object.values(SRC).map(s=>`<a href="${s.u}" target="_blank" rel="noopener">${s.n}</a>`).join(" · ");
+addEventListener("resize",()=>map.invalidateSize());
+render(false);
+</script>
+</body>
+</html>
