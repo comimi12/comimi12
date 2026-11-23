@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """상림숯집 테이블 배치도 — KSC 배치도(floorplan-ksc.jpg)와 같은 그림체로 직접 그린다.
 
-근거: 목업 좌석배치도 pptx 1장(1안) 도면의 테이블 번호 + 2장(2안) 도면의 룸 배치(RM.A~D).
+근거: 목업 좌석배치도 pptx 1장(1안) 도면의 홀 테이블 번호 + 11/22 받은 최신 도면(룸 RM.A~F)·POS 테이블 키(R01~R06).
 실측 도면이 아니라 '어디에 몇 번이 있는지'를 익히는 개념도다. 번호가 바뀌면 아래 표만 고친다.
 
   python build/sanglim_floor.py   → src/img/sanglim-floorplan.jpg
@@ -13,7 +13,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(os.path.dirname(HERE), "src", "img", "sanglim-floorplan.jpg")
 
 S = 2                      # 2배로 그려서 줄인다 (가장자리 매끈하게)
-W, H = 1800, 1010
+W, H = 1910, 1010
 BLUE = (11, 99, 206)
 ORANGE = (200, 134, 50)
 GRAY = (143, 152, 163)
@@ -145,29 +145,30 @@ for cx, n in [(980, 18), (1130, 17), (1280, 16)]:
         chair(cx + dx, 890)
     badge(cx, 835, n)
 
-# ── 룸 (RM.A ~ RM.D) ────────────────────────────────────
-def room(y0, y1, label, seats=3):
-    R(1420, y0, 1760, y1, fill=ROOM, outline=LINE, width=3 * S)
-    cy = (y0 + y1) / 2
-    R(1500, cy - 26, 1680, cy + 26, fill="white", outline=LINE, width=2 * S)
-    for i in range(seats):
-        x = 1530 + i * 60
-        chair(x, cy - 46)
-        chair(x, cy + 46)
-    RR(1528, cy - 22, 1652, cy + 22, 8, fill=ORANGE)
-    text(1590, cy, label, 22, "white")
+# ── 룸 1~6 (도면 RM.A~F · POS 키 R01~R06) ─────────────────
+#    POS 키 배치: 왼쪽 열 R01·R02·R03 = 도면 RM.A·B·C(홀 쪽), 오른쪽 열 R04·R05·R06 = RM.D·E·F(바깥 쪽)
+def room(x0, y0, x1, y1, n, rm):
+    R(x0, y0, x1, y1, fill=ROOM, outline=LINE, width=3 * S)
+    cx, cy = (x0 + x1) / 2, (y0 + y1) / 2 + 14
+    R(cx - 62, cy - 26, cx + 62, cy + 26, fill="white", outline=LINE, width=2 * S)
+    for dx in (-30, 30):
+        chair(cx + dx, cy - 46)
+        chair(cx + dx, cy + 46)
+    RR(cx - 58, y0 + 14, cx + 58, y0 + 52, 8, fill=ORANGE)
+    text(cx, y0 + 33, "룸 %d" % n, 22, "white")
+    text(cx, cy, rm, 16, (120, 120, 120), bold=False)
 
 
-room(40, 190, "RM. D")
-text(1590, 215, "복도", 18, (130, 130, 130), bold=False)
-room(240, 420, "RM. A")
-room(420, 600, "RM. B")
-room(600, 780, "RM. C")
-for y in (420, 600):   # 무빙월
-    for x in range(1424, 1760, 24):
-        d.line((x * S, y * S, (x + 12) * S, y * S), fill=(200, 60, 40), width=4 * S)
-text(1590, 820, "RM.A·B·C 사이 = 무빙월", 18, (200, 60, 40))
-text(1590, 848, "(열면 단체석으로 연결)", 16, (150, 90, 70), bold=False)
+text(1655, 82, "룸 1 ~ 6", 24, (110, 110, 110))
+COLS = [(1420, 1645, ["RM.A", "RM.B", "RM.C"], 1), (1665, 1890, ["RM.D", "RM.E", "RM.F"], 4)]
+ROWS = [(120, 380), (380, 640), (640, 900)]
+for x0, x1, rms, n0 in COLS:
+    for i, (y0, y1) in enumerate(ROWS):
+        room(x0, y0, x1, y1, n0 + i, rms[i])
+    for y in (380, 640):   # 무빙월
+        for x in range(x0 + 4, x1 - 12, 24):
+            d.line((x * S, y * S, (x + 12) * S, y * S), fill=(200, 60, 40), width=4 * S)
+text(1655, 935, "룸 사이 빨간 점선 = 무빙월 (열면 단체석으로 연결)", 17, (200, 60, 40))
 
 
 img = img.resize((W, H), Image.LANCZOS)
