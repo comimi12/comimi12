@@ -3,483 +3,596 @@
   "i": 0,
   "n": "888 Japanese BBQ",
   "home": "https://888japanesebbq.com/",
-  "img": null,
-  "note": "og:image"
+  "img": "https://888japanesebbq.com/wp-content/uploads/2024/03/888JBBQ-Hero-001-sm-1-scaled.jpg",
+  "note": "og:image",
+  "kind": "official"
  },
  {
   "i": 1,
   "n": "Pho Kim Long",
   "home": null,
-  "img": null,
-  "note": "listed site phokimlong.info -> phokimlong.has.restaurant returns 403; not verified"
+  "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d1/JOH_8499_-_Pho_Kim_Long_Restaurant.jpg/1280px-JOH_8499_-_Pho_Kim_Long_Restaurant.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "note": "listed site phokimlong.info -> phokimlong.has.restaurant returns 403; not verified",
+  "kind": "commons",
+  "credit": "star5112 · CC BY-SA 2.0",
+  "credit_url": "https://commons.wikimedia.org/wiki/File:JOH_8499_-_Pho_Kim_Long_Restaurant.jpg"
  },
  {
   "i": 2,
   "n": "Raku",
   "home": null,
-  "img": null,
-  "note": "no official site found (raku-grill.com lapsed, redirects elsewhere)"
+  "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/06/JOH_8441_-_Raku.jpg/1280px-JOH_8441_-_Raku.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "note": "no official site found (raku-grill.com lapsed, redirects elsewhere)",
+  "kind": "commons",
+  "credit": "star5112 · CC BY-SA 2.0",
+  "credit_url": "https://commons.wikimedia.org/wiki/File:JOH_8441_-_Raku.jpg"
  },
  {
   "i": 3,
   "n": "China Mama",
   "home": null,
-  "img": null,
-  "note": "chinamamalv.com listed but does not resolve"
+  "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/35/2019-02-22_Xiaolongbao_in_%22Taste_Of_Shanghai%22_restaurant%2C_Sydney%2C_Australia.jpg/1280px-2019-02-22_Xiaolongbao_in_%22Taste_Of_Shanghai%22_restaurant%2C_Sydney%2C_Australia.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "note": "chinamamalv.com listed but does not resolve",
+  "kind": "ref",
+  "credit": "Maksym Kozlenko · CC BY-SA 4.0",
+  "credit_url": "https://commons.wikimedia.org/wiki/File:2019-02-22_Xiaolongbao_in_%22Taste_Of_Shanghai%22_restaurant,_Sydney,_Australia.jpg"
  },
  {
   "i": 4,
   "n": "Shang Artisan Noodle",
   "home": "https://www.shangartisannoodle.com/",
-  "img": null,
-  "note": "og:image (Wix)"
+  "img": "https://static.wixstatic.com/media/8fee1a_0fcc863b327d47089b212fc8abbd3c42~mv2_d_3253_1675_s_2.jpg/v1/fill/w_1440,h_900,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/8fee1a_0fcc863b327d47089b212fc8abbd3c42~mv2_d_3253_1675_s_2.jpg",
+  "note": "og:image (Wix)",
+  "kind": "official"
  },
  {
   "i": 5,
   "n": "Big Dan Shanxi Taste",
   "home": null,
-  "img": null,
-  "note": "counter inside supermarket; no official site"
+  "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ae/Biang_Biang_Mian.jpg/1280px-Biang_Biang_Mian.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "note": "counter inside supermarket; no official site",
+  "kind": "ref",
+  "credit": "Gary Soup · CC BY 2.0",
+  "credit_url": "https://commons.wikimedia.org/wiki/File:Biang_Biang_Mian.jpg"
  },
  {
   "i": 6,
   "n": "Monta Ramen",
   "home": "https://www.monrestaurantgroup.com/",
-  "img": null,
-  "note": "montaramen.com lapsed (now other business); only parent Mon Restaurant Group site, no Monta-specific photo"
+  "img": "https://images.squarespace-cdn.com/content/v1/5f73a95f142c2d73c189683d/1622068809830-XLMHLANUT90N9ZFB71IF/050321-384.jpg?format=1500w",
+  "note": "Mon Restaurant Group(운영사) 공식 사이트 이미지",
+  "kind": "official"
  },
  {
   "i": 7,
   "n": "Ichiza",
   "home": "https://www.ichizalv.com/",
   "img": "https://static.wixstatic.com/media/7b0710_52fde1b2769e4c4488ff6a98ae90bf60f000.jpg",
-  "note": "no og:image; hero img on homepage (Wix)"
+  "note": "no og:image; hero img on homepage (Wix)",
+  "kind": "official"
  },
  {
   "i": 8,
   "n": "Kabuto Edomae Sushi",
   "home": "https://mon-kabuto.squarespace.com/",
   "img": "https://static1.squarespace.com/static/5fc150e8239b072291342943/t/647974c011ed4c14b46dbf11/1685681344910/kabuto-lv.jpg?format=1500w",
-  "note": "og:image; kabutolv.com domain lapsed, Squarespace site is the live official one"
+  "note": "og:image; kabutolv.com domain lapsed, Squarespace site is the live official one",
+  "kind": "official"
  },
  {
   "i": 9,
   "n": "Sushi Neko",
   "home": null,
-  "img": null,
-  "note": "no official site (sushineko.setrush.net is a generic template)"
+  "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c5/Nigiri_Sushi_%2825966163204%29.jpg/1280px-Nigiri_Sushi_%2825966163204%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "note": "no official site (sushineko.setrush.net is a generic template)",
+  "kind": "ref",
+  "credit": "Tim Reckmann from Hamm, Deutschland · CC BY 2.0",
+  "credit_url": "https://commons.wikimedia.org/wiki/File:Nigiri_Sushi_(25966163204).jpg"
  },
  {
   "i": 10,
   "n": "Sparrow + Wolf",
   "home": "https://sparrowandwolflv.com/",
-  "img": null,
-  "note": "og:image"
+  "img": "https://sparrowandwolflv.com/wp-content/uploads/2020/03/SW_Beef_Cheek_Bone_Marrow_Dumpling_1400.jpg",
+  "note": "og:image",
+  "kind": "official"
  },
  {
   "i": 11,
   "n": "Weera Thai (Chinatown)",
   "home": "https://weerathai.com/",
   "img": "https://weerathai.com/images/banner/banner_1793606495.webp",
-  "note": "no og:image; homepage banner img"
+  "note": "no og:image; homepage banner img",
+  "kind": "official"
  },
  {
   "i": 12,
   "n": "Ramen Boys",
   "home": null,
-  "img": null,
-  "note": "no official site found"
+  "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/28/Tonkotsu_ramen_in_Tokyo.jpg/1280px-Tonkotsu_ramen_in_Tokyo.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "note": "no official site found",
+  "kind": "ref",
+  "credit": "Syced · CC0",
+  "credit_url": "https://commons.wikimedia.org/wiki/File:Tonkotsu_ramen_in_Tokyo.jpg"
  },
  {
   "i": 13,
   "n": "Xiao Long Dumplings",
   "home": "https://www.xiaolongdumplings.com/",
-  "img": null,
-  "note": "og:image; site is Google Sites so image is on googleusercontent (site's own host)"
+  "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5e/Xiaolongbao_Shanghai.jpg/1280px-Xiaolongbao_Shanghai.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "note": "og:image; site is Google Sites so image is on googleusercontent (site's own host)",
+  "kind": "ref",
+  "credit": "Robigasp · CC BY-SA 4.0",
+  "credit_url": "https://commons.wikimedia.org/wiki/File:Xiaolongbao_Shanghai.jpg"
  },
  {
   "i": 14,
   "n": "Magic Noodle",
   "home": null,
-  "img": null,
-  "note": "themagicnoodle.net lapsed (redirects to another restaurant)"
+  "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/dc/Lanzhou_Beef_Noodle_Restaurant%2C_Baku_%2878075%29.jpg/1280px-Lanzhou_Beef_Noodle_Restaurant%2C_Baku_%2878075%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "note": "themagicnoodle.net lapsed (redirects to another restaurant)",
+  "kind": "ref",
+  "credit": "Aykhan Zayedzadeh · CC BY 4.0",
+  "credit_url": "https://commons.wikimedia.org/wiki/File:Lanzhou_Beef_Noodle_Restaurant,_Baku_(78075).jpg"
  },
  {
   "i": 15,
   "n": "Palette Tea Lounge",
   "home": "https://palettelv.com/",
   "img": "https://static.spotapps.co/website_images/ab_websites/185437_website_v2/shared_image.jpg",
-  "note": "og:image (SpotApps CDN)"
+  "note": "og:image (SpotApps CDN)",
+  "kind": "official"
  },
  {
   "i": 16,
   "n": "Yui Edomae Sushi",
   "home": "https://www.yuisushi.com/",
-  "img": null,
-  "note": "og:image"
+  "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a1/Nigiri_Sushi_%2826478732232%29.jpg/1280px-Nigiri_Sushi_%2826478732232%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "note": "og:image",
+  "kind": "ref",
+  "credit": "Tim Reckmann from Hamm, Deutschland · CC BY 2.0",
+  "credit_url": "https://commons.wikimedia.org/wiki/File:Nigiri_Sushi_(26478732232).jpg"
  },
  {
   "i": 17,
   "n": "Chubby Cattle",
   "home": "https://www.chubbycattle.com/project/chubby-cattle-hotpot-las-vegas/",
   "img": "https://www.chubbycattle.com/wp-content/uploads/2023/07/Chubby-Cattle-Vegas-1024x683.jpg",
-  "note": "og:image of Las Vegas location page"
+  "note": "og:image of Las Vegas location page",
+  "kind": "official"
  },
  {
   "i": 18,
   "n": "Chengdu Taste",
   "home": null,
-  "img": null,
-  "note": "no official site found"
+  "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/44/Shuizhuyu_at_Hamarkand_Silk_Road_Cuisine%2C_Beiqinglu_%2820230121154615%29.jpg/1280px-Shuizhuyu_at_Hamarkand_Silk_Road_Cuisine%2C_Beiqinglu_%2820230121154615%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "note": "no official site found",
+  "kind": "ref",
+  "credit": "N509FZ · CC BY-SA 4.0",
+  "credit_url": "https://commons.wikimedia.org/wiki/File:Shuizhuyu_at_Hamarkand_Silk_Road_Cuisine,_Beiqinglu_(20230121154615).jpg"
  },
  {
   "i": 19,
   "n": "Shanghai Taste",
   "home": null,
-  "img": null,
-  "note": "only defunct Google business.site listed"
+  "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/80/Xiaolongbao-breakfast.jpg/1280px-Xiaolongbao-breakfast.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "note": "only defunct Google business.site listed",
+  "kind": "ref",
+  "credit": "Darrylsnow · CC BY-SA 4.0",
+  "credit_url": "https://commons.wikimedia.org/wiki/File:Xiaolongbao-breakfast.jpg"
  },
  {
   "i": 20,
   "n": "Esther's Kitchen",
   "home": "https://www.estherslv.com/",
   "img": "https://images.getbento.com/accounts/d77efcef5d5855a0d736f3e5f66c77b3/media/images/SWJ_8713.jpg?w=1200&fit=max&auto=compress,format",
-  "note": "og:image is logo; used homepage photo (BentoBox CDN)"
+  "note": "og:image is logo; used homepage photo (BentoBox CDN)",
+  "kind": "official"
  },
  {
   "i": 21,
   "n": "Tacos El Gordo",
   "home": "https://tacoselgordobc.com/",
   "img": "https://tacoselgordobc.com/wp-content/uploads/2016/04/slider2.jpg",
-  "note": "no og:image; homepage slider img"
+  "note": "no og:image; homepage slider img",
+  "kind": "official"
  },
  {
   "i": 22,
   "n": "Juan's Flaming Fajitas",
   "home": "https://juansflamingfajitas.com/",
   "img": "https://juansflamingfajitas.com/wp-content/uploads/2022/01/juans-flaming-fajitas-and-cantina-las-vegas-food-5.jpeg",
-  "note": "no og:image; homepage food img"
+  "note": "no og:image; homepage food img",
+  "kind": "official"
  },
  {
   "i": 23,
   "n": "Ellis Island BBQ",
   "home": "https://www.ellisislandcasino.com/ellis-island-bbq",
   "img": "https://cdn.prod.website-files.com/6092d6f09a3178ca121f21b7/66705b84842cd8279a2e19d9_img9822.jpg",
-  "note": "casino's BBQ page; hero background from site CSS (no og:image)"
+  "note": "casino's BBQ page; hero background from site CSS (no og:image)",
+  "kind": "official"
  },
  {
   "i": 24,
   "n": "Rollin Smoke BBQ",
   "home": "https://www.rollinsmokebarbeque.com/",
   "img": "https://images.getbento.com/accounts/f0bef66a2efada71ac801a92a7231519/media/images/54179WHOLE_SPARE_RIB_4.JPG?w=1200",
-  "note": "og:image is logo; used rib photo from page (getbento)"
+  "note": "og:image is logo; used rib photo from page (getbento)",
+  "kind": "official"
  },
  {
   "i": 25,
   "n": "John Mull's Meats & Road Kill Grill",
   "home": null,
-  "img": null,
-  "note": "johnmullsmeats.com redirects to a parked/suspicious domain; no working official site"
+  "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7d/Mmm..._more_ribs_%284728201699%29.jpg/1280px-Mmm..._more_ribs_%284728201699%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "note": "johnmullsmeats.com redirects to a parked/suspicious domain; no working official site",
+  "kind": "ref",
+  "credit": "jeffreyw · CC BY 2.0",
+  "credit_url": "https://commons.wikimedia.org/wiki/File:Mmm..._more_ribs_(4728201699).jpg"
  },
  {
   "i": 26,
   "n": "Lindo Michoacan",
   "home": "https://lindomichoacan.com/",
   "img": "https://lindomichoacan.com/wp-content/uploads/2022/11/ima-lindomi004.jpg",
-  "note": "og:image is favicon; used page img"
+  "note": "og:image is favicon; used page img",
+  "kind": "official"
  },
  {
   "i": 27,
   "n": "Le Thai",
   "home": "https://lethaivegas.com/",
   "img": "https://lethaivegas.com/wp-content/uploads/2020/06/le_thai_awesome_noodles_15_1310x1287.jpg",
-  "note": "og:image is logo; used food img"
+  "note": "og:image is logo; used food img",
+  "kind": "official"
  },
  {
   "i": 28,
   "n": "Komex",
   "home": "https://www.komexfusion.com/",
   "img": "https://images.squarespace-cdn.com/content/v1/69b1d8eb5b344b2dcf730097/def64f29-651b-426b-8472-92575e653a57/TOSTADA-2.JPG",
-  "note": "og:image is logo; used tostada photo (squarespace)"
+  "note": "og:image is logo; used tostada photo (squarespace)",
+  "kind": "official"
  },
  {
   "i": 29,
   "n": "Vickie's Diner",
   "home": "https://www.vickiesdiner.com/",
   "img": "https://static1.squarespace.com/static/609e98b8d24f7b7f19439091/t/621e8c09c3ab5b1ea23506f0/1646169097695/050321-101.jpg?format=1500w",
-  "note": "og:image (http upgraded to https)"
+  "note": "og:image (http upgraded to https)",
+  "kind": "official"
  },
  {
   "i": 30,
   "n": "Blueberry Hill",
   "home": "https://www.blueberryhillrestaurants.com/",
   "img": "https://www.blueberryhillrestaurants.com/wp-content/uploads/2017/06/breakfast1.jpg",
-  "note": "chain site; no og:image, used breakfast img"
+  "note": "chain site; no og:image, used breakfast img",
+  "kind": "official"
  },
  {
   "i": 31,
   "n": "Nora's Italian Cuisine",
   "home": "https://norascuisine.com/",
   "img": "https://norascuisine.com/wp-content/uploads/2025/08/front-ribeye-1.jpg",
-  "note": "og:image"
+  "note": "og:image",
+  "kind": "official"
  },
  {
   "i": 32,
   "n": "Bob Taylor's Ranch House",
   "home": null,
-  "img": null,
-  "note": "bobtaylorsranchhouse.com not reachable"
+  "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ab/Prime_Rib_at_Chop_Steakhouse_%26_Bar.jpg/1280px-Prime_Rib_at_Chop_Steakhouse_%26_Bar.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "note": "bobtaylorsranchhouse.com not reachable",
+  "kind": "ref",
+  "credit": "StoppedTime · CC0",
+  "credit_url": "https://commons.wikimedia.org/wiki/File:Prime_Rib_at_Chop_Steakhouse_%26_Bar.jpg"
  },
  {
   "i": 33,
   "n": "Viva Las Arepas",
   "home": "https://vivalasarepas.com/",
   "img": "https://static-content.owner.com/funnel/images/f3f41b2f-cb9a-4b43-9c49-73b3ec849873?v=9704305325",
-  "note": "og:image (Owner.com site CDN)"
+  "note": "og:image (Owner.com site CDN)",
+  "kind": "official"
  },
  {
   "i": 34,
   "n": "Anima by EDO",
   "home": "https://animabyedo.com/",
   "img": "https://animabyedo.com/og-anima.jpg",
-  "note": "og:image"
+  "note": "og:image",
+  "kind": "official"
  },
  {
   "i": 35,
   "n": "Bouchon",
   "home": "https://www.venetianlasvegas.com/dining/restaurants/bouchon.html",
   "img": "https://www.venetianlasvegas.com/content/dam/vlvweb/restaurants/bouchon/brunch-assortment-1_1200x800.jpg",
-  "note": "Venetian page img"
+  "note": "Venetian page img",
+  "kind": "official"
  },
  {
   "i": 36,
   "n": "COTE Las Vegas",
   "home": "https://www.venetianlasvegas.com/dining/restaurants/cote.html",
   "img": "https://www.venetianlasvegas.com/content/dam/vlvweb/restaurants/cote/cote-1_1200x800.jpg",
-  "note": "Venetian page img"
+  "note": "Venetian page img",
+  "kind": "official"
  },
  {
   "i": 37,
   "n": "Estiatorio Milos",
   "home": "https://www.venetianlasvegas.com/dining/restaurants/estiatorio-milos.html",
   "img": "https://www.venetianlasvegas.com/content/dam/vlvweb/restaurants/estiatorio-milos/thumb-1_1200x800.jpg",
-  "note": "og:image"
+  "note": "og:image",
+  "kind": "official"
  },
  {
   "i": 38,
   "n": "Gymkhana Las Vegas",
   "home": "https://www.gymkhanarestaurants.com/lasvegas",
-  "img": null,
-  "note": "own site behind Vercel bot check; ARIA page (aria.mgmresorts.com/en/restaurants/gymkhana.html) blocks fetch"
+  "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/35/Biryani_Home.jpg/1280px-Biryani_Home.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "note": "own site behind Vercel bot check; ARIA page (aria.mgmresorts.com/en/restaurants/gymkhana.html) blocks fetch",
+  "kind": "ref",
+  "credit": "Shyamveer.singh1982 · CC BY-SA 4.0",
+  "credit_url": "https://commons.wikimedia.org/wiki/File:Biryani_Home.jpg"
  },
  {
   "i": 39,
   "n": "Kame Omakase",
   "home": "https://sushikame.com/",
   "img": "https://sushikame.com/wp-content/uploads/2024/11/0W7A1019-2-1.jpg",
-  "note": "from official gallery page (home has video only)"
+  "note": "from official gallery page (home has video only)",
+  "kind": "official"
  },
  {
   "i": 40,
   "n": "Lamaii",
   "home": "https://www.lamaiilv.com/",
   "img": "https://www.lamaiilv.com/assets/hero-exterior.webp",
-  "note": "og:image (exterior)"
+  "note": "og:image (exterior)",
+  "kind": "official"
  },
  {
   "i": 41,
   "n": "Michael Mina",
   "home": "https://theminagroup.com/restaurants/michael-mina/",
   "img": "https://theminagroup.com/wp-content/uploads/2024/02/restaurant-mmlv-thumb.jpg",
-  "note": "Mina Group official page og:image (Bellagio MGM page blocks fetch)"
+  "note": "Mina Group official page og:image (Bellagio MGM page blocks fetch)",
+  "kind": "official"
  },
  {
   "i": 42,
   "n": "Mott 32",
   "home": "https://mott32.com/las-vegas/",
   "img": "https://mott32.com/fileadmin/_processed_/a/3/csm_Mott-32-Las-Vegas-location_20144c4be1.jpg",
-  "note": "og:image"
+  "note": "og:image",
+  "kind": "official"
  },
  {
   "i": 43,
   "n": "Partage",
   "home": "https://partage.vegas/",
   "img": "https://partage.vegas/img/main_area.jpg",
-  "note": "og:image"
+  "note": "og:image",
+  "kind": "official"
  },
  {
   "i": 44,
   "n": "Pho Ga Bac Bac",
   "home": "https://phogabacbac.com/",
   "img": "https://phogabacbac.com/assets/hero-photo.jpg",
-  "note": "og:image"
+  "note": "og:image",
+  "kind": "official"
  },
  {
   "i": 45,
   "n": "Ping Pang Pong",
   "home": "https://goldcoast.boydgaming.com/dining/ping-pang-pong",
-  "img": null,
-  "note": "Gold Coast page behind Incapsula bot check; image not retrievable"
+  "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f6/Dim_Sum_Breakfast.jpg/1280px-Dim_Sum_Breakfast.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "note": "Gold Coast page behind Incapsula bot check; image not retrievable",
+  "kind": "ref",
+  "credit": "afterdog · CC0",
+  "credit_url": "https://commons.wikimedia.org/wiki/File:Dim_Sum_Breakfast.jpg"
  },
  {
   "i": 46,
   "n": "SoulBelly BBQ",
   "home": "https://soulbellybbq.com/",
   "img": "https://soulbellybbq.com/og.png",
-  "note": "og:image"
+  "note": "og:image",
+  "kind": "official"
  },
  {
   "i": 47,
   "n": "Stubborn Seed",
   "home": "https://www.rwlasvegas.com/dining/stubborn-seed/",
   "img": "https://www.rwlasvegas.com/wp-content/uploads/2021/01/FNB-01817-Stubborn-Seed_ModAmCuisine_1000x1000.jpg",
-  "note": "Resorts World page og:image"
+  "note": "Resorts World page og:image",
+  "kind": "official"
  },
  {
   "i": 48,
   "n": "Wing Lei",
   "home": "https://www.wynnlasvegas.com/dining/fine-dining/wing-lei",
   "img": "https://cdn.wynnresorts.com/image/upload/f_auto/q_auto/v1611606669/Wynn%20Las%20Vegas/Dining/Special%20Events/Valentines%20Day/Valentines%20Day-Wing_Lei-828x466.png",
-  "note": "Wynn og:image"
+  "note": "Wynn og:image",
+  "kind": "official"
  },
  {
   "i": 49,
   "n": "Nicco's Prime Cuts & Fresh Fish",
   "home": "https://durangoresort.com/eat-and-drink/niccos/",
   "img": "https://durangoresort.com/wp-content/uploads/2023/12/Niccos-Exterior.jpg",
-  "note": "Durango og:image (exterior)"
+  "note": "Durango og:image (exterior)",
+  "kind": "official"
  },
  {
   "i": 50,
   "n": "Harlo",
   "home": "https://www.harlosteak.com/",
   "img": "https://images.getbento.com/accounts/7e2948b60e68736c9495d2fed58c0350/media/images/11992harlo.interior.final.jpg?w=1200&fit=crop&auto=compress,format&cs=origin&crop=focalpoint&fp-x=0.5&fp-y=0.5",
-  "note": "og:image is logo; used hero interior img"
+  "note": "og:image is logo; used hero interior img",
+  "kind": "official"
  },
  {
   "i": 51,
   "n": "Echo & Rig",
   "home": "https://www.echoandrig.com/",
-  "img": null,
-  "note": "og:image is logo; used page image"
+  "img": "https://images.squarespace-cdn.com/content/v1/62ccca18424c3120f98944aa/97bea066-8bca-45bb-86f4-82b31167be39/Welcome+to+Echo+and+Rig+Las+Vegas%2C+Henderson+and+Sacramento+Steakhouse+Cocktails+and+Butcher+Shop.png?format=2500w",
+  "note": "og:image is logo; used page image",
+  "kind": "official"
  },
  {
   "i": 52,
   "n": "Spago",
   "home": "https://wolfgangpuck.com/restaurants/spago-las-vegas/",
   "img": "https://wolfgangpuck.com/wp-content/uploads/2026/07/SpagoLV2949.jpg",
-  "note": "Wolfgang Puck official page og:image (Bellagio MGM page blocks bots)"
+  "note": "Wolfgang Puck official page og:image (Bellagio MGM page blocks bots)",
+  "kind": "official"
  },
  {
   "i": 53,
   "n": "é by José Andrés",
   "home": "https://www.ebyjoseandres.com/",
   "img": "https://www.ebyjoseandres.com/images/e-by-jose-andres-01.jpg",
-  "note": "own site, no og:image; first gallery img"
+  "note": "own site, no og:image; first gallery img",
+  "kind": "official"
  },
  {
   "i": 54,
   "n": "Morimoto Las Vegas",
   "home": null,
-  "img": null,
-  "note": "MGM Grand site blocks automated fetch; morimotolasvegas.com is a parked domain"
+  "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/40/Teppanyaki_christmas_eve_%288372196035%29.jpg/1280px-Teppanyaki_christmas_eve_%288372196035%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "note": "MGM Grand site blocks automated fetch; morimotolasvegas.com is a parked domain",
+  "kind": "ref",
+  "credit": "Fredrik Rubensson from Stockholm, Sweden · CC BY-SA 2.0",
+  "credit_url": "https://commons.wikimedia.org/wiki/File:Teppanyaki_christmas_eve_(8372196035).jpg"
  },
  {
   "i": 55,
   "n": "Red Plate",
   "home": "https://cosmopolitanlasvegas.mgmresorts.com/en/restaurants/red-plate.html",
-  "img": null,
-  "note": "home from cosmopolitanlasvegas.com redirect; MGM page blocks bots, no image"
+  "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/df/Traditional_Peking_Duck_Restaurant.jpg/1280px-Traditional_Peking_Duck_Restaurant.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "note": "home from cosmopolitanlasvegas.com redirect; MGM page blocks bots, no image",
+  "kind": "ref",
+  "credit": "Luca Gamberini · CC BY-SA 4.0",
+  "credit_url": "https://commons.wikimedia.org/wiki/File:Traditional_Peking_Duck_Restaurant.jpg"
  },
  {
   "i": 56,
   "n": "Hakkasan",
   "home": "https://taogroup.com/venues/hakkasan-las-vegas/",
   "img": "https://taogroup.com/wp-content/uploads/2024/09/210700_JoeJanet_HKLV_2S3A0052_MainDining-LowRes.jpg",
-  "note": "hakkasan.com redirects to TAO Group official page; og:image"
+  "note": "hakkasan.com redirects to TAO Group official page; og:image",
+  "kind": "official"
  },
  {
   "i": 57,
   "n": "The Henry",
   "home": "https://cosmopolitanlasvegas.mgmresorts.com/en/restaurants/the-henry.html",
-  "img": null,
-  "note": "home from redirect; MGM page blocks bots"
+  "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6f/Eggs_Benedict-01-cropped.jpg/1280px-Eggs_Benedict-01-cropped.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "note": "home from redirect; MGM page blocks bots",
+  "kind": "ref",
+  "credit": "Jon Mountjoy · CC BY 2.0",
+  "credit_url": "https://commons.wikimedia.org/wiki/File:Eggs_Benedict-01-cropped.jpg"
  },
  {
   "i": 58,
   "n": "Salt & Ivy",
   "home": null,
-  "img": null,
-  "note": "only on ARIA MGM site, which blocks automated fetch"
+  "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4a/Avocado_toast.jpg/1280px-Avocado_toast.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "note": "only on ARIA MGM site, which blocks automated fetch",
+  "kind": "ref",
+  "credit": "Pequeño mar · CC BY-SA 4.0",
+  "credit_url": "https://commons.wikimedia.org/wiki/File:Avocado_toast.jpg"
  },
  {
   "i": 59,
   "n": "Lago",
   "home": null,
-  "img": null,
-  "note": "only on Bellagio MGM site, which blocks automated fetch"
+  "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f1/Burrata2.jpg/1280px-Burrata2.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "note": "only on Bellagio MGM site, which blocks automated fetch",
+  "kind": "ref",
+  "credit": "Popo le Chien · CC0",
+  "credit_url": "https://commons.wikimedia.org/wiki/File:Burrata2.jpg"
  },
  {
   "i": 60,
   "n": "Wicked Spoon",
   "home": "https://cosmopolitanlasvegas.mgmresorts.com/en/restaurants/wicked-spoon.html",
-  "img": null,
-  "note": "home from redirect; MGM page blocks bots"
+  "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/18/Avocado_toast_at_the_girl_%26_the_fig_-_Sarah_Stierch.jpg/1280px-Avocado_toast_at_the_girl_%26_the_fig_-_Sarah_Stierch.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "note": "home from redirect; MGM page blocks bots",
+  "kind": "ref",
+  "credit": "Sarah Stierch · CC BY 4.0",
+  "credit_url": "https://commons.wikimedia.org/wiki/File:Avocado_toast_at_the_girl_%26_the_fig_-_Sarah_Stierch.jpg"
  },
  {
   "i": 61,
   "n": "In-N-Out Burger",
   "home": "https://www.in-n-out.com/",
-  "img": null,
-  "note": "JS-rendered site, no og:image/img in HTML"
+  "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ec/In-n-Out_Burger_-_Wendy_Berry.jpg/1280px-In-n-Out_Burger_-_Wendy_Berry.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+  "note": "JS-rendered site, no og:image/img in HTML",
+  "kind": "commons",
+  "credit": "Wendy Berry · CC BY 2.0",
+  "credit_url": "https://commons.wikimedia.org/wiki/File:In-n-Out_Burger_-_Wendy_Berry.jpg"
  },
  {
   "i": 62,
   "n": "Black Tap",
   "home": "https://blacktap.com/",
   "img": "https://blacktap.com/wp-content/uploads/2019/06/Black-Tap-All-American-Burger-w-Beer-e1560782990580-1400x700.jpg",
-  "note": "no og:image; homepage food img (LV location page 404/504)"
+  "note": "no og:image; homepage food img (LV location page 404/504)",
+  "kind": "official"
  },
  {
   "i": 63,
   "n": "Hello Kitty Cafe",
   "home": "https://www.sanrio.com/blogs/hellokittycafe",
   "img": "https://www.sanrio.com/cdn/shop/articles/HKC-Vegas-Flat_3aa43c98-8575-4207-86bf-9037f158dd90_600x.jpg?v=1790033223",
-  "note": "hellokittycafe.com redirects to Sanrio; og:image (http->https)"
+  "note": "hellokittycafe.com redirects to Sanrio; og:image (http->https)",
+  "kind": "official"
  },
  {
   "i": 64,
   "n": "Toasted Gastrobrunch",
   "home": "https://toastedgastrobrunch.com/",
-  "img": null,
-  "note": "og:image"
+  "img": "https://toastedgastrobrunch.com/wp-content/uploads/2026/09/Salmon-Toast-1-768x432.webp",
+  "note": "og:image",
+  "kind": "official"
  },
  {
   "i": 65,
   "n": "Mr. Mamas Breakfast & Lunch",
   "home": "https://mrmamaslv.com/",
-  "img": null,
-  "note": "og:image (SpotHopper site CDN)"
+  "img": "https://static.spotapps.co/spots/71/b4f589d4114e938444c62d2e09a67f/full",
+  "note": "og:image (SpotHopper site CDN)",
+  "kind": "official"
  },
  {
   "i": 66,
   "n": "Terrace Pointe Café",
   "home": "https://www.wynnlasvegas.com/dining/casual-dining/terrace-pointe-cafe",
   "img": "https://cdn.wynnresorts.com/image/upload/f_auto/q_auto/v1603732589/Wynn%20Las%20Vegas/Dining/Casual%20Dining/Terrace%20Pointe%20Cafe/Terrace_Point_Cafe-Outdoor_Dining-828x466.jpg",
-  "note": "Wynn og:image"
+  "note": "Wynn og:image",
+  "kind": "official"
  },
  {
   "i": 67,
   "n": "Hash House A Go Go",
   "home": "https://www.hashhouseagogo.com/",
   "img": "https://www.hashhouseagogo.com/app/uploads/2018/03/hh-home-brunch-800x528.jpg",
-  "note": "no og:image; homepage hero img"
+  "note": "no og:image; homepage hero img",
+  "kind": "official"
  },
  {
   "i": 68,
   "n": "Marché Bacchus",
   "home": "https://marchebacchus.com/",
   "img": "https://cdn.durable.co/blocks/cyJTgqMmbgdnoDWBe5S6KaIcxSCLeGVgFLlp8FDbsWoYiaqf87YQa4JW9AfGhoQ5.jpg",
-  "note": "homepage img (Durable CDN); og:image is a services png"
+  "note": "homepage img (Durable CDN); og:image is a services png",
+  "kind": "official"
  }
 ]

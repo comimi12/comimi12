@@ -91,7 +91,8 @@ select.pill.on{background-image:linear-gradient(45deg,transparent 50%,var(--bg) 
 .th .em{filter:drop-shadow(0 2px 4px rgba(0,0,0,.2))}
 .th img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:var(--soft)}
 .rk{z-index:2}
-.credit{position:absolute;right:8px;bottom:8px;z-index:2;font-size:10px;color:#fff;background:rgba(0,0,0,.45);padding:2px 6px;border-radius:4px}
+.refb{position:absolute;left:6px;bottom:6px;z-index:2;font-size:10px;font-weight:700;color:#fff;background:rgba(0,0,0,.5);padding:2px 6px;border-radius:4px}
+.credit{text-decoration:none;max-width:calc(100% - 16px);position:absolute;right:8px;bottom:8px;z-index:2;font-size:10px;color:#fff;background:rgba(0,0,0,.45);padding:2px 6px;border-radius:4px}
 .cc .th{height:110px;font-size:42px}
 .rk{position:absolute;left:0;top:0;background:rgba(0,0,0,.55);color:#fff;font:900 13px/1 "Noto Sans KR";padding:6px 8px;border-bottom-right-radius:10px}
 .cc .nm{font-weight:700;font-size:14px;margin-top:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -276,7 +277,7 @@ footer a{color:var(--sub)}
 <script>
 /*__DATA__*/
 /*__META__*/
-R.forEach(r=>{const m=META[r.n]; if(m){r.home=m.home||null; r.img=m.img||null;}});
+R.forEach(r=>{const m=META[r.n]; if(m){r.home=m.home||null; r.img=m.img||null; r.kind=m.kind||null; r.credit=m.credit||""; r.cu=m.credit_url||"";}});
 
 const EMO = {cn:"🥟",jp:"🍣",kr:"🥩",sea:"🍜",eu:"🍝",us:"🍔",bbq:"🍖",mx:"🌮",br:"🥞"};
 const CAT_SHORT = {cn:"중식",jp:"일식",kr:"한식",sea:"태국·베트남",eu:"유럽·인도",us:"아메리칸",bbq:"BBQ",mx:"멕시칸",br:"브런치"};
@@ -302,7 +303,7 @@ const mobile = ()=>matchMedia("(max-width:900px)").matches;
 const priceTxt = p=>"$".repeat(p);
 const thumb = (r,cls="",extra="")=>{
   const c=CATS[r.c].c;
-  return `<div class="th ${cls} ${r.img?"":"noimg"}" style="background:linear-gradient(140deg,${c} 0%,${c}b3 60%,${c}80 100%)">${extra}<span class="em">${EMO[r.c]}</span>${r.img?`<img src="${r.img}" alt="${r.n}" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`:""}</div>`;
+  return `<div class="th ${cls} ${r.img?"":"noimg"}" style="background:linear-gradient(140deg,${c} 0%,${c}b3 60%,${c}80 100%)">${extra}<span class="em">${EMO[r.c]}</span>${r.kind==="ref"&&cls!=="hero"?`<span class="refb">참고 이미지</span>`:""}${r.img?`<img src="${r.img}" alt="${r.n}" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`:""}</div>`;
 };
 const rating = r=>`<div class="rt"><i>★</i>${r.y.toFixed(1)}<em>Yelp</em></div>`;
 const badges = r=>{
@@ -523,7 +524,7 @@ function openDetail(id,keep){
   $("#sheet").innerHTML = `
   <div class="sh-top"><button type="button" id="shClose" aria-label="닫기">←</button><button type="button" id="shSave" class="${isSaved(r)?"on":""}" aria-label="저장">${isSaved(r)?"♥":"♡"}</button></div>
   <div class="sh-scroll">
-    ${thumb(r,"hero",r.img?`<span class="credit">사진: 매장 공식 홈페이지</span>`:"")}
+    ${thumb(r,"hero",creditHTML(r))}
     <div class="sh-body">
       <div class="cl" style="color:${c};font-weight:700">${CATS[r.c].n} <span style="color:var(--muted);font-weight:400">· ${r.a}</span></div>
       <h2>${r.n}</h2>
@@ -569,6 +570,12 @@ function openDetail(id,keep){
     if(!mobile()) map.flyTo(r.ll,Math.max(map.getZoom(),15),{duration:.6});
     else if(st.view==="map") map.panTo(r.ll);
   }
+}
+function creditHTML(r){
+  if(!r.img) return "";
+  if(r.kind==="ref") return `<a class="credit" href="${r.cu}" target="_blank" rel="noopener">메뉴 참고 이미지 · 실제 매장 사진 아님 · ${r.credit}</a>`;
+  if(r.kind==="commons") return `<a class="credit" href="${r.cu}" target="_blank" rel="noopener">사진: ${r.credit} (Wikimedia Commons)</a>`;
+  return `<span class="credit">사진: 매장 공식 홈페이지</span>`;
 }
 function closeDetail(){
   $("#sheet").classList.remove("open"); $("#sheet").setAttribute("aria-hidden","true");

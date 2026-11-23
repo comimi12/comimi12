@@ -21,11 +21,14 @@
 - 대표 이미지 없는 매장은 카테고리 색 + 이모지 썸네일
 - Leaflet 지도는 모바일에서 처음에 숨겨진 상태로 생성되므로 `#map`의 `position:fixed!important` 필요(Leaflet가 position:relative를 인라인으로 넣음)
 
-## 대표 이미지 (2026-11-22)
-- `build/images.json`: 매장별 공식 홈페이지(home)·대표 이미지(img) URL. 69곳 중 홈페이지 55곳, 이미지 40곳
-- 이미지는 공식 홈페이지의 og:image 또는 대표 사진을 **원본 주소로 불러옴(핫링크)** — 파일 복사 안 함. 불러오기 실패 시 이모지 썸네일로 자동 대체
-- 로고·배너라서 뺀 곳: 888 Japanese BBQ, Shang Artisan Noodle, Sparrow + Wolf, Xiao Long Dumplings(403), Yui, Echo & Rig, Toasted, Mr. Mamas
-- 미확보: MGM 계열(Morimoto·Red Plate·The Henry·Salt & Ivy·Lago·Wicked Spoon) 봇 차단, 공식 사이트 없음/폐쇄 등
+## 대표 이미지 (2026-11-22 · 69/69)
+- `build/images.json`: 매장별 home·img·kind·credit·credit_url
+- kind=official (47곳): 매장 공식 홈페이지 사진 핫링크 — "사진: 매장 공식 홈페이지" 표기. Monta는 운영사(Mon Restaurant Group) 사이트 사진
+- kind=commons (3곳): Pho Kim Long·Raku·In-N-Out — Wikimedia Commons 실제 매장 사진, 작성자·라이선스 표기(CC BY/BY-SA)
+- kind=ref (19곳): 매장 사진을 구할 수 없어 **시그니처 메뉴 참고 이미지**(Commons 자유 라이선스) 사용 — 카드에 "참고 이미지" 배지, 상세에 "실제 매장 사진 아님 · 작성자 · 라이선스" 링크
+  - 대상: China Mama, Big Dan, Sushi Neko, Ramen Boys, Xiao Long Dumplings, Magic Noodle, Yui, Chengdu Taste, Shanghai Taste, John Mull's, Bob Taylor's, Gymkhana, Ping Pang Pong, Morimoto, Red Plate, The Henry, Salt & Ivy, Lago, Wicked Spoon
+  - 사유: 공식 사이트 없음/폐쇄, 또는 MGM·Gold Coast·Gymkhana·Yui 사이트 봇 차단(우회하지 않음)
+- 불러오기 실패 시 이모지 썸네일로 자동 대체
 
 ## 빌드·배포
 - `python build/build.py` → index.html 생성
