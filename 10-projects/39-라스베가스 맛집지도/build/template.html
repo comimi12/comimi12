@@ -146,6 +146,9 @@ footer a{color:var(--sub)}
 .sh-top{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;padding:12px;z-index:2}
 .sh-top button{width:36px;height:36px;border-radius:50%;border:0;background:rgba(0,0,0,.35);color:#fff;font-size:17px;backdrop-filter:blur(4px)}
 .sh-top button.on{color:#ffb38f}
+.sheet.solid .sh-top{background:var(--bg);border-bottom:1px solid var(--line)}
+.sheet.solid .sh-top button{background:var(--soft);color:var(--ink)}
+.sheet.solid .sh-top button.on{color:var(--accent)}
 .sh-scroll{overflow-y:auto;flex:1}
 .hero{height:260px;font-size:84px;border-radius:0}
 .sh-body{padding:18px 18px 8px}
@@ -170,6 +173,7 @@ footer a{color:var(--sub)}
 .cta .o{border:1px solid var(--line);color:var(--ink)}
 .cta .f{background:var(--accent);color:#fff;flex:1.4}
 .dim{display:none}
+.mini,.mini-btn{display:none}
 
 /* ── 모바일 지도 캐러셀 · 탭바 */
 .mcar,.tabbar{display:none}
@@ -197,6 +201,26 @@ footer a{color:var(--sub)}
   .sheet.open{transform:none}
   .dim{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1900;opacity:0;pointer-events:none;transition:opacity .2s}
   .dim.open{opacity:1;pointer-events:auto}
+  /* 스마트폰: 레스토랑 카드 중심 (큰 사진 카드형) */
+  .brand small{display:none}
+  .top{padding:10px 16px 8px}
+  .search{margin-top:10px;height:42px}
+  .cat{width:58px}.cat .ic{width:46px;height:46px;border-radius:16px;font-size:22px}
+  .banner{margin:14px 16px 2px;padding:14px 14px}
+  .banner h2{font-size:16px}.banner .stats b{font-size:15px}
+  .list-h{top:106px}
+  .item{flex-direction:column;gap:10px;padding:14px 16px 18px}
+  .item:hover{background:none}
+  .item .th{width:100%;height:auto;aspect-ratio:16/9;border-radius:14px;font-size:54px}
+  .item .th.noimg{aspect-ratio:auto;height:84px;font-size:38px}
+  .item .body{padding-right:0}
+  .item .nm{font-size:17px}
+  .heart{top:22px;right:24px;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,.38);color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;padding:0}
+  .heart.on{color:#ffb38f}
+  .item .sg{white-space:normal}
+  .mini{display:block;height:170px;border-radius:12px;overflow:hidden;margin-top:12px;background:var(--soft)}
+  .mini-btn{display:block;width:100%;margin-top:8px;height:42px;border-radius:10px;border:1px solid var(--line);background:var(--panel);font-size:13.5px;font-weight:700}
+  .hero{height:220px}
 }
 </style>
 </head>
@@ -278,7 +302,7 @@ const mobile = ()=>matchMedia("(max-width:900px)").matches;
 const priceTxt = p=>"$".repeat(p);
 const thumb = (r,cls="",extra="")=>{
   const c=CATS[r.c].c;
-  return `<div class="th ${cls}" style="background:linear-gradient(140deg,${c} 0%,${c}b3 60%,${c}80 100%)">${extra}<span class="em">${EMO[r.c]}</span>${r.img?`<img src="${r.img}" alt="${r.n}" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`:""}</div>`;
+  return `<div class="th ${cls} ${r.img?"":"noimg"}" style="background:linear-gradient(140deg,${c} 0%,${c}b3 60%,${c}80 100%)">${extra}<span class="em">${EMO[r.c]}</span>${r.img?`<img src="${r.img}" alt="${r.n}" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`:""}</div>`;
 };
 const rating = r=>`<div class="rt"><i>★</i>${r.y.toFixed(1)}<em>Yelp</em></div>`;
 const badges = r=>{
@@ -491,8 +515,10 @@ $("#mcar").addEventListener("scroll",()=>{
 });
 
 // ── 매장 상세 시트
+let miniMap=null;
 function openDetail(id,keep){
   const r=R[id]; highlight(id);
+  if(miniMap){ try{miniMap.remove();}catch(e){} miniMap=null; }
   const c=CATS[r.c].c;
   $("#sheet").innerHTML = `
   <div class="sh-top"><button type="button" id="shClose" aria-label="닫기">←</button><button type="button" id="shSave" class="${isSaved(r)?"on":""}" aria-label="저장">${isSaved(r)?"♥":"♡"}</button></div>
@@ -510,6 +536,7 @@ function openDetail(id,keep){
       <div class="row"><span class="k">주소</span><span>${r.l}${r.ap?' <span class="bd ap">◆ 좌표 근사</span>':''}</span></div>
       <div class="row"><span class="k">영업시간</span><span>${r.h}</span></div>
       <div class="row"><span class="k">지역</span><span>${r.a}</span></div>
+      <div class="mini" id="mini"></div><button class="mini-btn" id="miniBtn" type="button">🗺️ 큰 지도에서 주변 맛집 보기</button>
       ${r.home?`<div class="row"><span class="k">홈페이지</span><a href="${r.home}" target="_blank" rel="noopener" style="color:var(--accent);word-break:break-all">${r.home.replace(/^https?:\/\/(www\.)?/,"").replace(/\/$/,"")}</a></div>`:""}
     </div>
     <div class="sh-sec srcs"><h4>추천 출처</h4>${r.src.map(s=>`<a href="${SRC[s].u}" target="_blank" rel="noopener">📷 ${SRC[s].n}</a>`).join("")}
@@ -519,7 +546,24 @@ function openDetail(id,keep){
   $("#sheet").classList.add("open"); $("#sheet").setAttribute("aria-hidden","false");
   $("#dim").classList.add("open");
   $("#shClose").onclick=closeDetail;
+  $("#sheet").classList.remove("solid");
+  $(".sh-scroll").onscroll=e=>$("#sheet").classList.toggle("solid",e.target.scrollTop>150);
   $("#shSave").onclick=()=>toggleSave(r);
+  if(mobile()){
+    // 모바일: 상세 안에 작은 위치 지도 (조작 불가, 위치 확인용)
+    setTimeout(()=>{
+      if(!document.getElementById("mini")) return;
+      $("#mini").classList.toggle("darkmap",isDark());
+      miniMap=L.map("mini",{zoomControl:false,attributionControl:false,dragging:false,scrollWheelZoom:false,doubleClickZoom:false,touchZoom:false,boxZoom:false,keyboard:false,tap:false}).setView(r.ll,15);
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,className:"basetiles"}).addTo(miniMap);
+      L.marker(r.ll,{icon:pinIcon(r,true),interactive:false}).addTo(miniMap);
+    },280);
+    $("#miniBtn").onclick=()=>{
+      closeDetail(); st.view="map"; render();
+      setTimeout(()=>{ map.invalidateSize({pan:false}); map.setView(r.ll,15); highlight(r.id);
+        const c=document.querySelector(`.mc[data-id="${r.id}"]`); if(c) c.scrollIntoView({inline:"center",block:"nearest"}); },150);
+    };
+  }
   if(!keep){
     $(".sh-scroll").scrollTop=0;
     if(!mobile()) map.flyTo(r.ll,Math.max(map.getZoom(),15),{duration:.6});
