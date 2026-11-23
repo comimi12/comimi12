@@ -14,7 +14,7 @@
   - 261119_상림숯집_기물리스트.xlsx                   — 기물 사진(셀 이미지)·용도
   - 261119_상림숯집_유니폼.png
   - 어온가 목업 좌석배치도_메뉴_A4 조수호 1118.pptx    — 플로어플랜(2안 도면)
-  - 메뉴사진\\ — 시식회 촬영본. 사진 속 명패에 '원가율'이 찍혀 있어서 명패가 안 보이게 잘라 쓴다(PHOTO_CROP).
+  - 메뉴사진\\ — 시식회 촬영본. 누끼(그릇 + 음식)를 따서 흰 바탕에 합성(CUT — birefnet 마스크 + 접시 타원).
   - 상림숯집_01~03.jpg — 브랜드 키 비주얼
 """
 import io, os, sys, json
@@ -73,38 +73,140 @@ def ware_pic(row, name, idx=0):
     return save_jpg(pic, P_("ware-%s.jpg" % name), maxside=600)[0]
 
 
-# ── 메뉴 사진 — 명패(원가율 표기)가 안 보이게 자른다. box=(x0, y0, x1, y1) 비율 ──
+# ── 메뉴 사진 — 누끼(그릇 + 음식만) + 흰 바탕 ─────────────────────────
+# 사용자 지시(2026-11-22): "배경 하얀색, 그릇과 음식만 깔끔하게". (내부 교육자료라 명패 원가율은 무관하다고 함 —
+# 명패는 누끼에서 빠지고, 접시와 겹치는 명패는 DROP으로 지운다.)
+# 방법: birefnet-general 마스크(음식·뚝배기는 깨끗, 쟁반·테이블 제거) ∪ PLATES 타원(birefnet이 접시를 지우는 사진)
+#       − DROP 사각형(명패) → 가장 큰 덩어리(+큰 덩어리) → 흰 바탕 4:3 캔버스 가운데.
+# 좌표는 모두 원본 사진 대비 비율. 타원 = (cx, cy, rx, ry).
 K = "KakaoTalk_20261119_032956046%s.jpg"
 L = "KakaoTalk_20261119_232801539%s"
-PHOTO_CROP = {
-    "단새우 한우 육회": (K % "", (0.06, 0.0, 0.655, 1.0)),
-    "소꼬리 무침": (K % "_01", (0.06, 0.0, 0.645, 1.0)),
-    "상림 온반": (K % "_02", (0.12, 0.0, 0.67, 1.0)),
-    "김퓨레 명란 계란찜": (K % "_03", (0.02, 0.0, 0.59, 1.0)),
-    "상황버섯 갈비탕": (K % "_04", (0.07, 0.0, 0.66, 1.0)),
-    "얼큰 차돌 양지탕": (K % "_05", (0.1, 0.0, 0.645, 1.0)),
-    "상림 시그니처 볶음밥 (2인)": (K % "_08", (0.08, 0.0, 0.685, 1.0)),
-    "고추씨 백김치 돼지 찌개": (K % "_09", (0.09, 0.0, 0.665, 1.0)),
-    "얼큰 곱창 뚝배기 라면": (K % "_10", (0.07, 0.0, 0.665, 1.0)),
-    "상림 계절 된장찌개": (K % "_11", (0.1, 0.0, 0.69, 1.0)),
-    "상림 모나카 아이스크림": (K % "_12", (0.08, 0.38, 0.92, 1.0)),
-    "한돈 생갈비": (L % ".jpg", (0.1, 0.0, 0.9, 0.775)),
-    "한돈 차돌 구이": (L % "_01.jpg", (0.05, 0.0, 0.95, 0.77)),
-    "소금 양념 소갈비": (L % "_02.jpg", (0.0, 0.1, 0.74, 1.0)),
-    "간장 양념 소갈비": (L % "_03.jpg", (0.06, 0.06, 0.94, 0.72)),
-    "한돈 양념 목심 本갈비": (L % "_04.jpg", (0.08, 0.0, 0.92, 0.72)),
-    "1++한우 대파 얇은 구이": (L % "_05.jpg", (0.05, 0.0, 0.95, 0.76)),
-    "1++한우 간장 얇은 구이": (L % "_06.jpg", (0.05, 0.0, 0.95, 0.73)),
-    "육회 마늘 솥밥 (2인)": (L % "_07.png", (0.0, 0.0, 1.0, 0.76)),
-    "흑후추 게구이": ("상림숯집_01.jpg", (0.06, 0.1, 0.9, 0.72)),
+CUT = {
+    "단새우 한우 육회": (K % "", [(0.425, 0.415, 0.222, 0.292)], []),
+    "소꼬리 무침": (K % "_01", [(0.39, 0.41, 0.24, 0.276)], []),
+    "상림 온반": (K % "_02", [], []),
+    "김퓨레 명란 계란찜": (K % "_03", [], []),
+    "상황버섯 갈비탕": (K % "_04", [], []),
+    "얼큰 차돌 양지탕": (K % "_05", [], []),
+    "상림 시그니처 볶음밥 (2인)": (K % "_08", [], []),
+    "고추씨 백김치 돼지 찌개": (K % "_09", [], []),
+    "얼큰 곱창 뚝배기 라면": (K % "_10", [], []),
+    "상림 계절 된장찌개": (K % "_11", [], []),
+    "상림 모나카 아이스크림": (K % "_12", [(0.35, 0.542, 0.127, 0.184), (0.67, 0.527, 0.127, 0.188)],
+                         [(0.29, 0.13, 0.45, 0.345), (0.56, 0.12, 0.75, 0.345)]),
+    "한돈 생갈비": (L % ".jpg", [(0.525, 0.445, 0.332, 0.342)], [(0.55, 0.78, 0.77, 1.0)]),
+    "한돈 차돌 구이": (L % "_01.jpg", [(0.49, 0.41, 0.347, 0.318)], [(0.5, 0.76, 0.73, 0.98)]),
+    "소금 양념 소갈비": (L % "_02.jpg", [(0.44, 0.49, 0.348, 0.388)], [(0.73, 0.62, 0.98, 0.84)]),
+    "간장 양념 소갈비": (L % "_03.jpg", [(0.44, 0.505, 0.35, 0.368)], [(0.69, 0.74, 0.94, 0.94)]),
+    "한돈 양념 목심 本갈비": (L % "_04.jpg", [(0.48, 0.48, 0.338, 0.328)], [(0.71, 0.68, 0.94, 0.92)]),
+    "1++한우 대파 얇은 구이": (L % "_05.jpg", [(0.44, 0.48, 0.343, 0.383)], [(0.6, 0.78, 0.8, 1.0)]),
+    "1++한우 간장 얇은 구이": (L % "_06.jpg", [(0.48, 0.44, 0.358, 0.378)], [(0.69, 0.76, 0.92, 0.97)]),
+    "육회 마늘 솥밥 (2인)": (L % "_07.png", [(0.73, 0.58, 0.228, 0.288)], [(0.42, 0.76, 0.6, 0.94)]),
+    "흑후추 게구이": ("상림숯집_01.jpg", [(0.455, 0.488, 0.298, 0.333)], [(0.66, 0.7, 0.92, 0.97)]),
 }
+PHOTO_CROP = CUT   # (예전 이름 — 다른 스크립트 호환)
+CACHE = os.path.join(HERE, "_sanglim_cut")   # birefnet 마스크 캐시 (장당 30초라 재사용, gitignore)
 
 
-def menu_photo(name):
-    fn, (x0, y0, x1, y1) = PHOTO_CROP[name]
-    im = open_img(os.path.join(PHOTO, fn))
+def _mask(name, im):
+    os.makedirs(CACHE, exist_ok=True)
+    p = os.path.join(CACHE, "%02d.png" % list(CUT).index(name))
+    if os.path.exists(p):
+        m = Image.open(p).convert("L")
+        if m.size == im.size:
+            return m
+    os.environ.setdefault("U2NET_HOME", os.path.expanduser("~/.rembg/models"))
+    from rembg import remove, new_session
+    global _sess
+    if "_sess" not in globals():
+        _sess = new_session("birefnet-general")
+    m = remove(im, session=_sess, only_mask=True).convert("L")
+    m.save(p)
+    return m
+
+
+def _hits(e, x0, y0, x1, y1, W, H):
+    return e[int(y0 * H):int(y1 * H), int(x0 * W):int(x1 * W)].max() > 0.5
+
+
+_lama = None
+
+
+def lama_fill(im, rects):
+    """rects(픽셀 사각형) 자리를 LaMa(~/.lama/lama_fp32.onnx)로 지운다. 사각형 주변을 정사각형으로 잘라 512로 추론."""
+    import numpy as np
+    global _lama
+    if not rects:
+        return im
+    if _lama is None:
+        import onnxruntime as ort
+        _lama = ort.InferenceSession(os.path.expanduser("~/.lama/lama_fp32.onnx"), providers=["CPUExecutionProvider"])
+    im = im.copy()
     W, H = im.size
-    return im.crop((int(x0 * W), int(y0 * H), int(x1 * W), int(y1 * H)))
+    for x0, y0, x1, y1 in rects:
+        side = int(max(x1 - x0, y1 - y0) * 2.2)
+        cx, cy = (x0 + x1) // 2, (y0 + y1) // 2
+        bx0 = max(0, min(W - side, cx - side // 2)) if side < W else 0
+        by0 = max(0, min(H - side, cy - side // 2)) if side < H else 0
+        box = (bx0, by0, min(W, bx0 + side), min(H, by0 + side))
+        patch = im.crop(box)
+        pw, ph = patch.size
+        mk = Image.new("L", (pw, ph), 0)
+        from PIL import ImageDraw
+        ImageDraw.Draw(mk).rectangle((x0 - box[0] - 6, y0 - box[1] - 6, x1 - box[0] + 6, y1 - box[1] + 6), fill=255)
+        a = np.asarray(patch.resize((512, 512), Image.LANCZOS), dtype=np.float32).transpose(2, 0, 1)[None] / 255.0
+        b = (np.asarray(mk.resize((512, 512), Image.NEAREST), dtype=np.float32) > 127).astype(np.float32)[None, None]
+        out = _lama.run(None, {"image": a, "mask": b})[0][0].transpose(1, 2, 0)
+        if out.max() <= 2.0:
+            out = out * 255.0
+        fill = Image.fromarray(np.clip(out, 0, 255).astype("uint8")).resize((pw, ph), Image.LANCZOS)
+        patch.paste(fill, (0, 0), mk)
+        im.paste(patch, box[:2])
+    return im
+
+
+def menu_photo(name, canvas=(1000, 750), pad=0.06):
+    import numpy as np
+    from PIL import ImageDraw, ImageFilter
+    from scipy import ndimage
+    fn, plates, drops = CUT[name]
+    im = open_img(os.path.join(PHOTO, fn))
+    im.thumbnail((1300, 1300), Image.LANCZOS)
+    W, H = im.size
+    m = np.asarray(_mask(name, im), dtype=np.float32) / 255.0
+    e = np.zeros_like(m)
+    if plates:   # 접시 타원 — 4배 크기로 그려 줄여서 테두리를 부드럽게
+        ei = Image.new("L", (W * 4, H * 4), 0)
+        d = ImageDraw.Draw(ei)
+        for cx, cy, rx, ry in plates:
+            d.ellipse(((cx - rx) * W * 4, (cy - ry) * H * 4, (cx + rx) * W * 4, (cy + ry) * H * 4), fill=255)
+        e = np.asarray(ei.resize((W, H), Image.LANCZOS), dtype=np.float32) / 255.0
+        m = np.maximum(m, e)
+    if drops:   # 명패가 접시를 가린 자리는 LaMa로 접시를 되살리고, 그 칸의 마스크는 접시 타원만 남긴다
+        im = lama_fill(im, [(int(x0 * W), int(y0 * H), int(x1 * W), int(y1 * H))
+                            for x0, y0, x1, y1 in drops if _hits(e, x0, y0, x1, y1, W, H)])
+    for x0, y0, x1, y1 in drops:
+        ys, xs = slice(int(y0 * H), int(y1 * H)), slice(int(x0 * W), int(x1 * W))
+        m[ys, xs] = e[ys, xs]
+    # 덩어리 정리 — 가장 큰 덩어리의 8% 미만인 조각(명패·옆 접시 끝·잡티)은 버린다
+    lab, n = ndimage.label(m > 0.5)
+    if n > 1:
+        sizes = ndimage.sum(np.ones_like(m), lab, range(1, n + 1))
+        keep = np.isin(lab, [i + 1 for i, s in enumerate(sizes) if s >= sizes.max() * 0.08])
+        keep = ndimage.binary_dilation(keep, iterations=3)
+        m = m * keep
+    m = np.clip(m, 0, 1)
+    alpha = Image.fromarray((m * 255).astype("uint8")).filter(ImageFilter.GaussianBlur(0.8))
+    ys, xs = np.where(m > 0.5)
+    x0, x1, y0, y1 = xs.min(), xs.max(), ys.min(), ys.max()
+    white = Image.new("RGB", (W, H), (255, 255, 255))
+    cut = Image.composite(im, white, alpha).crop((x0, y0, x1 + 1, y1 + 1))
+    CW, CH = canvas
+    s = min(CW * (1 - 2 * pad) / cut.width, CH * (1 - 2 * pad) / cut.height)
+    cut = cut.resize((max(1, int(cut.width * s)), max(1, int(cut.height * s))), Image.LANCZOS)
+    out = Image.new("RGB", canvas, (255, 255, 255))
+    out.paste(cut, ((CW - cut.width) // 2, (CH - cut.height) // 2))
+    return out
 
 
 # ── 플로어플랜 (좌석배치도 2안 슬라이드의 도면 그림) ─────────────────────
@@ -164,6 +266,12 @@ def build_pages():
     facts = [("매장명", "상림숯집"),
              ("점장님", "조수호 점장님"),
              ("실장님", "김장섭 실장님"),
+             ("영업시간", "11:00 ~ 22:00 (주중 · 주말 동일) / LAST ORDER 21:00 (브레이크 타임 없음)"),
+             ("주차 안내", "건물 내 지하주차장 이용 · 결제 영수증으로 출차 — "
+                          "3만 원 이상 1시간 · 7만 원 이상 2시간 · 15만 원 이상 3시간 무료"),
+             ("화장실 위치", "건물 내 화장실 이용 — ① 차이797 매장에서 오른쪽 골목으로 들어가 엘리베이터 앞 "
+                            "② 가배정이 뒤쪽 피부과 옆"),
+             ("유모차 / 휠체어", "유모차는 대기 공간에 주차 안내 · 휠체어 고객은 통로가 넓은 홀 좌석 우선 배정"),
              ("매장 규모", "25테이블 · 110석"),
              ("룸", "RM.A ~ RM.D (무빙월로 연결 · 단체 이용 가능)")]
     P.append(page(3, "우리 매장 정보", [B(k, [v], kind="meta") for k, v in facts] + [
@@ -359,7 +467,7 @@ def build_menu():
     for i, (chip, name, price, grp, comp, desc, ware, note) in enumerate(ITEMS, 1):
         img = None
         if name in PHOTO_CROP:
-            img, _ = save_jpg(menu_photo(name), P_("m%02d.jpg" % i), maxside=1000, q=84)
+            img, _ = save_jpg(menu_photo(name), P_("m%02d.jpg" % i), maxside=1000, q=88)
         sec = []
         if comp:
             sec.append(dict(en="COMPONENTS", kr="구성 · 중량", lines=[comp]))
@@ -426,6 +534,9 @@ QUIZ = [
     q("점심 특선 ‘상림 참숯 한돈갈비 특선’의 구성은?", "한돈 생갈비 1 + 양념갈비 1 + 솥밥 2 + 된장찌개 1",
       "양념갈비(수입) 2 + 솥밥 2 + 된장찌개 1", "간장 양념 소갈비 1 + 얇은 구이 1 + 솥밥 2",
       "한돈 생갈비 2 + 공기밥 2", ref="상림 참숯 한돈갈비 특선"),
+    q("상림숯집의 라스트 오더(LAST ORDER) 시간은?", "21:00 (브레이크 타임 없음)", "21:30", "20:30",
+      "15:00 브레이크 타임 전"),
+    q("결제 금액 7만 원인 고객의 무료 주차 시간은?", "2시간", "1시간", "3시간", "주차 무료 없음"),
     q("상림숯집의 매장 규모는?", "25테이블 · 110석", "15테이블 · 60석", "40테이블 · 160석", "20테이블 · 80석"),
 ]
 
